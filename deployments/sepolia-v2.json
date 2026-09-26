@@ -24,11 +24,33 @@
     "smoke: outsider setResolver (via security ⊃ sre, two levels up)": "0x69f1d9e0617899357fe6b6ccdde5864e5592055a7d887fd71063acb4d85f3968",
     "smoke: operator setSubregistry (native)": "0x9c3fa106a2114e7db4a50f2c2d72c86f5fcad9afe4f863fcb5d6a67c2032eafc",
     "smoke: dev-team remove outsider": "0x36cf8f52acf8afb8af0a2c9054992b7a254bee973224417c20bf81b71e9a90dd",
-    "smoke: sre remove outsider": "0x1b9f66d718ecdbd063b7fb70c36c5856fb4edf09594d0c48a65e2bc8b91f59c9"
+    "smoke: sre remove outsider": "0x1b9f66d718ecdbd063b7fb70c36c5856fb4edf09594d0c48a65e2bc8b91f59c9",
+    "deploy cascade [deploy 2]": "0x053fa6abaeeb60bad519629a5660866a4a688e1de9d5ca7330dd9bd2cbec10b7",
+    "repoint platform subregistry [deploy 2]": "0x881658dc33e229baa77ea96b2edf2c5c7e84e44c8c5d3323d05e50b5c89177da",
+    "v2 setParent [deploy 2]": "0x3cd29c28845166f81c64041451b32121e3a08cba46f243adee902ec8cb22dc76",
+    "v2 addTeam dev-team [deploy 2]": "0x2de7b532831769aeb7d72ada9f6ec444edd3de47946d8a055a9e5b675c5dfbe6",
+    "v2 addTeam security [deploy 2]": "0xae07c49d758459ff22411f23fff88ccac73f6336a275f8393e57301d3e8c44dd",
+    "v2 setDepth 2 [deploy 2]": "0x331176c51a1db057a37bfb0dfaf1b2a9c8690bd23bc28cdf92e4cdfb40e68e69",
+    "register svc-api [deploy 2]": "0x77d082831671ff6f86d5e2fb115f84297c8b4929af3848c523693a5a3cabff99",
+    "smoke: dev-team remove outsider (clean start) [deploy 2]": "0x9e67a262266b76d144aa838d8332deb5c88514fac9c027513d06c5b44615cd88",
+    "smoke: sre remove outsider (clean start) [deploy 2]": "0x4df5b598a2e72b665415d70c0c39584ecfaf4c0d3eafe52e04ab3bb40733e372",
+    "smoke: dev-team add outsider [deploy 2]": "0xfe8c45e53ddf63d47d367b43771b9a298a9bf1a8671fda7b205a8bf78fd4e27d",
+    "smoke: outsider setSubregistry (via dev-team) [deploy 2]": "0x1fa202f029e51ecc866e7a7e8134861e43f07b1d60bc29cd4fd3ea275da67e1c",
+    "smoke: sre add outsider [deploy 2]": "0x53737b6f8eca181dd4dc9153a6319c5e8995a2c27112af6c5224b9f449422ee7",
+    "smoke: outsider setResolver (via security ⊃ sre, two levels up) [deploy 2]": "0x40ae7391c4805e7ab8eded10767de2d5867b14f3c44ea48768a58a84f6f274ab",
+    "smoke: operator setSubregistry (native) [deploy 2]": "0x841d898cf644e03f169a5cc5b9a154a4cc7d59cc56b7c78b8ab128c9678ffc0a",
+    "smoke: dev-team remove outsider [deploy 2]": "0xedc5ecb7976803d8ccc659b1026ca7b2b1fcd35f5f980d9099c888260bcb9138",
+    "smoke: sre remove outsider [deploy 2]": "0xcc886209b0e01e1d2c6dd7249edf9478003f09cb5155d7d073603ad82f0bfa14"
   },
   "org": "0x35888867cc0c37d54ae0f902611ec4a5b8a73beb",
-  "cascade": "0xa6b159d2e785a6146d9e21a1cc377b781e70a246",
   "devTeam": "0xaa75275e77f89267f28a5bbf2f7f40b920941253",
   "sre": "0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163",
-  "security": "0x179aa1bac7758557defe517330147afd55f54134"
+  "security": "0x179aa1bac7758557defe517330147afd55f54134",
+  "retired": [
+    {
+      "cascade": "0xa6b159d2e785a6146d9e21a1cc377b781e70a246",
+      "at": "2026-09-26T15:38:40.692Z"
+    }
+  ],
+  "cascade": "0x1c361c62e2ea3330790f1d6c17e42b873081ddc8"
 }

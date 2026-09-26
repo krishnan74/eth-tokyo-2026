@@ -4,7 +4,7 @@
 /** Roadmap deployment (CascadeSubregistryV2 on acme-labs.eth). Separate from the v1 demo's contracts. */
 export const SEPOLIA_V2 = {
   "org": "0x35888867cc0c37d54ae0f902611ec4a5b8a73beb",
-  "cascade": "0xa6b159d2e785a6146d9e21a1cc377b781e70a246",
+  "cascade": "0x1c361c62e2ea3330790f1d6c17e42b873081ddc8",
   "devTeam": "0xaa75275e77f89267f28a5bbf2f7f40b920941253",
   "sre": "0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163",
   "security": "0x179aa1bac7758557defe517330147afd55f54134"
