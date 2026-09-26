@@ -16,11 +16,11 @@ export type V2Result = { hash?: `0x${string}`; status?: "success" | "reverted"; 
 
 const FILES_KEY = "ens-drive:v2-files";
 export const V2_TITLES: Record<V2ActionName, string> = {
-  create: "New file in platform", setSubregistry: "Outsider edits the file", setResolver: "Outsider sets the file's resolver",
-  joinDev: "Outsider added to dev-team", leaveDev: "Outsider removed from dev-team", joinSre: "Outsider added to sre (inside security)",
-  leaveSre: "Outsider removed from sre", moveDevToSre: "Outsider moved from dev-team to sre", moveSreToDev: "Outsider moved from sre to dev-team",
+  create: "New file in platform", setSubregistry: "Alex edits the file", setResolver: "Alex sets the file's resolver",
+  joinDev: "Alex added to dev-team", leaveDev: "Alex removed from dev-team", joinSre: "Alex added to sre (inside security)",
+  leaveSre: "Alex removed from sre", moveDevToSre: "Alex moved from dev-team to sre", moveSreToDev: "Alex moved from sre to dev-team",
   depth1: "Sharing stops flowing into subfolders", depth2: "Sharing flows into subfolders again",
-  hijack: "Outsider tries to add an always-yes group", reset: "Start over",
+  hijack: "Alex tries to add an always-yes group", reset: "Start over",
 };
 
 function body(a: V2ActionName, label?: string): object {
@@ -47,8 +47,11 @@ export function callPath(t: TraceState): string | null {
   return calls.map((n) => `${n.contract ? `${n.contract}.` : ""}${n.fn}`).join(" → ");
 }
 
+// Three files from the start (registered by setup:v2), so one change to a team visibly reaches several names.
+const BASE_FILES = ["svc-api", "svc-db", "svc-web"];
+
 export function useV2Demo() {
-  const [files, setFiles] = useState<string[]>(["svc-api"]);
+  const [files, setFiles] = useState<string[]>(BASE_FILES);
   const [target, setTarget] = useState<string | null>("svc-api");
   const [state, setState] = useState<V2State | null>(null);
   const [readError, setReadError] = useState<string>();
@@ -62,7 +65,7 @@ export function useV2Demo() {
   useEffect(() => {
     try {
       const v = JSON.parse(localStorage.getItem(FILES_KEY) ?? "[]");
-      if (Array.isArray(v) && v.length) setFiles(["svc-api", ...v.filter((x: unknown) => typeof x === "string" && x !== "svc-api")]);
+      if (Array.isArray(v) && v.length) setFiles([...BASE_FILES, ...v.filter((x: unknown) => typeof x === "string" && !BASE_FILES.includes(x as string))]);
     } catch { /* per-viewer convenience only */ }
   }, []);
 
@@ -107,7 +110,7 @@ export function useV2Demo() {
         const next = [...files.filter((f) => f !== res.label), res.label];
         setFiles(next);
         setTarget(res.label);
-        try { localStorage.setItem(FILES_KEY, JSON.stringify(next.filter((f) => f !== "svc-api"))); } catch { /* ignore */ }
+        try { localStorage.setItem(FILES_KEY, JSON.stringify(next.filter((f) => !BASE_FILES.includes(f)))); } catch { /* ignore */ }
       }
       if (res.hash) {
         const hash = res.hash;

@@ -41,7 +41,9 @@
     "smoke: operator setSubregistry (native) [deploy 2]": "0x841d898cf644e03f169a5cc5b9a154a4cc7d59cc56b7c78b8ab128c9678ffc0a",
     "smoke: dev-team remove outsider [deploy 2]": "0xedc5ecb7976803d8ccc659b1026ca7b2b1fcd35f5f980d9099c888260bcb9138",
     "smoke: sre remove outsider [deploy 2]": "0xcc886209b0e01e1d2c6dd7249edf9478003f09cb5155d7d073603ad82f0bfa14",
-    "grant security on acme-labs.eth [deploy 2]": "0xa20e8a8fb360471e72731b6294f89385eb4494bc59998db9bb3eb024a15d425a"
+    "grant security on acme-labs.eth [deploy 2]": "0xa20e8a8fb360471e72731b6294f89385eb4494bc59998db9bb3eb024a15d425a",
+    "register svc-db [deploy 2]": "0xdb4c590316b61dd4294ccbe9ae7c03636cc060ab17371b2fd0df870f0974d9ee",
+    "register svc-web [deploy 2]": "0x950147b6c7800e530431e2147698ca55bdb991441fc280331e495fcaa5a2993d"
   },
   "org": "0x35888867cc0c37d54ae0f902611ec4a5b8a73beb",
   "devTeam": "0xaa75275e77f89267f28a5bbf2f7f40b920941253",

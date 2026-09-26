@@ -28,13 +28,13 @@ type Props = {
 };
 
 const STEPS: { action: V2ActionName; text: string; expect?: "success" | "reverted" }[] = [
-  { action: "setSubregistry", text: "You're the outsider — every click is a real transaction. Try to edit svc-api: nobody has shared anything with you.", expect: "reverted" },
-  { action: "joinDev", text: "Drag the outsider into dev-team — the platform folder is shared with it." },
-  { action: "setSubregistry", text: "Edit again.", expect: "success" },
-  { action: "moveDevToSre", text: "Drag the outsider from dev-team into sre — a team inside security. acme-labs.eth, the folder above, is shared with security." },
-  { action: "setSubregistry", text: "Edit again — sharing on the parent folder flows down.", expect: "success" },
+  { action: "setSubregistry", text: "You're the team lead. Alex just joined the company — every click is a real transaction. First, Alex tries to edit svc-api: nobody has shared anything with them.", expect: "reverted" },
+  { action: "joinDev", text: "Drag Alex into dev-team — platform is shared with it. Watch all three files." },
+  { action: "setSubregistry", text: "Alex edits svc-api again.", expect: "success" },
+  { action: "moveDevToSre", text: "Move Alex from dev-team into sre — a team inside security. acme-labs.eth, the folder above, is shared with security." },
+  { action: "setSubregistry", text: "Alex edits again — the sharing on the parent folder flows down.", expect: "success" },
   { action: "depth1", text: "Turn off “Sharing flows into subfolders”." },
-  { action: "setSubregistry", text: "Edit once more.", expect: "reverted" },
+  { action: "setSubregistry", text: "Alex tries once more.", expect: "reverted" },
   { action: "depth2", text: "Turn it back on." },
 ];
 
@@ -53,16 +53,16 @@ function Chip({ from, sub, outsider, disabled, beckon, zones, setOver, onDrop }:
     return null;
   };
   return (
-    <motion.div role="button" tabIndex={disabled ? -1 : 0} aria-label="Outsider. Drag to a group, between groups, or back to People."
+    <motion.div role="button" tabIndex={disabled ? -1 : 0} aria-label="Alex, the new teammate. Drag to a group, between groups, or back to People."
       drag={!disabled} dragSnapToOrigin dragMomentum={false} dragElastic={0.18}
       whileDrag={{ scale: 1.06, zIndex: 60, boxShadow: "0 16px 36px -12px rgba(0,0,0,0.3)" }}
       onDrag={(_, i) => setOver(hit(i))} onDragEnd={(_, i) => { setOver(null); onDrop(from, hit(i)); }}
       initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }} transition={{ duration: 0.3, ease: EASE }}
       className={`flex w-full touch-none select-none items-center gap-2.5 rounded-xl bg-surface px-2.5 py-2 ring-1 ring-line ${disabled ? "cursor-not-allowed opacity-60" : "cursor-grab active:cursor-grabbing"} ${beckon ? "beckon" : ""}`}>
-      <Avatar letter="O" tone="outsider" />
+      <Avatar letter="Al" tone="outsider" />
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className="text-sm font-medium">Outsider</span>
-        <span className="truncate font-mono text-[11px] text-muted">{sub ?? (outsider ? shortAddr(outsider) : "…")}</span>
+        <span className="text-sm font-medium">Alex</span>
+        <span className="truncate font-mono text-[11px] text-muted">{sub ?? (outsider ? `new teammate · ${shortAddr(outsider)}` : "…")}</span>
       </span>
       <span className="ml-auto text-muted" aria-hidden>⠿</span>
     </motion.div>
@@ -132,7 +132,7 @@ export function DriveDemoV2(p: Props) {
           <span className="font-mono text-xs text-cascade">{Math.min(step + 1, STEPS.length)}/{STEPS.length}</span>
           <AnimatePresence mode="wait">
             <motion.span key={step} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-sm">
-              {current ? current.text : "That's the cascade. Play freely — add a file, try the attack, or start over."}
+              {current ? current.text : "That's the cascade: two shares set up once, and every change after that is one move of one person. Play freely — add a file, try the attack, or start over."}
             </motion.span>
           </AnimatePresence>
         </div>
@@ -187,6 +187,7 @@ export function DriveDemoV2(p: Props) {
           </button>
         </div>
 
+        <p className="border-b border-line bg-paper px-5 py-2 text-xs text-ink-2"><span className="font-medium text-ink">The setup:</span> platform is shared with dev-team, and acme-labs.eth — the folder above — with security, which includes sre. Two shares, made once. Everything below is just who&apos;s in which team.</p>
         <div className="grid lg:grid-cols-[16rem_minmax(0,1fr)_18rem]">
           <aside className="flex flex-col gap-3 border-b border-line p-4 lg:border-b-0 lg:border-r">
             {/* folders: two real levels, each shared with a group */}
@@ -233,7 +234,7 @@ export function DriveDemoV2(p: Props) {
             <Pane zoneRef={people} over={over === "people"} title="People">
               <div className="flex min-h-11 flex-col gap-2">
                 {!(inDev || inSre) && <Chip from="people" {...chipProps} beckon={beckon("joinDev")} />}
-                {(inDev || inSre) && <span className="px-1 text-xs text-muted">The outsider is in a group. Drag them back here to remove.</span>}
+                {(inDev || inSre) && <span className="px-1 text-xs text-muted">Alex is in a group. Drag them back here to remove.</span>}
               </div>
             </Pane>
           </aside>
@@ -241,7 +242,7 @@ export function DriveDemoV2(p: Props) {
           {/* files */}
           <section className="flex min-w-0 flex-col border-b border-line lg:border-b-0">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-line px-5 py-2.5 text-xs text-muted">
-              <span>Name</span><span>Outsider can…</span>
+              <span>Name</span><span>Alex can…</span>
             </div>
             <ul className="flex flex-col">
               <AnimatePresence initial={false}>
@@ -260,12 +261,13 @@ export function DriveDemoV2(p: Props) {
                         </span>
                       </span>
                       <span className="flex items-center gap-2">
-                        <span className={`hidden rounded-full px-2 py-0.5 text-[11px] sm:inline ${f?.setSubregistry.allowed ? "bg-ok-soft text-ok" : "bg-sunken text-muted"}`}>
-                          {!f ? "…" : f.setSubregistry.allowed ? "edit" : "no access"}
-                        </span>
+                        <motion.span key={String(f?.setSubregistry.allowed)} initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.45, ease: EASE }}
+                          className={`hidden rounded-full px-2 py-0.5 text-[11px] sm:inline ${f?.setSubregistry.allowed ? "bg-ok-soft text-ok" : "bg-sunken text-muted"}`}>
+                          {!f ? "…" : f.setSubregistry.allowed ? "can edit" : "no access"}
+                        </motion.span>
                         <button type="button" onClick={(e) => { e.stopPropagation(); p.setTarget(l); run("setSubregistry", l); }} disabled={busy}
                           className={`inline-flex items-center gap-1.5 rounded-full bg-cascade px-3 py-1.5 text-xs font-medium text-on-cascade transition active:scale-95 disabled:opacity-40 ${beckon("setSubregistry") && (active || !p.target) ? "beckon" : ""}`}>
-                          {p.pending === "setSubregistry" && active ? <><Spinner /> editing…</> : "Edit as outsider"}
+                          {p.pending === "setSubregistry" && active ? <><Spinner /> editing…</> : "Edit as Alex"}
                         </button>
                       </span>
                     </motion.li>
@@ -292,7 +294,7 @@ export function DriveDemoV2(p: Props) {
                   <Row icon={<Avatar letter="A" tone="admin" />} who="Admin" sub="operator" right="Owner" />
                   <Row icon={<GroupDot />} who="dev-team" sub="shared on platform" right={!s ? "…" : devShared ? "Can edit" : "—"} />
                   <Row icon={<GroupDot />} who="security" sub={cascadeOn === false ? "shared on acme-labs.eth — not flowing down" : "shared on acme-labs.eth, one folder up"} right={!s ? "…" : secShared && cascadeOn ? "Can edit" : "—"} />
-                  <Row icon={<Avatar letter="O" tone="outsider" />} who="Outsider" sub={via(edit)}
+                  <Row icon={<Avatar letter="Al" tone="outsider" />} who="Alex" sub={via(edit)}
                     right={<span className={edit?.allowed ? "text-ok" : "text-muted"}>{!edit ? "…" : edit.allowed ? "Can edit" : "No access"}</span>} />
                 </div>
                 <p className="rounded-2xl bg-paper p-3 text-xs leading-snug text-muted">Nothing is written to the file. Access comes from the groups and the folders above, checked live on every write.</p>
@@ -304,12 +306,12 @@ export function DriveDemoV2(p: Props) {
                 {more && (
                   <div className="flex flex-col gap-2 rounded-2xl bg-paper p-3 text-xs">
                     <span className="text-ink-2">security was also given <span className="font-medium">“can set resolver”</span> on acme-labs.eth; dev-team was not.</span>
-                    <span className="flex justify-between gap-2"><span className="text-muted">Outsider can set the resolver</span>
+                    <span className="flex justify-between gap-2"><span className="text-muted">Alex can set the resolver</span>
                       <span className={file?.setResolver.allowed ? "text-ok" : "text-muted"}>{!file ? "…" : file.setResolver.allowed ? "yes" : "no"}</span></span>
                     {file?.setResolver.allowed && !file.setResolver.native && <span className="font-mono text-[11px] text-cascade">{via(file.setResolver)}</span>}
                     <button type="button" onClick={() => p.target && run("setResolver", p.target)} disabled={busy}
                       className="w-fit rounded-full bg-cascade px-3 py-1.5 text-xs font-medium text-on-cascade disabled:opacity-40">
-                      {p.pending === "setResolver" ? "sending…" : "Set resolver as outsider"}
+                      {p.pending === "setResolver" ? "sending…" : "Set resolver as Alex"}
                     </button>
                   </div>
                 )}
@@ -319,7 +321,7 @@ export function DriveDemoV2(p: Props) {
               <span className="text-xs font-medium text-ink-2">Try an attack</span>
               <button type="button" onClick={() => run("hijack")} disabled={busy}
                 className="rounded-xl px-3 py-2 text-left text-xs text-bad ring-1 ring-bad/40 transition hover:bg-bad-soft disabled:opacity-40">
-                {p.pending === "hijack" ? "Trying…" : "As the outsider, add a group that says yes to everyone"}
+                {p.pending === "hijack" ? "Trying…" : "As Alex, add a group that says yes to everyone"}
               </button>
               {p.last?.action === "hijack" && p.last.result.status === "reverted" && !p.pending && (
                 <span className="text-[11px] leading-snug text-bad">Refused on-chain{p.last.result.expectedRevertReason ? ` (${p.last.result.expectedRevertReason})` : ""}. Only an admin can change which groups a folder is shared with.</span>
@@ -357,10 +359,10 @@ function ShareDialogV2({ folder, onClose, devShared, secShared, cascadeOn, inDev
           <span className="text-xs font-medium text-ink-2">People and groups with access</span>
           <Row icon={<Avatar letter="A" tone="admin" />} who="Admin" sub="operator" right="Owner" />
           {top ? (
-            <Row icon={<GroupDot />} who="security" sub={inSre ? "includes sre: Outsider" : "includes sre · no members yet"} right={secShared ? "Can edit" : "—"} />
+            <Row icon={<GroupDot />} who="security" sub={inSre ? "includes sre: Alex" : "includes sre · no members yet"} right={secShared ? "Can edit" : "—"} />
           ) : (
             <>
-              <Row icon={<GroupDot />} who="dev-team" sub={inDev ? "1 member: Outsider" : "no members yet"} right={devShared ? "Can edit" : "—"} />
+              <Row icon={<GroupDot />} who="dev-team" sub={inDev ? "1 member: Alex" : "no members yet"} right={devShared ? "Can edit" : "—"} />
               <Row icon={<GroupDot />} who="security" sub={cascadeOn ? "from acme-labs.eth, the folder above" : "on acme-labs.eth — not flowing down"} right={secShared && cascadeOn ? "Can edit" : "—"} />
             </>
           )}
@@ -386,17 +388,17 @@ function describe(a: V2ActionName, s: V2Status) {
   const ok = s === "success";
   switch (a) {
     case "create": return ok ? "File created in platform. Nobody was given access to it" : "Couldn't create the file";
-    case "setSubregistry": return ok ? "Edit saved — a group the outsider is in has access" : "Edit refused — no group gives the outsider access";
+    case "setSubregistry": return ok ? "Edit saved — a group Alex is in has access" : "Edit refused — no group gives Alex access";
     case "setResolver": return ok ? "Resolver set — allowed through security, shared on acme-labs.eth" : "Resolver refused — no group reaching this file gives that permission";
-    case "joinDev": return ok ? "Outsider added to dev-team" : "Couldn't add to dev-team";
-    case "leaveDev": return ok ? "Outsider removed from dev-team" : "Couldn't remove from dev-team";
-    case "joinSre": return ok ? "Outsider added to sre, which is inside security" : "Couldn't add to sre";
-    case "leaveSre": return ok ? "Outsider removed from sre" : "Couldn't remove from sre";
-    case "moveDevToSre": return ok ? "Outsider moved: out of dev-team, into sre (inside security)" : "Couldn't move the outsider";
-    case "moveSreToDev": return ok ? "Outsider moved: out of sre, into dev-team" : "Couldn't move the outsider";
+    case "joinDev": return ok ? "Alex added to dev-team" : "Couldn't add to dev-team";
+    case "leaveDev": return ok ? "Alex removed from dev-team" : "Couldn't remove from dev-team";
+    case "joinSre": return ok ? "Alex added to sre, which is inside security" : "Couldn't add to sre";
+    case "leaveSre": return ok ? "Alex removed from sre" : "Couldn't remove from sre";
+    case "moveDevToSre": return ok ? "Alex moved: out of dev-team, into sre (inside security)" : "Couldn't move Alex";
+    case "moveSreToDev": return ok ? "Alex moved: out of sre, into dev-team" : "Couldn't move Alex";
     case "depth1": return ok ? "Sharing no longer flows into subfolders" : "Couldn't change it";
     case "depth2": return ok ? "Sharing flows into subfolders again" : "Couldn't change it";
     case "hijack": return ok ? "Unexpected: the change went through" : "Refused — only an admin can add a group";
-    case "reset": return ok ? "Reset: the outsider is in no group, and sharing flows down" : "Reset failed";
+    case "reset": return ok ? "Reset: Alex is in no group, and sharing flows down" : "Reset failed";
   }
 }

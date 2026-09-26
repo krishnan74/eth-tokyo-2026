@@ -31,6 +31,7 @@ import {
 export const ORG_V2 = "acme-labs";
 export const FOLDER_V2 = "platform";
 export const FILE_V2 = "svc-api";
+export const FILES_V2 = [FILE_V2, "svc-db", "svc-web"];
 export const ROLE_SET_RESOLVER = 1n << 24n;
 
 export type BookV2 = {
@@ -169,11 +170,13 @@ async function main() {
   else await send("grant security on acme-labs.eth", { address: ENS.ethRegistry, abi: orgAbi, functionName: "grantRoles",
     args: [labelId(ORG_V2), L2, security] } as never);
 
-  step(7, `a file to act on: ${FILE_V2}.${FOLDER_V2}.${ORG_V2}.eth`);
-  const fileSub = await read<bigint>(cascade, v2Abi, "getExpiry", [labelId(FILE_V2)]);
-  if (fileSub > BigInt(Math.floor(Date.now() / 1000))) console.log(`    ${FILE_V2} already registered`);
-  else await send(`register ${FILE_V2}`, { address: cascade, abi: v2Abi, functionName: "register",
-    args: [FILE_V2, op, ZERO, ZERO, ROLE_RENEW, BigInt(Math.floor(Date.now() / 1000)) + YEAR] } as never);
+  step(7, `files to act on in ${FOLDER_V2}.${ORG_V2}.eth: ${FILES_V2.join(", ")} (several, so one change visibly reaches many)`);
+  for (const file of FILES_V2) {
+    const expiry = await read<bigint>(cascade, v2Abi, "getExpiry", [labelId(file)]);
+    if (expiry > BigInt(Math.floor(Date.now() / 1000))) console.log(`    ${file} already registered`);
+    else await send(`register ${file}`, { address: cascade, abi: v2Abi, functionName: "register",
+      args: [file, op, ZERO, ZERO, ROLE_RENEW, BigInt(Math.floor(Date.now() / 1000)) + YEAR] } as never);
+  }
 
   console.log(`\ndone.\n  ${ORG_V2}.eth org registry  ${org}\n  CascadeSubregistryV2       ${cascade}\n  dev-team                   ${devTeam}\n  security (NestedTeam)      ${security}\n  sre                        ${sre}`);
 }

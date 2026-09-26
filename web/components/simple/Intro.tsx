@@ -20,7 +20,7 @@ export function Intro() {
       <Reveal className="grid overflow-hidden rounded-3xl ring-1 ring-line md:grid-cols-3">
         <div className="flex flex-col gap-2 bg-surface p-6">
           <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-ok-soft text-xs text-ok">✓</span>The directory tree</span>
-          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">ENSv2 already built it.</span> Every name can have its own registry, so names nest like folders: <span className="font-mono text-xs">acme-labs.eth › platform › svc-api</span>.</p>
+          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">ENSv2 already built it.</span> Every name can have its own registry, so names nest like folders: <span className="font-mono text-xs">acme-labs.eth › platform › svc-api</span>. But every folder is a separate registry with its own permission list — so a team&apos;s access multiplies with every folder.</p>
         </div>
         <div className="flex flex-col gap-2 border-t border-line bg-surface p-6 md:border-l md:border-t-0">
           <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-bad-soft text-xs text-bad">✗</span>The sharing layer</span>
