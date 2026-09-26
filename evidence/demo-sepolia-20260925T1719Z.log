@@ -1,0 +1,44 @@
+Cascade demo — Sepolia
+  org registry (acme-corp.eth)  0xa27742aead8ca8baa8ff0a97754ac1736741e126
+  CascadeSubregistry (devops)   0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22
+  TeamRegistry                  0x1a3dc7660515706ceec8409ff179c5fcc2e1b881
+  outsider                      0xF4ff37B96BF5474F8d2F58ABfB9F61F5A9629Fa8
+
+funding outsider with 0.005 ETH for gas
+    ✓ success  gas 21000  https://sepolia.etherscan.io/tx/0x86c809ba399f77e3362cc49ae5fd7591502039eb5afd46cff7b6a65299fe0676
+
+[1] devops.acme-corp.eth in the org registry: TeamRegistry holds ROLE_SET_SUBREGISTRY — native EAC, nothing new
+    orgRegistry.hasRoles(devops, SET_SUBREGISTRY, TeamRegistry) = true
+
+[2] create svc-muh87pek.devops.acme-corp.eth now, then the outsider tries setSubregistry on it
+    ✓ success  gas 164724  https://sepolia.etherscan.io/tx/0x1aa4f36e8abf0ddf533921db3ac781ab49c354c73d709e4a48b757cebb42a041
+    ✗ reverted  gas 73263  https://sepolia.etherscan.io/tx/0x64c37a32e917010e378a5372ef6bb0d16b863e4623ce5e4ed45935768956f6db
+    explain(svc-muh87pek, SET_SUBREGISTRY, outsider):
+      1. outsider holds the role on svc-muh87pek here?                no 
+      2. parent grants TeamRegistry the role on "devops"?   yes
+      3. TeamRegistry.isMember(outsider)?                         no 
+      → allowed: false
+
+[3] grant the outsider MEMBER on TeamRegistry — one ordinary EAC transaction
+    ✓ success  gas 74504  https://sepolia.etherscan.io/tx/0x0be0718777bd4c85e5045b24d3c182b687606061dd76f0667d5fe987f8d98a74
+
+[4] the identical write again — on a name that did not exist when anyone was granted anything
+    ✓ success  gas 95256  https://sepolia.etherscan.io/tx/0xc8b62828d540e04983863cd225d7f1ff2bce414c0ff72d8735ff4eecbb71f4a8
+    explain(svc-muh87pek, SET_SUBREGISTRY, outsider):
+      1. outsider holds the role on svc-muh87pek here?                no 
+      2. parent grants TeamRegistry the role on "devops"?   yes
+      3. TeamRegistry.isMember(outsider)?                         yes
+      → allowed: true
+    svc-muh87pek.devops.acme-corp.eth subregistry is now 0x000000000000000000000000000000000000dEaD
+
+[5] revoke MEMBER, then the same write a third time
+    ✓ success  gas 32196  https://sepolia.etherscan.io/tx/0x14d723a3897163836af474412b5002ff0dfd56d9bf8724d8311705b53aa3da47
+    ✗ reverted  gas 73263  https://sepolia.etherscan.io/tx/0x6dbc25d2d357dae069c84a005d8f9c26f9cdc4ec3909c2879cf10e7d17dbd25e
+    explain(svc-muh87pek, SET_SUBREGISTRY, outsider):
+      1. outsider holds the role on svc-muh87pek here?                no 
+      2. parent grants TeamRegistry the role on "devops"?   yes
+      3. TeamRegistry.isMember(outsider)?                         no 
+      → allowed: false
+
+✅ sequence held: revert → success → revert
+{"network":"sepolia","child":"svc-muh87pek.devops.acme-corp.eth","receipts":[{"step":"fund outsider","hash":"0x86c809ba399f77e3362cc49ae5fd7591502039eb5afd46cff7b6a65299fe0676","status":"success","gas":"21000"},{"step":"register child","hash":"0x1aa4f36e8abf0ddf533921db3ac781ab49c354c73d709e4a48b757cebb42a041","status":"success","gas":"164724"},{"step":"write as non-member (expect revert)","hash":"0x64c37a32e917010e378a5372ef6bb0d16b863e4623ce5e4ed45935768956f6db","status":"reverted","gas":"73263"},{"step":"grant MEMBER","hash":"0x0be0718777bd4c85e5045b24d3c182b687606061dd76f0667d5fe987f8d98a74","status":"success","gas":"74504"},{"step":"write as member (expect success)","hash":"0xc8b62828d540e04983863cd225d7f1ff2bce414c0ff72d8735ff4eecbb71f4a8","status":"success","gas":"95256"},{"step":"revoke MEMBER","hash":"0x14d723a3897163836af474412b5002ff0dfd56d9bf8724d8311705b53aa3da47","status":"success","gas":"32196"},{"step":"write after revoke (expect revert)","hash":"0x6dbc25d2d357dae069c84a005d8f9c26f9cdc4ec3909c2879cf10e7d17dbd25e","status":"reverted","gas":"73263"}]}

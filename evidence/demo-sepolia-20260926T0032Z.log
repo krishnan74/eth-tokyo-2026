@@ -1,0 +1,150 @@
+Cascade demo — Sepolia
+  org registry 0xa277…1e126 · CascadeSubregistry 0x2f15…55e13 · TeamRegistry 0x11dd…472bb · outsider 0xF4ff…29Fa8
+
+[1/8] [NATIVE EAC] setup, nothing new: TeamRegistry holds ROLE_SET_SUBREGISTRY on devops. done.
+  [CASCADE] the fallthrough is an override of EAC's own _getRoles hook — the extension point PermissionedRegistry itself uses to give approved operators the owner's roles
+
+═════════ THE MECHANISM — everything below is Cascade ═════════
+
+[2/8] ─────●●○○○○○○────────────────────────────────
+create a new subname, then the outsider attempts a write
+┌─ Cascade state ────────────────────────────────────┐
+│ target:     svc-muhnnzxl.devops.acme-corp.eth      │
+│ actor:      0xF4ff…29Fa8 (outsider)                │
+│ member?     NO                                     │
+│ last write: —                                      │
+│ members:    {}                                     │
+└────────────────────────────────────────────────────┘
+  [NATIVE EAC] ✓ register subname (nobody granted anything on it)  gas 165133  https://sepolia.etherscan.io/tx/0xf712ac3aacc6c7982a23455159d503def7e41a28e7f607d5fdcd6053ec5a015f
+
+  acme-corp.eth
+   └─ devops.acme-corp.eth  [TeamRegistry holds ROLE_SET_SUBREGISTRY here]
+       └─ svc-muhnnzxl.devops.acme-corp.eth  [new — created just now]
+  [CASCADE] outsider → setSubregistry(svc-muhnnzxl.devops.acme-corp.eth)
+  ✗ write as non-member  gas 69921  (reverted)  https://sepolia.etherscan.io/tx/0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91
+  [CASCADE] checking outsider → svc-muhnnzxl, one live read per line
+  ┌─ 1. direct role on this name? ────────────────── NO
+  └─→ 2. parent grants TeamRegistry the role? ───── YES
+      └─→ 3. TeamRegistry.isMember(outsider)? ───── NO
+                                          → allowed: false
+  explain() at block 11782732 matches the tx result (same _getRoles hook as the write path) and these reads
+
+  outsider ╌╌member of╌╌> TeamRegistry ──holds role on──> devops.acme-corp.eth
+     │                                                                       │
+     └───────────────────────── computed access: ✗ ──────────────────────────┘
+                                 on svc-muhnnzxl ↑
+
+[3/8] [NATIVE EAC] ✓ grant outsider → MEMBER on TeamRegistry (one tx)  gas 74504  https://sepolia.etherscan.io/tx/0x38d3414db11ddebec87a6c096824ab42c07495eb40384138139f92bb10061579
+
+[4/8] ─────●●●●○○○○────────────────────────────────
+the identical write again — same target, same caller
+  state: member? NO → YES
+  [CASCADE] outsider → setSubregistry(svc-muhnnzxl.devops.acme-corp.eth)
+  ✓ write as member  gas 91946  https://sepolia.etherscan.io/tx/0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2
+  [CASCADE] checks (live reads): 1.no 2.yes 3.yes → allowed ✓
+  explain() at block 11782734 matches the tx result (same _getRoles hook as the write path) and these reads
+  [CASCADE] write succeeded — svc-muhnnzxl's subregistry pointer set to 0x0000…0dEaD, a demo placeholder
+  [CASCADE] stock hasRoles(svc-muhnnzxl, SET_SUBREGISTRY, outsider) = true — views agree with writes because the fallthrough lives in _getRoles
+  external call gas caps: isMember() 30000, parent roles() 50000 (of 91946 total for this write)
+
+  [CASCADE] same tree, before vs now
+  BEFORE (step 2)                              NOW (step 4)
+  devops  [Team: role]                         devops  [Team: role]
+   └─ svc-muhnnzxl…  [outsider access: ✗]       └─ svc-muhnnzxl…  [outsider access: ✓]
+                                                                  ^^^^^^^^^^^^^^^^^^^^ changed
+
+  [CASCADE] same relationships, before vs now
+  before (step 2):  outsider ╌╌member of╌╌> TeamRegistry ──holds role on──> devops.acme-corp.eth   access ✗
+  now    (step 4):  outsider ──member of──> TeamRegistry ──holds role on──> devops.acme-corp.eth   access ✓
+
+  [CASCADE] same target, before vs now
+  before (step 2):  1.no  2.yes  3.no  → false
+  now    (step 4):  1.no  2.yes  3.YES  → TRUE
+                                 ^^^^^ only this changed
+
+[5/8] ─────●●●●●○○○────────────────────────────────
+remove the outsider from the team, then the same write a third time
+  [NATIVE EAC] ✓ revoke outsider's MEMBER on TeamRegistry  gas 32196  https://sepolia.etherscan.io/tx/0x285280d5e55f34237098d7eb8d8350cf7c30666c37389ebe6f927063c3c1ecbd
+  [CASCADE] outsider → setSubregistry(svc-muhnnzxl.devops.acme-corp.eth)
+  ✗ write after revoke  gas 69921  (reverted)  https://sepolia.etherscan.io/tx/0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb
+  [CASCADE] checks (live reads): 1.no 2.yes 3.no → allowed ✗
+  explain() at block 11782736 matches the tx result (same _getRoles hook as the write path) and these reads
+┌─ Cascade state ──────────────────────────────────────────────────────┐
+│ target:     svc-muhnnzxl.devops.acme-corp.eth                        │
+│ actor:      0xF4ff…29Fa8 (outsider)                                  │
+│ member?     YES → NO  ← just changed                                 │
+│ last write: ✓ success (step 4) → ✗ reverted (step 5)  ← just changed │
+│ members:    {} → {outsider} → {}  ← just changed                     │
+└──────────────────────────────────────────────────────────────────────┘
+
+══════ ATTACKS & EDGE CASES — each one refused, on-chain ══════
+
+[6/8] ─────●●●●●●○○────────────────────────────────
+outsider tries to point the fallthrough at an attacker's always-true team contract
+  AlwaysTrueTeam 0xaa73…c20c1 declares ITeam and answers isMember() = true for everyone
+  ✗ outsider setTeam(AlwaysTrueTeam)  gas 25163  (reverted)  https://sepolia.etherscan.io/tx/0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99
+  [CASCADE] revert reason: EACUnauthorizedAccountRoles
+  [CASCADE] team pointer unchanged: 0x11dd…472Bb (TeamRegistry). setTeam needs ROLE_SET_TEAM on root; changes emit TeamPointerUpdated(old, new, by)
+
+[7/8] ─────●●●●●●●○────────────────────────────────
+even the operator, who holds ROLE_SET_TEAM, cannot set a plain wallet as the team
+  ✗ operator setTeam(wallet)  gas 27765  (reverted)  https://sepolia.etherscan.io/tx/0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1
+  [CASCADE] revert reason: TeamNotContract
+  [CASCADE] setTeam also requires the contract to declare ITeam via ERC-165; the role holder remains the trust anchor, since a contract can lie about ERC-165
+
+[8/8] ─────●●●●●●●●────────────────────────────────
+the parent re-issues devops: the team's grant must not survive into the new registration
+  [NATIVE EAC] ✓ outsider is a member again, so only the parent changes  gas 74504  https://sepolia.etherscan.io/tx/0xf754305cca2cb17ae8fd99e19d10a59b5bf502665f2a5b3bc64ea1da1d1830ea
+  [NATIVE EAC] ✓ org registry unregisters devops  gas 45549  https://sepolia.etherscan.io/tx/0xa903fc107dab5ae58b68115d1ea54a89b6f30df72f6bc2fdcfc2e96bed0fb70d
+  [NATIVE EAC] ✓ org registry re-registers devops (same owner and subregistry, no team grant)  gas 127705  https://sepolia.etherscan.io/tx/0x676fb172574405d98b9aa9124a995dd068dfb78298362691387b3b5e59a995c8
+  state: member? NO → YES
+  [CASCADE] outsider → setSubregistry(svc-muhnnzxl.devops.acme-corp.eth)
+  ✗ write after parent re-issue  gas 61315  (reverted)  https://sepolia.etherscan.io/tx/0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0
+  [CASCADE] checks (live reads): 1.no 2.no 3.skip → allowed ✗
+  explain() at block 11782744 matches the tx result (same _getRoles hook as the write path) and these reads
+
+  outsider ──member of──> TeamRegistry ╌╌holds role on╌╌> devops.acme-corp.eth
+     │                                                                       │
+     └───────────────────────── computed access: ✗ ──────────────────────────┘
+                                 on svc-muhnnzxl ↑
+  [CASCADE] same pointer, same member — the grant was scoped to the old devops resource, so it no longer applies, like every native grant on it
+  restored for the next run: team re-granted on the new devops (success), outsider's membership revoked (success)
+
+═══════════════════════════ SUMMARY ═══════════════════════════
+  target  svc-muhnnzxl.devops.acme-corp.eth
+  members {} → {outsider} → {}
+
+┌──────┬──────────────────────────────────┬────────────────┬───────────┬───────┐
+│ step │ action                           │ explain() said │ result    │ gas   │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 2    │ write as non-member              │ no → yes → no  │ ✗ revert  │ 69921 │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 4    │ write as member                  │ no → yes → yes │ ✓ success │ 91946 │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 5    │ write after revoke               │ no → yes → no  │ ✗ revert  │ 69921 │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 6    │ outsider setTeam(AlwaysTrueTeam) │ —              │ ✗ revert  │ 25163 │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 7    │ operator setTeam(wallet)         │ —              │ ✗ revert  │ 27765 │
+├──────┼──────────────────────────────────┼────────────────┼───────────┼───────┤
+│ 8    │ write after parent re-issue      │ no → no → yes  │ ✗ revert  │ 61315 │
+└──────┴──────────────────────────────────┴────────────────┴───────────┴───────┘
+  step 2: https://sepolia.etherscan.io/tx/0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91
+  step 4: https://sepolia.etherscan.io/tx/0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2
+  step 5: https://sepolia.etherscan.io/tx/0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb
+  step 6: https://sepolia.etherscan.io/tx/0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99
+  step 7: https://sepolia.etherscan.io/tx/0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1
+  step 8: https://sepolia.etherscan.io/tx/0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0
+
+  ┄┄ what it takes to keep a team's access correct ┄┄
+  team of 5, 20 subnames per registry, 3 registries the team manages:
+    per-subname grants            5 × 20 × 3 = 300 grants; every new subname needs 5 more
+    root grants on each registry  5 × 3 = 15 grants; each join/leave touches all 3 registries
+    cascade                       5 memberships + 3 parent grants = 8; each join/leave is 1 tx
+  root grants already cover future subnames — what Cascade adds is one roster shared by every registry.
+
+  scope: one hop only — a deeper tree needs a CascadeSubregistry, with its own team and parent, at each level that should inherit.
+
+✓ every outcome as expected: reverted → success → reverted → reverted → reverted → reverted
+  full detail of this run: npm run demo -- --recap  (evidence/last-run.json)
+{"network":"sepolia","child":"svc-muhnnzxl.devops.acme-corp.eth","receipts":[{"step":"register subname","hash":"0xf712ac3aacc6c7982a23455159d503def7e41a28e7f607d5fdcd6053ec5a015f","status":"success","gas":"165133","url":"https://sepolia.etherscan.io/tx/0xf712ac3aacc6c7982a23455159d503def7e41a28e7f607d5fdcd6053ec5a015f"},{"step":"write as non-member","hash":"0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91","status":"reverted","gas":"69921","url":"https://sepolia.etherscan.io/tx/0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91"},{"step":"grant MEMBER","hash":"0x38d3414db11ddebec87a6c096824ab42c07495eb40384138139f92bb10061579","status":"success","gas":"74504","url":"https://sepolia.etherscan.io/tx/0x38d3414db11ddebec87a6c096824ab42c07495eb40384138139f92bb10061579"},{"step":"write as member","hash":"0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2","status":"success","gas":"91946","url":"https://sepolia.etherscan.io/tx/0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2"},{"step":"revoke MEMBER","hash":"0x285280d5e55f34237098d7eb8d8350cf7c30666c37389ebe6f927063c3c1ecbd","status":"success","gas":"32196","url":"https://sepolia.etherscan.io/tx/0x285280d5e55f34237098d7eb8d8350cf7c30666c37389ebe6f927063c3c1ecbd"},{"step":"write after revoke","hash":"0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb","status":"reverted","gas":"69921","url":"https://sepolia.etherscan.io/tx/0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb"},{"step":"outsider setTeam(AlwaysTrueTeam)","hash":"0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99","status":"reverted","gas":"25163","url":"https://sepolia.etherscan.io/tx/0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99"},{"step":"operator setTeam(wallet)","hash":"0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1","status":"reverted","gas":"27765","url":"https://sepolia.etherscan.io/tx/0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1"},{"step":"grant MEMBER (step 8)","hash":"0xf754305cca2cb17ae8fd99e19d10a59b5bf502665f2a5b3bc64ea1da1d1830ea","status":"success","gas":"74504","url":"https://sepolia.etherscan.io/tx/0xf754305cca2cb17ae8fd99e19d10a59b5bf502665f2a5b3bc64ea1da1d1830ea"},{"step":"unregister devops","hash":"0xa903fc107dab5ae58b68115d1ea54a89b6f30df72f6bc2fdcfc2e96bed0fb70d","status":"success","gas":"45549","url":"https://sepolia.etherscan.io/tx/0xa903fc107dab5ae58b68115d1ea54a89b6f30df72f6bc2fdcfc2e96bed0fb70d"},{"step":"re-register devops","hash":"0x676fb172574405d98b9aa9124a995dd068dfb78298362691387b3b5e59a995c8","status":"success","gas":"127705","url":"https://sepolia.etherscan.io/tx/0x676fb172574405d98b9aa9124a995dd068dfb78298362691387b3b5e59a995c8"},{"step":"write after parent re-issue","hash":"0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0","status":"reverted","gas":"61315","url":"https://sepolia.etherscan.io/tx/0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0"},{"step":"restore: re-grant team","hash":"0x4f43d5d2770c9fc4ed095612175ffa43b3a4d151f8c2ec66f4ab839bcfd4402f","status":"success","gas":"104372","url":"https://sepolia.etherscan.io/tx/0x4f43d5d2770c9fc4ed095612175ffa43b3a4d151f8c2ec66f4ab839bcfd4402f"},{"step":"restore: revoke MEMBER","hash":"0x3c2c45709aea31c8075a3de67034ac17942d2f5632c02f298dd10ff12a585339","status":"success","gas":"32196","url":"https://sepolia.etherscan.io/tx/0x3c2c45709aea31c8075a3de67034ac17942d2f5632c02f298dd10ff12a585339"}]}
