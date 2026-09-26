@@ -38,7 +38,7 @@ About **7 minutes of talking**, then questions. Stage directions are in **[brack
 
 **[Click the "Shared with devops-team · Share" pill.]**
 
-> "Just like Drive's share dialog: this folder is shared with **devops-team**, can edit — and it applies to every file, including new ones. In ENS terms, the parent registry grants the team contract the `SET_SUBREGISTRY` role on devops. **[Click Done.]**"
+> "Just like Drive's share dialog: this folder is shared with **devops-team**, can edit — and it applies to every file, including new ones. In ENS terms, the parent registry grants the team contract the `SET_SUBREGISTRY` role on devops — a registry permission on each subname, not its text records. **[Click Done.]**"
 
 ### Create a file
 

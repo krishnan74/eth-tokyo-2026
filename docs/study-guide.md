@@ -17,6 +17,8 @@ Read top to bottom. Each block is time-boxed; the total is 20 minutes. For expla
 
 ---
 
+> **Say this precisely if asked what "access" means:** registry permissions on each subname's entry — `SET_SUBREGISTRY` in the demo (and `SET_RESOLVER` on the roadmap branch). **Not text records**: those are resolver data, behind the resolver's own roles, and per-record rights are a separate roadmap mechanism.
+
 ## Minutes 3–8 · The ENSv2 concepts you must be fluent in
 
 | Concept | What to say |

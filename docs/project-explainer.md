@@ -62,9 +62,11 @@ EAC documents `_getRoles` as *the* place to add role logic at read time. The sto
 ### Two permission worlds
 
 - **Registry roles** govern a name's structure: its children, its resolver, its renewal.
-- **Resolver roles** govern its records: addresses, text records.
+- **Resolver roles** govern its records: addresses, text records. In ENSv2's `PermissionedResolver` they are keyed by `(namehash, record part)` — per name and per record, with an "any name in this resolver" scope, but no link from a name to its parent.
 
 They are separate systems. Cascade works in the **registry** world.
+
+**What "access" means in ENS Drive:** the team inherits **registry roles on the subname's entry** — `SET_SUBREGISTRY` (where the name's children live; "Edit as outsider" is `setSubregistry`), and on the roadmap branch also `SET_RESOLVER` (which resolver the name uses). It does **not** grant text-record or address-record rights; per-record rights in a resolver are a separate mechanism on the roadmap. (A member who can set the resolver can point the name at a resolver they control — coarse control of records, not per-record rights.)
 
 > **Pitch line:** "EAC is role-based access. It answers exactly one question: is this address listed with this role on this name?"
 
@@ -313,7 +315,7 @@ After each action, the server replays the mined transaction with Foundry's `cast
 ### After ENS feedback
 
 - **Who-can-access queries:** events plus an indexer, the equivalent of Zanzibar's "expand".
-- **Resolver-record rights:** a **different mechanism**, because resolver permissions are keyed by record, not by parent name, so there is no hop to inherit through.
+- **Resolver-record rights:** a **different mechanism**, because resolver permissions are keyed by `(namehash, record part)` and a namehash carries no link to its parent name, so there is no hop to inherit through — only "any name this resolver serves".
 - **Agent fleets as the use case:** agents are just members, so this needs no mechanism change.
 
 ### The invariant every step keeps
