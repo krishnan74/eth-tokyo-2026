@@ -73,6 +73,7 @@ contract Handler is Test {
     uint256 public viewReverted; // a role view reverted (must fail closed, never revert)
 
     uint256 public joins; // coverage: membership really changes during runs
+    uint256 public membershipFailed; // a failed join/leave would make the membership invariants vacuous
     uint256 public allowedWrites; // coverage: some writes really succeed via the team
 
     uint256 constant DEVOPS = uint256(keccak256("devops")); // labelhash; version bits resolved by the registry
@@ -118,14 +119,13 @@ contract Handler is Test {
     function join(uint256 a, bool second) external {
         TeamRegistry t = second ? roster2 : roster;
         vm.prank(op); // constants are literals: a view call here would consume the prank
-        t.grantRoles(TEAM_RESOURCE, ROLE_MEMBER, _actor(a));
-        joins++;
+        try t.grantRoles(TEAM_RESOURCE, ROLE_MEMBER, _actor(a)) { joins++; } catch { membershipFailed++; }
     }
 
     function leave(uint256 a, bool second) external {
         TeamRegistry t = second ? roster2 : roster;
         vm.prank(op);
-        t.revokeRoles(TEAM_RESOURCE, ROLE_MEMBER, _actor(a));
+        try t.revokeRoles(TEAM_RESOURCE, ROLE_MEMBER, _actor(a)) {} catch { membershipFailed++; }
     }
 
     // ── the parent's grant to the current team ──────────────────────────────
@@ -308,9 +308,9 @@ contract CascadeInvariantTest is Test {
         assertEq(handler.actorSetTeamSucceeded(), 0, "an actor changed the team");
     }
 
-    /// The run really exercised membership and allowed writes (guards against a vacuous pass).
-    function afterInvariant() public view {
-        assertGt(handler.joins(), 0, "no one ever joined");
+    /// Joins and leaves really take effect (guards against a vacuous pass, e.g. a consumed prank).
+    function invariant_membershipActuallyChanges() public view {
+        assertEq(handler.membershipFailed(), 0, "a join or leave failed: membership invariants would be vacuous");
     }
 
     /// Views agree with writes, and views never revert whatever the team or parent does.
