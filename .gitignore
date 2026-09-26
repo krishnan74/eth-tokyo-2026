@@ -8,3 +8,4 @@ deployments/fork-last-run.json
 web/.next/
 web/next-env.d.ts
 *.tsbuildinfo
+deployments/fork-v2.json

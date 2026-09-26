@@ -10,7 +10,9 @@
     "gen": "tsx scripts/gen-core.ts",
     "ui": "next dev web",
     "ui:build": "next build web",
-    "ui:start": "next start web"
+    "ui:start": "next start web",
+    "setup:v2": "tsx --env-file=.env scripts/setup-v2.ts",
+    "smoke:v2": "tsx --env-file=.env scripts/smoke-v2.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.103.3",
