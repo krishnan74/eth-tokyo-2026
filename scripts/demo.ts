@@ -22,6 +22,7 @@ import {
   ALL_ROLES, FORK, ORG, REGISTRY_ABI, ROLE_MEMBER, ROLE_RENEW, ROLE_SET_SUBREGISTRY, TEAM_LABEL, TEAM_RESOURCE, ZERO,
   artifact, explorer, labelId, loadBook, operator, outsider, pub,
 } from "./lib.js";
+import { agrees as agreesWith, checkReads, readExplain, type Answer } from "../core/cascade/index.js";
 import {
   cascade, compact, divider, explainDiff, explainStatic, fail, liveChecks, native, ok, oldWayAside, pause, progress, relationDiff,
   relationGraph, say, short, noteState, stateBox, stateLine, summary, target, tree, treeDiff, txLine, type Explanation, type Row, type State,
@@ -89,17 +90,13 @@ async function live() {
     await say(txLine(r.status === "success", action, r.gasUsed, explorer(hash)));
     const at = { blockNumber: r.blockNumber };
 
-    let c1 = false, c2 = false;
-    const e = await liveChecks("outsider", label, [
-      async () => (c1 = (((await pub.readContract({ ...at, address: cascadeAddr, abi: cascadeAbi, functionName: "nativeRoles", args: [childId, who] })) as bigint) & ROLE_SET_SUBREGISTRY) === ROLE_SET_SUBREGISTRY),
-      async () => (c1 ? undefined : (c2 = (((await pub.readContract({ ...at, address: parent, abi: REGISTRY_ABI, functionName: "roles", args: [labelId(TEAM_LABEL), team] })) as bigint) & ROLE_SET_SUBREGISTRY) === ROLE_SET_SUBREGISTRY)),
-      async () => (c1 || !c2 ? undefined : ((await pub.readContract({ ...at, address: team, abi: teamAbi, functionName: "isMember", args: [who] })) as boolean)),
-    ], detail === "compact");
-    const x = (await pub.readContract({ ...at, address: cascadeAddr, abi: cascadeAbi, functionName: "explain", args: [childId, ROLE_SET_SUBREGISTRY, who] })) as Explanation;
-    // Compare only what the script actually read: checks 2 and 3 are skipped once an earlier one decides.
-    const agrees = x.native === e.native && x.allowed === e.allowed
-      && (x.native || x.parentGrantsTeam === e.parentGrantsTeam)
-      && (x.native || !x.parentGrantsTeam || x.member === e.member);
+    // The three checks and explain() come from the shared core, the same code the web UI runs.
+    const ctx = { cascade: cascadeAddr, parent, team, childId, account: who, role: ROLE_SET_SUBREGISTRY, blockNumber: r.blockNumber };
+    const answers: Answer[] = [];
+    const reads = checkReads(pub, ctx).map((read) => async () => { const a = await read(); answers.push(a); return a; });
+    const e = await liveChecks("outsider", label, reads, detail === "compact");
+    const x = await readExplain(pub, ctx);
+    const agrees = agreesWith(answers, x) && x.allowed === e.allowed;
     const matchesTx = x.allowed === (r.status === "success");
     // explain().allowed is hasRoles(), i.e. the same _getRoles hook the write path uses (by construction); the
     // three reads above are independent calls, so their agreement is observed, not guaranteed.

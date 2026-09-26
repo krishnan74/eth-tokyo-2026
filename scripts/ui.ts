@@ -115,7 +115,8 @@ export async function tree(org: string, team: string, child: string | undefined,
 }
 
 // ── explain() ─────────────────────────────────────────────────────────────────
-export type Explanation = { native: boolean; parentGrantsTeam: boolean; member: boolean; allowed: boolean };
+import type { Explanation } from "../core/cascade/index.js";
+export type { Explanation };
 
 const yn = (b: boolean) => (b ? pc.green("YES") : pc.red("NO"));
 const lead = (text: string, verdict: string, w: number) => `${text} ${pc.dim("─".repeat(Math.max(2, w - width(text))))} ${verdict}`;
@@ -201,7 +202,7 @@ export async function relationDiff(label1: string, a: Explanation, label2: strin
   await say("", `  ${cascade("same relationships, before vs now")}`, line(label1, a), line(label2, b));
 }
 
-export const compact = (e: Explanation) => `${e.native ? "yes" : "no"} → ${e.parentGrantsTeam ? "yes" : "no"} → ${e.member ? "yes" : "no"}`;
+export { compact } from "../core/cascade/index.js";
 
 /** Two explain() results one above the other, with what changed marked. */
 export async function explainDiff(label1: string, a: Explanation, label2: string, b: Explanation) {
