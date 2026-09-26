@@ -78,7 +78,7 @@ Pitched on the page as chapter 05. Step 0 is live on Sepolia. Steps 1–4 are bu
 
 Before any of 1–4: invariant/fuzz tests for the step-0 rule, so each extension is checked against the same properties — **done** (`contracts/test/CascadeInvariant.t.sol`: 5 invariants, 5 fuzz tests).
 
-**Open trade-off, needs a decision:** every lookup on a v2 subname reads every team's grant at every level, native owners included. Measured locally (warm): a native owner's `setSubregistry` costs 73,091 gas on v1, 89,355 on v2 with 2 teams at depth 1, and 133,017 at depth 3. Worst case with 4 hostile teams at depth 3 is bounded at ~553k per lookup. A native-first fast path (skip the lookups when the caller's stored roles already cover the check — safe because inheritance only adds roles) would remove the owner's overhead; not built pending approval.
+**Gas trade-off, resolved for writes:** every inherited lookup on a v2 subname reads every team's grant at every level. For native callers, v2 now has a native-first fast path in `_checkRoles`: if the caller's stored roles already cover the check, no team or ancestor is consulted (same outcome, since inheritance only adds roles). Measured locally (warm), a native owner's `setSubregistry` on v2 with 2 teams costs 89,355 gas at depth 1 and 133,017 at depth 3 without the fast path, and 40,293 at either depth with it. Views (`hasRoles`, `roles`) are not overridable in `PermissionedRegistry` and still compute the full answer. Worst case for an inherited lookup, 4 hostile teams at depth 3, is bounded at ~553k.
 
 ## Cut list
 
