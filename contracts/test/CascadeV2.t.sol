@@ -649,6 +649,8 @@ contract V2Handler is Test {
     uint256 public actorConfigSucceeded;
     uint256 public joins;
     uint256 public membershipFailed;
+    uint256 public actorRevokeSucceeded;
+    uint256 public actorTransferSucceeded;
 
     uint256 constant ACME = uint256(keccak256("acme-corp"));
     uint256 constant DEVOPS = uint256(keccak256("devops"));
@@ -703,13 +705,60 @@ contract V2Handler is Test {
     function reissue(bool top) external {
         vm.startPrank(op);
         if (top) {
-            root.unregister(ACME);
+            if (!_expired(root.getExpiry(ACME))) root.unregister(ACME);
             root.register("acme-corp", op, IRegistry(address(org)), address(0), ALL_ROLES, uint64(block.timestamp + 365 days));
         } else {
-            org.unregister(DEVOPS);
+            if (!_expired(org.getExpiry(DEVOPS))) org.unregister(DEVOPS);
             org.register("devops", op, IRegistry(address(v2)), address(0), ALL_ROLES, uint64(block.timestamp + 730 days));
         }
         vm.stopPrank();
+    }
+
+    function _expired(uint64 e) internal view returns (bool) { return e <= block.timestamp; }
+    function ciLive() public view returns (bool) { return !_expired(v2.getExpiry(ci)); }
+
+    /// Time passes (up to 30 days per step), so parents and the file can expire.
+    function warp(uint256 d) external { vm.warp(block.timestamp + (d % 30 days)); }
+
+    /// The operator renews whatever hasn't expired yet.
+    function renewAll() external {
+        uint64 far = uint64(block.timestamp + 400 days);
+        vm.startPrank(op);
+        if (!_expired(root.getExpiry(ACME)) && root.getExpiry(ACME) < far) root.renew(ACME, far);
+        if (!_expired(org.getExpiry(DEVOPS)) && org.getExpiry(DEVOPS) < far) org.renew(DEVOPS, far);
+        if (ciLive() && v2.getExpiry(ci) < far) v2.renew(ci, far);
+        vm.stopPrank();
+    }
+
+    /// The file expired or was unregistered: the operator registers it again (a new EAC resource, so
+    /// every stored grant on the old one is gone).
+    function reissueChild() external {
+        if (ciLive()) return;
+        vm.prank(op);
+        v2.register("ci", op, IRegistry(address(0)), address(0), RegistryRolesLib.ROLE_RENEW, uint64(block.timestamp + 400 days));
+        for (uint256 i; i < 3; ++i) ghostNative[actors[i]] = 0;
+    }
+
+    /// The file's owner (the operator) approves or un-approves an actor for all its names: the actor
+    /// then acts with the owner's stored roles on the file (stock ENSv2), never with inherited ones.
+    function ownerApprove(uint256 a, bool approved) external {
+        vm.prank(op);
+        v2.setApprovalForAll(actors[a % 3], approved);
+    }
+
+    /// Members use roles, never administer them: revoking needs admin bits, which are never inherited.
+    function actorRevoke(uint256 a, uint256 to) external {
+        vm.prank(actors[a % 3]);
+        try v2.revokeRoles(ci, SET_SUB | SET_RES, actors[to % 3]) { actorRevokeSucceeded++; } catch {}
+    }
+
+    /// Moving the file's token needs the owner or an approved operator; team membership never does.
+    function actorTransfer(uint256 a) external {
+        address who = actors[a % 3];
+        if (v2.isApprovedForAll(op, who) || !ciLive()) return;
+        uint256 tokenId = v2.getTokenId(ci);
+        vm.prank(who);
+        try v2.safeTransferFrom(op, who, tokenId, 1, "") { actorTransferSucceeded++; } catch {}
     }
 
     function nativeGrant(uint256 a, uint256 role, bool grant) external {
@@ -719,19 +768,23 @@ contract V2Handler is Test {
         else { v2.revokeRoles(ci, r, who); ghostNative[who] &= ~r; }
     }
 
-    /// A write whose outcome (the lazy, role-aware `_checkRoles`) must match `hasRoles` (the full union).
+    /// A write whose outcome (the lazy, role-aware `_checkRoles`) must match `hasRoles` (the full union)
+    /// on a live file; on an expired or unregistered file every write must fail.
     function actorWrite(uint256 a, uint256 op_) external {
         address who = actors[a % 3];
-        uint256 w = op_ % 3;
-        uint256 role = w == 0 ? SET_SUB : w == 1 ? SET_RES : RegistryRolesLib.ROLE_RENEW;
-        bool expected = v2.hasRoles(ci, role, who);
+        uint256 w = op_ % 4;
+        uint256 role = w == 0 ? SET_SUB : w == 1 ? SET_RES : w == 2 ? RegistryRolesLib.ROLE_RENEW : RegistryRolesLib.ROLE_UNREGISTER;
+        bool expected = ciLive() && v2.hasRoles(ci, role, who);
         uint64 expiry = v2.getExpiry(ci);
         vm.prank(who);
         bool ok;
         if (w == 0) try v2.setSubregistry(ci, IRegistry(address(0xBEEF))) { ok = true; } catch {}
         else if (w == 1) try v2.setResolver(ci, address(0xBEEF)) { ok = true; } catch {}
-        else try v2.renew(ci, expiry) { ok = true; } catch {}
+        else if (w == 2) try v2.renew(ci, expiry) { ok = true; } catch {}
+        else try v2.unregister(ci) { ok = true; } catch {}
         if (ok != expected) writeMismatch++;
+        // Unregistering moves the file to a new EAC resource: stored grants on the old one no longer apply.
+        if (w == 3 && ok) for (uint256 i; i < 3; ++i) ghostNative[actors[i]] = 0;
     }
 
     function actorConfigure(uint256 a, uint256 which) external {
@@ -760,8 +813,15 @@ contract CascadeV2InvariantTest is V2Fixture {
 
     /// The rule, computed independently from the known tree: level 1 is (org, devops) if org points
     /// at v2; level 2 is (root, acme-corp) if depth ≥ 2 and root points at org; there is no level 3.
-    function _expected(address who) internal view returns (uint256 r) {
+    /// Stored roles as ENSv2 reports them: the actor's own grants, plus the owner's stored roles on the
+    /// file (RENEW, from registration) if the owner approved the actor and the file is live.
+    function _stored(address who) internal view returns (uint256 r) {
         r = handler.ghostNative(who);
+        if (handler.ciLive() && v2.isApprovedForAll(op, who) && v2.getOwner(ci) == op) r |= RegistryRolesLib.ROLE_RENEW;
+    }
+
+    function _expected(address who) internal view returns (uint256 r) {
+        r = _stored(who);
         bool l1 = address(org.getSubregistry("devops")) == address(v2);
         bool l2 = l1 && v2.depth() >= 2 && address(root.getSubregistry("acme-corp")) == address(org);
         address[] memory ts = v2.teams();
@@ -777,9 +837,14 @@ contract CascadeV2InvariantTest is V2Fixture {
         for (uint256 a; a < 3; ++a) {
             address who = handler.actorAt(a);
             assertEq(v2.roles(ci, who), _expected(who), "roles() != native | inherited over teams x levels");
-            assertEq(v2.nativeRoles(ci, who), handler.ghostNative(who), "stored roles changed");
+            assertEq(v2.nativeRoles(ci, who), _stored(who), "stored roles changed");
             for (uint256 bit; bit < 128; bit += 4) assertFalse(v2.hasRootRoles(1 << bit, who), "root inherited");
         }
+    }
+
+    function invariant_membersNeverAdministerOrTransfer() public view {
+        assertEq(handler.actorRevokeSucceeded(), 0, "an actor revoked a role");
+        assertEq(handler.actorTransferSucceeded(), 0, "an unapproved actor moved the file");
     }
 
     function invariant_writesAndConfigGuarded() public view {
