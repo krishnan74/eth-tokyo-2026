@@ -4,6 +4,7 @@
  *   npm run setup:v2                                  # Sepolia, simulate only
  *   npm run setup:v2 -- --write                       # Sepolia, send
  *   npm run setup:v2 -- --rpc http://127.0.0.1:8545   # anvil fork of Sepolia, sends
+ *   npm run setup:v2 -- --write --redeploy            # replace CascadeSubregistryV2 under the same platform name (teams and grants kept)
  *
  * Nothing here touches acme-corp.eth, devops.acme-corp.eth or any v1 contract: it registers its own
  * name (acme-labs.eth) and deploys fresh contracts. Addresses go to deployments/sepolia-v2.json
@@ -18,6 +19,7 @@
  *     security  — NestedTeam containing sre (a TeamRegistry)  (roadmap 2: teams of teams)
  *   security's grant sits two levels up, on acme-labs.eth itself (roadmap 3: multi-hop).
  */
+import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { encodeDeployData, type Address, type Hex } from "viem";
@@ -33,6 +35,8 @@ export const ROLE_SET_RESOLVER = 1n << 24n;
 
 export type BookV2 = {
   org?: Address; cascade?: Address; devTeam?: Address; sre?: Address; security?: Address;
+  /** Earlier CascadeSubregistryV2 deployments, replaced by `--redeploy`. */
+  retired?: { cascade: Address; at: string }[];
   txs: Record<string, Hex>;
 };
 export const BOOK_V2 = FORK ? "deployments/fork-v2.json" : "deployments/sepolia-v2.json";
@@ -41,9 +45,16 @@ export const loadBookV2 = (): BookV2 => {
   return src ? JSON.parse(readFileSync(src, "utf8")) : { txs: {} };
 };
 export const saveBookV2 = (b: BookV2) => writeFileSync(BOOK_V2, JSON.stringify(b, null, 2) + "\n");
+/** Tx names in the book carry the deployment number after a redeploy, so earlier entries are never overwritten. */
+export const txKey = (b: BookV2, name: string) => (b.retired?.length ? `${name} [deploy ${b.retired.length + 1}]` : name);
 
 const op = operator.account.address;
 const book = loadBookV2();
+if (process.argv.includes("--redeploy") && WRITE && book.cascade && process.argv[1]?.endsWith("setup-v2.ts")) {
+  (book.retired ??= []).push({ cascade: book.cascade, at: new Date().toISOString() });
+  delete book.cascade;
+  saveBookV2(book);
+}
 const YEAR = 31_536_000n;
 const NO_REFERRER = `0x${"00".repeat(32)}` as Hex;
 const step = (n: number, s: string) => console.log(`\n[${n}] ${s}`);
@@ -54,12 +65,12 @@ async function send(name: string, req: Parameters<typeof operator.writeContract>
   const hash = await operator.writeContract(request as never);
   const r = await pub.waitForTransactionReceipt({ hash });
   if (r.status !== "success") throw new Error(`${name} reverted: ${hash}`);
-  book.txs[name] = hash;
+  book.txs[txKey(book, name)] = hash;
   saveBookV2(book);
   console.log(`    ${name}: ${explorer(hash)}`);
 }
 
-async function deploy(key: Exclude<keyof BookV2, "txs">, contract: string, args: unknown[]) {
+async function deploy(key: Exclude<keyof BookV2, "txs" | "retired">, contract: string, args: unknown[]) {
   if (book[key] && (await pub.getCode({ address: book[key]! }))) return console.log(`    ${contract} (${key}) already at ${book[key]}`);
   const { abi, bytecode } = artifact(contract);
   if (!WRITE) {
@@ -69,7 +80,7 @@ async function deploy(key: Exclude<keyof BookV2, "txs">, contract: string, args:
   const hash = await operator.deployContract({ abi, bytecode, args });
   const r = await pub.waitForTransactionReceipt({ hash });
   book[key] = r.contractAddress!;
-  book.txs[`deploy ${key}`] = hash;
+  book.txs[txKey(book, `deploy ${key}`)] = hash;
   saveBookV2(book);
   console.log(`    ${contract} (${key}) → ${r.contractAddress}  ${explorer(hash)}`);
 }
@@ -78,6 +89,9 @@ const read = <T>(address: Address, abi: unknown, functionName: string, args: unk
   pub.readContract({ address, abi, functionName, args } as never) as Promise<T>;
 
 async function main() {
+  // Always deploy what the source says: out/ can hold a stale build (e.g. after a mutation test), and
+  // the deploy reads bytecode from out/. Foundry must be on PATH (see CLAUDE.md).
+  execFileSync("forge", ["build"], { stdio: ["ignore", "ignore", "inherit"] });
   console.log(`operator ${op}\nrpc      ${FORK ? "anvil fork" : "Sepolia"}  mode ${WRITE ? "WRITE" : "simulate"}\nbook     ${BOOK_V2}`);
 
   step(1, "contracts: OrgRegistry v2 (stock), CascadeSubregistryV2, dev-team, sre, security (NestedTeam)");
@@ -122,6 +136,8 @@ async function main() {
   else await send("org setParent", { address: org, abi: orgAbi, functionName: "setParent", args: [ENS.ethRegistry, ORG_V2] } as never);
   const sub = await read<Address>(org, REGISTRY_ABI, "getSubregistry", [FOLDER_V2]);
   if (sub.toLowerCase() === cascade.toLowerCase()) console.log(`    ${FOLDER_V2} already points at CascadeSubregistryV2`);
+  else if (sub !== ZERO) await send(`repoint ${FOLDER_V2} subregistry`, { address: org, abi: orgAbi, functionName: "setSubregistry",
+    args: [labelId(FOLDER_V2), cascade] } as never);
   else await send(`register ${FOLDER_V2}`, { address: org, abi: orgAbi, functionName: "register",
     args: [FOLDER_V2, op, cascade, ZERO, ALL_ROLES, BigInt(Math.floor(Date.now() / 1000)) + YEAR] } as never);
 
