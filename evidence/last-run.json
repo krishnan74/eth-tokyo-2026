@@ -1,8 +1,8 @@
 {
-  "at": "2026-09-26T00:36:03.660Z",
+  "at": "2026-09-26T00:58:54.485Z",
   "network": "sepolia",
-  "fqdn": "svc-muhnnzxl.devops.acme-corp.eth",
-  "label": "svc-muhnnzxl",
+  "fqdn": "svc-muhoh1bm.devops.acme-corp.eth",
+  "label": "svc-muhoh1bm",
   "explained": {
     "2": {
       "native": false,
@@ -47,24 +47,24 @@
       "action": "write as non-member",
       "explained": "no → yes → no",
       "status": "reverted",
-      "gas": "69921",
-      "url": "https://sepolia.etherscan.io/tx/0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91"
+      "gas": "69933",
+      "url": "https://sepolia.etherscan.io/tx/0x80a85562fcebc7cd9dd4ad4f4d24d552cccc8d592a6231c6f4d28a15063836ed"
     },
     {
       "step": 4,
       "action": "write as member",
       "explained": "no → yes → yes",
       "status": "success",
-      "gas": "91946",
-      "url": "https://sepolia.etherscan.io/tx/0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2"
+      "gas": "91958",
+      "url": "https://sepolia.etherscan.io/tx/0xf680646693ace2981b12474baeeacb41c78794964283b0094d0cd744907fa948"
     },
     {
       "step": 5,
       "action": "write after revoke",
       "explained": "no → yes → no",
       "status": "reverted",
-      "gas": "69921",
-      "url": "https://sepolia.etherscan.io/tx/0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb"
+      "gas": "69933",
+      "url": "https://sepolia.etherscan.io/tx/0x596cd25f959ced1007768b4bd42922f77981235da1ca051a9a07491b0b2ff633"
     },
     {
       "step": 6,
@@ -72,7 +72,7 @@
       "explained": "—",
       "status": "reverted",
       "gas": "25163",
-      "url": "https://sepolia.etherscan.io/tx/0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99"
+      "url": "https://sepolia.etherscan.io/tx/0x9b2a6439baddb453bb3a0640dffdb445b10671b2cd0e67c26569c15621a77b06"
     },
     {
       "step": 7,
@@ -80,15 +80,15 @@
       "explained": "—",
       "status": "reverted",
       "gas": "27765",
-      "url": "https://sepolia.etherscan.io/tx/0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1"
+      "url": "https://sepolia.etherscan.io/tx/0xa8dc6bf85de3c1cc08851a125a8a61bd2560ed845807c989f35ef504edf5795f"
     },
     {
       "step": 8,
       "action": "write after parent re-issue",
       "explained": "no → no → yes",
       "status": "reverted",
-      "gas": "61315",
-      "url": "https://sepolia.etherscan.io/tx/0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0"
+      "gas": "61327",
+      "url": "https://sepolia.etherscan.io/tx/0x11ec49461fa213f44eaba57ca8e446c09466fa5afb17e0ffdd547b527668a86a"
     }
   ],
   "members": [
@@ -99,101 +99,101 @@
   "receipts": [
     {
       "step": "register subname",
-      "hash": "0xf712ac3aacc6c7982a23455159d503def7e41a28e7f607d5fdcd6053ec5a015f",
+      "hash": "0x26aec31da3e6b6945fe2dc070e49cdb00c8faef363d9003b917b5c305a92e00d",
       "status": "success",
       "gas": "165133",
-      "url": "https://sepolia.etherscan.io/tx/0xf712ac3aacc6c7982a23455159d503def7e41a28e7f607d5fdcd6053ec5a015f"
+      "url": "https://sepolia.etherscan.io/tx/0x26aec31da3e6b6945fe2dc070e49cdb00c8faef363d9003b917b5c305a92e00d"
     },
     {
       "step": "write as non-member",
-      "hash": "0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91",
+      "hash": "0x80a85562fcebc7cd9dd4ad4f4d24d552cccc8d592a6231c6f4d28a15063836ed",
       "status": "reverted",
-      "gas": "69921",
-      "url": "https://sepolia.etherscan.io/tx/0xfe8a723d12430e7e56cbed2ccbf3cc82895018405cc3059eed5ba3c49b6ccb91"
+      "gas": "69933",
+      "url": "https://sepolia.etherscan.io/tx/0x80a85562fcebc7cd9dd4ad4f4d24d552cccc8d592a6231c6f4d28a15063836ed"
     },
     {
       "step": "grant MEMBER",
-      "hash": "0x38d3414db11ddebec87a6c096824ab42c07495eb40384138139f92bb10061579",
+      "hash": "0xee284584bf095c9a2f0f883a29057fe4719ae7aa3285862aafb4d576177d5823",
       "status": "success",
       "gas": "74504",
-      "url": "https://sepolia.etherscan.io/tx/0x38d3414db11ddebec87a6c096824ab42c07495eb40384138139f92bb10061579"
+      "url": "https://sepolia.etherscan.io/tx/0xee284584bf095c9a2f0f883a29057fe4719ae7aa3285862aafb4d576177d5823"
     },
     {
       "step": "write as member",
-      "hash": "0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2",
+      "hash": "0xf680646693ace2981b12474baeeacb41c78794964283b0094d0cd744907fa948",
       "status": "success",
-      "gas": "91946",
-      "url": "https://sepolia.etherscan.io/tx/0x2e3d264ed6e8eea34345377fa61c0080d932f0a6e10593b73e5fde1e80adcaa2"
+      "gas": "91958",
+      "url": "https://sepolia.etherscan.io/tx/0xf680646693ace2981b12474baeeacb41c78794964283b0094d0cd744907fa948"
     },
     {
       "step": "revoke MEMBER",
-      "hash": "0x285280d5e55f34237098d7eb8d8350cf7c30666c37389ebe6f927063c3c1ecbd",
+      "hash": "0x368a6ca5386fad589ac8af433859b98f3a04b351f6823618048e455b150eb9e0",
       "status": "success",
       "gas": "32196",
-      "url": "https://sepolia.etherscan.io/tx/0x285280d5e55f34237098d7eb8d8350cf7c30666c37389ebe6f927063c3c1ecbd"
+      "url": "https://sepolia.etherscan.io/tx/0x368a6ca5386fad589ac8af433859b98f3a04b351f6823618048e455b150eb9e0"
     },
     {
       "step": "write after revoke",
-      "hash": "0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb",
+      "hash": "0x596cd25f959ced1007768b4bd42922f77981235da1ca051a9a07491b0b2ff633",
       "status": "reverted",
-      "gas": "69921",
-      "url": "https://sepolia.etherscan.io/tx/0x014d5bbbb307848953ad8baedfb9466d5de3325298d53a3a24d3f9def44e94bb"
+      "gas": "69933",
+      "url": "https://sepolia.etherscan.io/tx/0x596cd25f959ced1007768b4bd42922f77981235da1ca051a9a07491b0b2ff633"
     },
     {
       "step": "outsider setTeam(AlwaysTrueTeam)",
-      "hash": "0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99",
+      "hash": "0x9b2a6439baddb453bb3a0640dffdb445b10671b2cd0e67c26569c15621a77b06",
       "status": "reverted",
       "gas": "25163",
-      "url": "https://sepolia.etherscan.io/tx/0x885844b7e0dd83ea2273a43c2d1d6bc493112fa54fd2617f28c390bed644bf99"
+      "url": "https://sepolia.etherscan.io/tx/0x9b2a6439baddb453bb3a0640dffdb445b10671b2cd0e67c26569c15621a77b06"
     },
     {
       "step": "operator setTeam(wallet)",
-      "hash": "0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1",
+      "hash": "0xa8dc6bf85de3c1cc08851a125a8a61bd2560ed845807c989f35ef504edf5795f",
       "status": "reverted",
       "gas": "27765",
-      "url": "https://sepolia.etherscan.io/tx/0x1b3f2d3fbbd955941a05e95c3a658415c7d56a5025b922d0e82c27ef55cedfe1"
+      "url": "https://sepolia.etherscan.io/tx/0xa8dc6bf85de3c1cc08851a125a8a61bd2560ed845807c989f35ef504edf5795f"
     },
     {
       "step": "grant MEMBER (step 8)",
-      "hash": "0xf754305cca2cb17ae8fd99e19d10a59b5bf502665f2a5b3bc64ea1da1d1830ea",
+      "hash": "0x886ff681b14f016d71847803d548c6d493c3d6a4b9b20d73fe3e1fcc3fd4188e",
       "status": "success",
       "gas": "74504",
-      "url": "https://sepolia.etherscan.io/tx/0xf754305cca2cb17ae8fd99e19d10a59b5bf502665f2a5b3bc64ea1da1d1830ea"
+      "url": "https://sepolia.etherscan.io/tx/0x886ff681b14f016d71847803d548c6d493c3d6a4b9b20d73fe3e1fcc3fd4188e"
     },
     {
       "step": "unregister devops",
-      "hash": "0xa903fc107dab5ae58b68115d1ea54a89b6f30df72f6bc2fdcfc2e96bed0fb70d",
+      "hash": "0x5f3bb14bed14da0f549d73ed9752cd7d65d9dc62a361067d81a3c6186a9b1e91",
       "status": "success",
       "gas": "45549",
-      "url": "https://sepolia.etherscan.io/tx/0xa903fc107dab5ae58b68115d1ea54a89b6f30df72f6bc2fdcfc2e96bed0fb70d"
+      "url": "https://sepolia.etherscan.io/tx/0x5f3bb14bed14da0f549d73ed9752cd7d65d9dc62a361067d81a3c6186a9b1e91"
     },
     {
       "step": "re-register devops",
-      "hash": "0x676fb172574405d98b9aa9124a995dd068dfb78298362691387b3b5e59a995c8",
+      "hash": "0x39dca2f750f6c4a4f769d8297bfed2caf99e4d40f863f704d2bd7b3f6ccbba01",
       "status": "success",
       "gas": "127705",
-      "url": "https://sepolia.etherscan.io/tx/0x676fb172574405d98b9aa9124a995dd068dfb78298362691387b3b5e59a995c8"
+      "url": "https://sepolia.etherscan.io/tx/0x39dca2f750f6c4a4f769d8297bfed2caf99e4d40f863f704d2bd7b3f6ccbba01"
     },
     {
       "step": "write after parent re-issue",
-      "hash": "0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0",
+      "hash": "0x11ec49461fa213f44eaba57ca8e446c09466fa5afb17e0ffdd547b527668a86a",
       "status": "reverted",
-      "gas": "61315",
-      "url": "https://sepolia.etherscan.io/tx/0x3960ae006216adfa1df92eea43cbe2222ff4f9acfb8210a799cacc8d1bfd1fc0"
+      "gas": "61327",
+      "url": "https://sepolia.etherscan.io/tx/0x11ec49461fa213f44eaba57ca8e446c09466fa5afb17e0ffdd547b527668a86a"
     },
     {
       "step": "restore: re-grant team",
-      "hash": "0x4f43d5d2770c9fc4ed095612175ffa43b3a4d151f8c2ec66f4ab839bcfd4402f",
+      "hash": "0x49602da6a6e007df712df257cded1d2ebf3c8a289573d749b98122610074eda3",
       "status": "success",
       "gas": "104372",
-      "url": "https://sepolia.etherscan.io/tx/0x4f43d5d2770c9fc4ed095612175ffa43b3a4d151f8c2ec66f4ab839bcfd4402f"
+      "url": "https://sepolia.etherscan.io/tx/0x49602da6a6e007df712df257cded1d2ebf3c8a289573d749b98122610074eda3"
     },
     {
       "step": "restore: revoke MEMBER",
-      "hash": "0x3c2c45709aea31c8075a3de67034ac17942d2f5632c02f298dd10ff12a585339",
+      "hash": "0x02ba97f23bde98426fc4053f5fa3e4e8e6eedbae27f3c0dcc4e9e5db29faf365",
       "status": "success",
       "gas": "32196",
-      "url": "https://sepolia.etherscan.io/tx/0x3c2c45709aea31c8075a3de67034ac17942d2f5632c02f298dd10ff12a585339"
+      "url": "https://sepolia.etherscan.io/tx/0x02ba97f23bde98426fc4053f5fa3e4e8e6eedbae27f3c0dcc4e9e5db29faf365"
     }
   ]
 }
