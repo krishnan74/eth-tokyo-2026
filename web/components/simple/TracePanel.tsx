@@ -18,8 +18,17 @@ function note(n: TraceNode): string | null {
     if (n.fn === "register") return "A new subname is created. Nobody is granted the editor role on it.";
     if (n.fn === "setTeam") return "An attempt to change which team Cascade reads. It needs ROLE_SET_TEAM on the registry.";
     if (n.fn === "setLabel") return "ENS stores the label text so the name can be read back.";
+    // Roadmap (CascadeSubregistryV2)
+    if (n.fn === "getSubregistry") return "Link check: does this ancestor really point down to the registry below it? A level only counts if it does.";
+    if (n.fn === "getParent") return "Walk up one level of the name tree, using ENSv2's own parent pointer.";
+    if (n.fn === "decodeParent") return "The ancestor's reply is decoded in a self-call, so malformed data can only end the walk.";
+    if (n.fn === "roles" && n.contract === "AcmeLabsRegistry") return "Level 1: which roles does this team hold on platform? Read-only, capped.";
+    if (n.fn === "roles" && n.contract === "EthRegistry") return "Level 2: which roles does this team hold on acme-labs.eth itself, two levels up?";
+    if (n.fn === "isMemberWithin") return "The nested team asks its sub-team, passing the remaining depth down.";
+    if (n.fn === "setResolver") return "The outsider's resolver write. Allowed only if a team grant at some level covers SET_RESOLVER.";
   }
   if (n.kind === "event" && n.fn === "SubregistryUpdated") return "Allowed — the subname's pointer was written.";
+  if (n.kind === "event" && n.fn === "ResolverUpdated") return "Allowed — the subname's resolver was written.";
   if (n.kind === "event" && n.fn === "EACRolesChanged") return "EAC's own event for the membership change.";
   if (n.kind === "revert" && /EACUnauthorizedAccountRoles/.test(n.value ?? "")) return "No role → the call is refused before anything changes.";
   return null;
