@@ -96,7 +96,7 @@ function _getRoles(uint256 resource, address account) internal view override ret
 
 ## 3. What happens on each demo action
 
-### A write by the outsider — `setSubregistry(svc, placeholder)`
+### A write by the outsider — "Edit as outsider" → `setSubregistry(svc, placeholder)`
 
 ```mermaid
 sequenceDiagram
@@ -132,7 +132,35 @@ CascadeSubregistry.setSubregistry(labelhash("svc-…"), placeholder)      70,230
  └─ done
 ```
 
-### Joining / leaving the team — drag in / drag out
+**The exact function chain** (🟦 stock ENSv2 · 🟩 Cascade · 🟨 call into another contract):
+
+```
+outsider → CascadeSubregistry.setSubregistry(svc, 0x…dEaD)                     🟦 PermissionedRegistry
+├─ _checkExpiryAndTokenRoles(svc, ROLE_SET_SUBREGISTRY)                         🟦
+│   ├─ _isExpired(entry.expiry)?  → revert LabelExpired
+│   └─ _checkRoles(resource(svc), ROLE_SET_SUBREGISTRY, outsider)               🟦 EAC — the one check
+│       └─ hasRoles → _effectiveRoles = _getRoles(ROOT) | _getRoles(svc)        🟦
+│           ├─ _getRoles(ROOT, outsider)                                        🟩 → super (storage): none → ROOT: return, nothing inherited
+│           └─ _getRoles(svc, outsider)                                         🟩
+│               ├─ super._getRoles(svc, outsider)                               🟦 storage + approved operators: none
+│               ├─ _teamGrant()                                                 🟩
+│               │    └─ 🟨 OrgRegistry.roles(labelhash("devops"), TeamRegistry)  [STATICCALL ≤50k] → SET_SUBREGISTRY (admin bits masked)
+│               └─ granted ≠ 0 → _isMember(outsider)                            🟩
+│                    └─ 🟨 TeamRegistry.isMember(outsider)                       [STATICCALL ≤30k] → true / false
+│       role present → continue · missing → revert EACUnauthorizedAccountRoles
+├─ entry.subregistry = 0x…dEaD                                                 🟦 the write
+└─ emit SubregistryUpdated                                                     🟦
+```
+
+**Cascade doesn't add a check — it changes the answer.** ENS's single `_checkRoles` asks "what roles does this caller have here?"; the answer comes from Cascade's `_getRoles`, which returns stored roles plus the team's grant for members. ENS compares that combined set with the needed role once.
+
+**Why `_getRoles` is also asked about `ROOT`.** EAC combines registry-wide roles (`ROOT_RESOURCE`) with the name's own roles on every check. Cascade returns straight away for `ROOT` without adding anything, so registry-wide powers — `REGISTRAR`, `UPGRADE`, `SET_PARENT`, `ROLE_SET_TEAM`, checked with `onlyRootRoles` — are never inherited. That early return is why a member can edit files but can never create names or swap the team.
+
+**What `_teamGrant()` returns.** One role bitmap: the regular roles the parent registry currently grants the team on this registry's own label — `parent.roles(labelhash(_childLabel), team) & lower 128 bits`, read with a capped STATICCALL. It is the same for every caller and every name in the registry; only `_isMember(caller)` depends on the caller. It returns `0` if no team is set, the parent isn't a contract, the parent is this registry (self-reference guard), the call fails or returns fewer than 32 bytes, the parent revoked the grant, or `devops` was re-issued. In the deployment it returns `0x100000` (`SET_SUBREGISTRY`). If it returns `0`, membership isn't even asked.
+
+**Gas numbers.** Trace figures (70,230 above) are the gas used *inside* the call. Etherscan shows the whole transaction — plus the flat 21,000 per transaction and the calldata cost — so the same write reads 91,946 there.
+
+### Joining / leaving the team — drag the outsider into / out of devops-team
 
 ```mermaid
 sequenceDiagram
@@ -147,11 +175,11 @@ sequenceDiagram
 
 Nothing is written to any name. Every subname's access flips because each check reads membership live.
 
-### Creating a subname — `+ New subname`
+### Creating a subname — "+ New file"
 
-`CascadeSubregistry.register("svc-…", operator, 0x0, 0x0, RENEW, +30 days)` → `LabelStore.setLabel` → mint the name's ERC-1155 token to the operator → the operator gets `RENEW` on it. Nobody gets `SET_SUBREGISTRY` on the new name.
+`CascadeSubregistry.register("svc-…", operator, 0x0, 0x0, RENEW, +30 days)` → `_register` → `LabelStore.setLabel` → `_checkRoles(ROOT, REGISTRAR, operator)` → write the record → `_mint` the name's ERC-1155 token to the operator → `_grantRoles(resource, RENEW, operator)`. Nobody gets `SET_SUBREGISTRY` on the new name.
 
-### The hijack attempt — dropping `AlwaysTrueTeam` on the socket
+### The attack — "As the outsider, change who the folder is shared with" → `setTeam(AlwaysTrueTeam)`
 
 ```
 CascadeSubregistry.setTeam(AlwaysTrueTeam)                               3,731 gas
