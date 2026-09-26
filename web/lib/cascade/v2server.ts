@@ -86,12 +86,13 @@ export async function v2State(labels: string[]): Promise<V2State> {
 export type V2Action =
   | { action: "create" }
   | { action: "join" | "leave"; team: "dev-team" | "sre" }
+  | { action: "move"; from: "dev-team" | "sre"; to: "dev-team" | "sre" }
   | { action: "depth"; depth: 1 | 2 }
   | { action: "setSubregistry" | "setResolver"; label: string }
   | { action: "hijack" }
   | { action: "reset" };
 
-export type V2Result = { hash?: Hex; status?: "success" | "reverted"; gasUsed?: string; label?: string; expectedRevertReason?: string; noop?: string };
+export type V2Result = { hash?: Hex; status?: "success" | "reverted"; gasUsed?: string; block?: string; label?: string; expectedRevertReason?: string; noop?: string };
 
 async function revertReason(req: object): Promise<string | undefined> {
   try {
@@ -115,10 +116,21 @@ async function v2ActNow(a: V2Action): Promise<V2Result> {
   const out = wallet("OUTSIDER_PRIVATE_KEY");
   const mined = async (hash: Hex, extra: Partial<V2Result> = {}): Promise<V2Result> => {
     const r = await pub.waitForTransactionReceipt({ hash });
-    return { hash, status: r.status, gasUsed: r.gasUsed.toString(), ...extra };
+    return { hash, status: r.status, gasUsed: r.gasUsed.toString(), block: r.blockNumber.toString(), ...extra };
   };
   const team = (t: "dev-team" | "sre") => (t === "dev-team" ? SEPOLIA_V2.devTeam : SEPOLIA_V2.sre);
+  // On the hosted demo the signer's balance is the budget: stop before it runs dry (reset still allowed).
+  if (a.action !== "reset" && (await pub.getBalance({ address: op.account.address })) < parseEther("0.01")) {
+    throw new Error("The demo's Sepolia test-ETH budget is used up. Run the demo locally, or ask the author to top it up.");
+  }
   switch (a.action) {
+    case "move": {
+      // One drag from one group to another: leave, then join — each mined before the next (nonces).
+      if (a.from === a.to) return { noop: "Already in that group." };
+      const isIn = await pub.readContract({ address: team(a.from), abi: TEAM_ABI, functionName: "isMember", args: [out.account.address] });
+      if (isIn) await mined(await op.writeContract({ address: team(a.from), abi: TEAM_ABI, functionName: "revokeRoles", args: [TEAM_RESOURCE, ROLE_MEMBER, out.account.address] }));
+      return mined(await op.writeContract({ address: team(a.to), abi: TEAM_ABI, functionName: "grantRoles", args: [TEAM_RESOURCE, ROLE_MEMBER, out.account.address] }));
+    }
     case "create": {
       const label = `svc-${Date.now().toString(36)}`;
       const hash = await op.writeContract({ address: SEPOLIA_V2.cascade, abi: CASCADE_V2_ABI, functionName: "register",
