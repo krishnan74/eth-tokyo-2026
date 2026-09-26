@@ -76,7 +76,7 @@ Pitched on the page as chapter 05. Only step 0 is built; the rest are planned an
 | 4 | Bring your own roster | Hats role / Safe owners behind `isMember()` (gas-checked) | next — this hackathon |
 | 5 | Who-can-access queries, resolver records, agent fleets | reverse lookups via events + indexer; record-level rights (a second mechanism — resolver permissions aren't keyed by parent name); agents as the use case | after ENS feedback |
 
-Before any of 1–4: invariant/fuzz tests for the step-0 rule, so each extension is checked against the same properties.
+Before any of 1–4: invariant/fuzz tests for the step-0 rule, so each extension is checked against the same properties — **done** (`contracts/test/CascadeInvariant.t.sol`: 5 invariants, 5 fuzz tests).
 
 ## Cut list
 

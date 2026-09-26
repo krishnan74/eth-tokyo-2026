@@ -17,6 +17,7 @@ How the contracts are structured, how a call flows through them, what state they
 | `lib/contracts-v2/.../PermissionedRegistry.sol` | ENS's standard registry. Cascade inherits it; the org registry *is* it. | Stock ENSv2 |
 | `lib/contracts-v2/.../EnhancedAccessControl.sol` | ENS's permission system (EAC). | Stock ENSv2 |
 | `contracts/test/Cascade.t.sol` | 17 Foundry tests, plus test-only helper contracts. | New |
+| `contracts/test/CascadeInvariant.t.sol` | The step-0 rule as 5 invariants over random action sequences, plus 5 fuzz tests. | New |
 
 All ENS code comes from the `ensdomains/contracts-v2` repository pinned at commit `48b3e2d`, the source that matches the ENSv2 beta deployment on Sepolia.
 
@@ -232,7 +233,7 @@ During each demo, subnames are created with `cascade.register("svc-…", operato
 - **Foundry** (`forge`), Solidity **0.8.26**, `evm_version = cancun`, optimizer 200 runs. Foundry is not on `PATH` by default: `export PATH="$HOME/.foundry/bin:$PATH"`.
 - **Dependencies are git submodules** pinned to exact commits: `lib/contracts-v2` (`48b3e2d`), `lib/openzeppelin-contracts`, `lib/forge-std`.
 - **Remappings:** `@ens/v2/` → `lib/contracts-v2/contracts/src/`, `@openzeppelin/contracts/` → `lib/openzeppelin-contracts/contracts/`.
-- **Commands:** `forge build`, `npm test` (the 17 tests), `npm run gen` (regenerates `core/cascade/generated.ts` — the ABIs and addresses the terminal demo and web UI share — after any contract change or redeploy).
+- **Commands:** `forge build`, `npm test` (17 unit tests, 5 fuzz tests, 5 invariants), `npm run gen` (regenerates `core/cascade/generated.ts` — the ABIs and addresses the terminal demo and web UI share — after any contract change or redeploy).
 - **Deployment and wiring** is `scripts/setup.ts` (viem), not a Forge script, because commit–reveal needs a 60-second wait between transactions.
 
 ---
@@ -251,4 +252,4 @@ During each demo, subnames are created with `cascade.register("svc-…", operato
 | Invalidation | parent re-issue and parent expiry end the grant; parent transfer keeps it, and the new owner can revoke |
 | Gas | native vs inherited write, like for like |
 
-Not yet covered: invariant / fuzz tests of the rule (planned as the first roadmap step) and a Hats or Safe roster adapter.
+Invariant and fuzz tests of the rule are in `CascadeInvariant.t.sol`. Not yet covered: a Hats or Safe roster adapter.

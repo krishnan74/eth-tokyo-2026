@@ -4,7 +4,7 @@ ENS Drive was built during the event in a Claude Code session (Anthropic's Claud
 
 ## What the AI wrote
 
-- **Contracts and tests:** all of `contracts/src/` (`CascadeSubregistry`, `TeamRegistry`, `ITeam`, the `AlwaysTrueTeam` fixture) and the 17 Foundry tests in `contracts/test/Cascade.t.sol`, including the security hardening after a review pass (the `_getRoles` move, the pointer guard, gas-capped calls).
+- **Contracts and tests:** all of `contracts/src/` (`CascadeSubregistry`, `TeamRegistry`, `ITeam`, the `AlwaysTrueTeam` fixture) the 17 Foundry tests in `contracts/test/Cascade.t.sol` and the invariant and fuzz tests in `contracts/test/CascadeInvariant.t.sol`, including the security hardening after a review pass (the `_getRoles` move, the pointer guard, gas-capped calls).
 - **Scripts:** the Sepolia deployment and wiring script (`scripts/setup.ts`), the terminal demo (`scripts/demo.ts`, `scripts/ui.ts`), and the ABI generator.
 - **Web UI:** the Next.js app in `web/` — the shared-drive demo, the server-side signing and `cast run` trace replay, the architecture section.
 - **Documentation:** the README and everything in `docs/`, including this submission copy, the architecture docs, the study material and the pitch script.
@@ -20,7 +20,7 @@ ENS Drive was built during the event in a Claude Code session (Anthropic's Claud
 
 ## How the AI's output was checked
 
-- Contract behaviour is checked by the 17 Foundry tests and by live runs on the ENSv2 beta on Sepolia (transactions in [`evidence.md`](evidence.md)); the UI was driven end to end in a real browser on a fork of Sepolia.
+- Contract behaviour is checked by the 17 unit tests, 5 fuzz tests and 5 invariants (the invariant suite was mutation-checked: deliberately breaking the ROOT guard or the admin mask makes it fail) and by live runs on the ENSv2 beta on Sepolia (transactions in [`evidence.md`](evidence.md)); the UI was driven end to end in a real browser on a fork of Sepolia.
 - Bugs caught this way are recorded in [`build-log.md`](build-log.md), for example a `try/catch` that couldn't catch undecodable return data, a drag-and-drop zone hit-test ordering bug, and a trace decoder that mislabelled values as roles.
 
 ## Author's own words

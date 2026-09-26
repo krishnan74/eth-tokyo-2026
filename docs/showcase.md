@@ -26,7 +26,7 @@ The demo is a minimal shared-drive view on real ENSv2 contracts on Sepolia: the 
 - **A team roster on plain EAC.** `TeamRegistry` holds a `MEMBER` role per account and answers `isMember()`; it declares its interface through ERC-165.
 - **Three independent facts gate every inherited write** — the parent's grant (stock ENSv2 registry), membership (TeamRegistry) and the registry's team pointer (guarded by a dedicated `ROLE_SET_TEAM`). Cut any one and access ends. Re-issuing the parent name ends the team's authority automatically.
 - **Fail-closed external calls.** Both lookups are read-only, gas-capped STATICCALLs with length-checked returns, so a broken or hostile team contract can't block or escalate anything.
-- **Proof.** 17 Foundry tests (sequence, view/write agreement, admin masking, pointer guard, broken teams, parent re-issue/expiry/transfer); an eight-step terminal demo and a web demo on the ENSv2 beta on Sepolia, every step a real transaction; each action's call tree replayed with Foundry's `cast run`.
+- **Proof.** 17 unit tests plus 5 fuzz tests and 5 invariants (sequence, view/write agreement, admin masking, pointer guard, broken teams, parent re-issue/expiry/transfer); an eight-step terminal demo and a web demo on the ENSv2 beta on Sepolia, every step a real transaction; each action's call tree replayed with Foundry's `cast run`.
 - **Stack.** Solidity 0.8.26 + Foundry on `ensdomains/contracts-v2@48b3e2d`; a TypeScript core shared by a viem terminal demo and a Next.js 16 + wagmi web UI.
 
 ## Links to fill in at submission

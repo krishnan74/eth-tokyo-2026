@@ -22,7 +22,7 @@ export PATH="$HOME/.foundry/bin:$PATH"
 ## Commands
 
 ```bash
-forge build && npm test                            # 17 Foundry tests (local EVM)
+forge build && npm test                            # 17 unit + 5 fuzz + 5 invariants (local EVM, ~8 s)
 anvil --fork-url https://ethereum-sepolia-rpc.publicnode.com   # fork for rehearsal
 npm run setup -- --rpc http://127.0.0.1:8545       # rehearse wiring on the fork (writes deployments/fork.json)
 npm run setup                                      # Sepolia, simulate only
@@ -83,7 +83,7 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 ```
 contracts/src/       CascadeSubregistry, TeamRegistry, ITeam
 contracts/src/demo/  AlwaysTrueTeam — the attacker's contract for demo step 6 (fixture, not product)
-contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer
+contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer; CascadeInvariant.t.sol — the step-0 rule as 5 invariants (random action sequences via a Handler) + 5 fuzz tests (arbitrary team/parent return data, arbitrary role bitmaps)
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)
 scripts/             lib.ts (env, clients, book), setup.ts (deploy/wire, --redeploy), demo.ts (8 steps, --recap), ui.ts (terminal rendering), gen-core.ts
 web/                 Next.js 16 app (deps in the root package.json): app/page.tsx, app/api/{action,actors}, lib/cascade/{hooks,server,wagmi}.ts; components/drive/DriveDemo (the shared-drive demo: folder = devops, files = subnames, group = TeamRegistry; drag-and-drop, who-has-access, attack); components/simple/: Intro, TracePanel (live cast-run trace), Architecture, MoreDetail; components/pitch/: Sections (gap, fit, roadmap, ask — inside More detail), Reveal, SmoothScroll; components/cascade/: TopBar (with theme toggle), Activity, Context, primitives, steps.ts (action labels); lib/cascade/trace.ts (cast run replay + context-aware decoding), app/api/trace
@@ -95,6 +95,6 @@ lib/               contracts-v2@48b3e2d, openzeppelin-contracts, forge-std (subm
 
 ## Status
 
-`_getRoles` version built, 17 tests passing, deployed and demoed live on Sepolia (all eight terminal steps mined, every outcome as expected). Audit remediation recorded in `docs/remediation.md`. Next.js UI (shared-drive demo, light theme by default with a toggle, live `cast run` traces, Start over reset) built on the shared core; the drive UI has been clicked through end to end on a fork — a full run on live Sepolia is still to do (it will be the video recording). A fresh clone builds, tests and runs `ui:build` with no `.env`.
+`_getRoles` version built, 17 unit tests + 5 fuzz tests + 5 invariants passing (mutation-checked: dropping the ROOT early return or the admin mask fails them), deployed and demoed live on Sepolia (all eight terminal steps mined, every outcome as expected). Audit remediation recorded in `docs/remediation.md`. Next.js UI (shared-drive demo, light theme by default with a toggle, live `cast run` traces, Start over reset) built on the shared core; the drive UI has been clicked through end to end on a fork — a full run on live Sepolia is still to do (it will be the video recording). A fresh clone builds, tests and runs `ui:build` with no `.env`.
 
 Submission (first draft, docs committed): blockers are the repo going public (the ENS track requires open source — it is private; keep it private until the user says otherwise), a live demo link (plan: hosted read-only UI, writes off), the demo video, the real form limits/deadline, and the author's section of `docs/ai-usage.md` (the user writes it, not Claude). Form picks: category Infrastructure, emoji 📂. Still open: Etherscan source verification; a native-owner gas baseline on Sepolia; ENS team answers to the README's design questions.

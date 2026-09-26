@@ -69,3 +69,10 @@
 - `architecture.md` gains the exact function chain for a write, why `_getRoles` is also asked about `ROOT`, what `_teamGrant()` returns, and why trace gas differs from Etherscan gas.
 - Evidence records the live Sepolia reset (`0x24e1f9c4…`) and that the full drive click-through has only been run on a fork. Decisions 9–11 record the trace approach, the drive framing and the naming split.
 - Added `docs/architecture-talk.md`: the spoken technical walkthrough ENS asked for, at 30 seconds and ~3 minutes, with follow-up answers.
+
+## 2026-09-26 (later) — invariant and fuzz tests (roadmap step 0 safety net)
+
+- Added `contracts/test/CascadeInvariant.t.sol`: a Handler drives random sequences of join/leave, parent grant/revoke, parent re-issue, team swaps (second roster, always-yes, misbehaving), new subnames, native grants/revokes, and outsider writes, grants, registrations and `setTeam` attempts. Five invariants after every step: roles equal native ∪ (parent grant & regular bits, if a member); stored roles unchanged; no admin bit inherited; nothing inherited at root; write outcomes match `hasRoles` and no view reverts. Five fuzz tests: arbitrary team `isMember` return data, arbitrary parent `roles` return data, arbitrary parent bitmaps (admin masking, root never inherited), non-members get nothing.
+- First run passed vacuously: every `join`/`leave` reverted because `vm.prank` was consumed by the `TEAM_RESOURCE()` view call (the same pitfall as earlier). Caught from the handler's revert table; fixed with literal constants and an `afterInvariant` check that someone actually joined.
+- Mutation check: removing the ROOT early return, or the admin-bit mask, in `CascadeSubregistry` makes the new suite fail (both restored from git; contract unchanged).
+- Runs in ~8 s (64 runs × depth 100). Full suite: 17 unit + 5 fuzz + 5 invariants, all passing.

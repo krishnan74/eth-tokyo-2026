@@ -222,7 +222,10 @@ The first version overrode `_checkRoles`. It was replaced by the `_getRoles` ver
 
 ## 7. How it is proven
 
-### 17 Foundry tests
+### 17 unit tests, 5 fuzz tests, 5 invariants
+
+The invariant suite (`CascadeInvariant.t.sol`) drives random sequences of real actions — joining and leaving, parent grants and revokes, re-issuing `devops`, swapping to hostile teams, creating subnames, outsiders attempting writes, grants, registrations and team swaps — and after every step checks that each account's roles equal *native ∪ (parent grant & regular bits, if a member)*, that stored roles never change, that no admin or root role is ever inherited, and that views agree with writes. The fuzz tests feed arbitrary return data from the team and the parent, and arbitrary role bitmaps. The unit tests cover:
+
 
 - The full deny → grant → allow → revoke → deny sequence.
 - Views agree with writes.

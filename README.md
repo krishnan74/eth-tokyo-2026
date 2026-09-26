@@ -29,7 +29,7 @@ Clone with `--recurse-submodules` (ENSv2's `contracts-v2` is a pinned submodule;
 
 ```bash
 npm install && forge build
-npm test                              # 17 Foundry tests
+npm test                              # 17 unit tests + 5 fuzz + 5 invariants
 npm run demo                          # the eight steps, live on Sepolia (setup already done)
 npm run demo -- --step                # same, waits for Enter between steps — for presenting
 npm run demo -- --core                # steps 1–5 only
