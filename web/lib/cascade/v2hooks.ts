@@ -1,6 +1,6 @@
 "use client";
 
-// Client state for the cascade drive: live reads of the acme-labs.eth tree from /api/v2/state, actions
+// Client state for the cascade drive: live reads of the orbit-dao.eth tree from /api/v2/state, actions
 // through /api/v2/action (the server waits for each receipt), and the `cast run` trace of the latest
 // transaction.
 import { useCallback, useEffect, useState } from "react";
@@ -14,11 +14,11 @@ export type V2ActionName =
 export type V2Status = "success" | "reverted" | "error" | "noop" | undefined;
 export type V2Result = { hash?: `0x${string}`; status?: "success" | "reverted"; gasUsed?: string; block?: string; label?: string; expectedRevertReason?: string; noop?: string; error?: string };
 
-const FILES_KEY = "ens-drive:v2-files";
+const FILES_KEY = "ens-drive:orbit-files";
 export const V2_TITLES: Record<V2ActionName, string> = {
-  create: "New file in platform", setSubregistry: "Alex edits the file", setResolver: "Alex sets the file's resolver",
-  joinDev: "Alex added to dev-team", leaveDev: "Alex removed from dev-team", joinSre: "Alex added to sre (inside security)",
-  leaveSre: "Alex removed from sre", moveDevToSre: "Alex moved from dev-team to sre", moveSreToDev: "Alex moved from sre to dev-team",
+  create: "New file in protocol", setSubregistry: "Alex edits the file", setResolver: "Alex sets the file's resolver",
+  joinDev: "Alex added to core-devs", leaveDev: "Alex removed from core-devs", joinSre: "Alex added to auditors (inside security-council)",
+  leaveSre: "Alex removed from auditors", moveDevToSre: "Alex moved from core-devs to auditors", moveSreToDev: "Alex moved from auditors to core-devs",
   depth1: "Sharing stops flowing into subfolders", depth2: "Sharing flows into subfolders again",
   hijack: "Alex tries to add an always-yes group", reset: "Start over",
 };
@@ -48,11 +48,11 @@ export function callPath(t: TraceState): string | null {
 }
 
 // Three files from the start (registered by setup:v2), so one change to a team visibly reaches several names.
-const BASE_FILES = ["svc-api", "svc-db", "svc-web"];
+const BASE_FILES = ["vault", "oracle", "bridge"];
 
 export function useV2Demo() {
   const [files, setFiles] = useState<string[]>(BASE_FILES);
-  const [target, setTarget] = useState<string | null>("svc-api");
+  const [target, setTarget] = useState<string | null>("vault");
   const [state, setState] = useState<V2State | null>(null);
   const [readError, setReadError] = useState<string>();
   const [pending, setPending] = useState<V2ActionName | null>(null);
@@ -127,9 +127,9 @@ export function useV2Demo() {
       setLog((l) => [{ id: t0, action: a, result: res }, ...l].slice(0, 30));
       status = "error";
     } finally {
+      await refresh(); // fresh state first, so an optimistic chip never flashes back
       setPending(null);
       setStartedAt(null);
-      refresh();
     }
     return status;
   }, [files, refresh]);

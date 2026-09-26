@@ -7,7 +7,7 @@ import { v2Act, type V2Action } from "@/lib/cascade/v2server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-const LABEL = /^svc-[0-9a-z]{1,16}$/;
+const LABEL = /^[a-z][0-9a-z-]{1,20}$/; // a plain lowercase label: vault, oracle, bridge, svc-…
 
 /** One roadmap-demo transaction; waits for the receipt. Local-only, like the v1 demo's writes. */
 export async function POST(req: Request) {

@@ -18,7 +18,7 @@ type Tab = "cascade" | "single";
 
 export default function Page() {
   const actors = useActors();
-  const v2 = useV2Demo(); // the cascade drive: CascadeSubregistryV2 on acme-labs.eth
+  const v2 = useV2Demo(); // the cascade drive: CascadeSubregistryV2 on orbit-dao.eth
   const v1 = useCascadeDemo(actors?.outsider); // the one-folder drive: CascadeSubregistry on devops.acme-corp.eth
   const [tab, setTab] = useState<Tab>("cascade");
   const writesEnabled = actors?.writesEnabled ?? false;

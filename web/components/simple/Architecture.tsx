@@ -5,20 +5,20 @@ import { CopyAddress } from "../cascade/primitives";
 import { Reveal } from "../pitch/Reveal";
 
 const CONTRACTS = [
-  { name: "acme-labs.eth registry", tag: "stock ENSv2", addr: SEPOLIA_V2.org, role: "An ordinary PermissionedRegistry, unmodified.",
-    stores: ["the name platform (its files live in CascadeSubregistryV2)", "the grant: dev-team can edit on platform", "above it, the .eth registry holds security's grant on acme-labs"] },
-  { name: "CascadeSubregistryV2", tag: "the one new registry", addr: SEPOLIA_V2.cascade, role: "The registry for platform.acme-labs.eth — ENS's own PermissionedRegistry, with the role lookup overridden.",
-    stores: ["the files svc-…", "its teams: dev-team, security (up to 4)", "how many folders up sharing flows (depth 1–3)"], highlight: true },
-  { name: "Team contracts", tag: "plain EAC", addr: SEPOLIA_V2.security, role: "Rosters. dev-team and sre are TeamRegistry; security is a NestedTeam that includes sre.",
-    stores: ["one bit per person: member on / off", "security: its sub-teams (sre)", "Hats / Safe adapters fit the same one-function interface"] },
+  { name: "orbit-dao.eth registry", tag: "stock ENSv2", addr: SEPOLIA_V2.org, role: "An ordinary PermissionedRegistry, unmodified.",
+    stores: ["the name protocol (its files live in CascadeSubregistryV2)", "the grant: core-devs can edit on protocol", "above it, the .eth registry holds security-council's grant on orbit-dao"] },
+  { name: "CascadeSubregistryV2", tag: "the one new registry", addr: SEPOLIA_V2.cascade, role: "The registry for protocol.orbit-dao.eth — ENS's own PermissionedRegistry, with the role lookup overridden.",
+    stores: ["the files vault, oracle, bridge", "its teams: core-devs, security-council (up to 4)", "how many folders up sharing flows (depth 1–3)"], highlight: true },
+  { name: "Team contracts", tag: "plain EAC", addr: SEPOLIA_V2.security, role: "Rosters. core-devs and auditors are TeamRegistry; security-council is a NestedTeam that includes auditors.",
+    stores: ["one bit per person: member on / off", "security-council: its sub-teams (auditors)", "Hats / Safe adapters fit the same one-function interface"] },
 ];
 
 const PATH = [
-  ["Outsider calls", "CascadeSubregistryV2.setSubregistry(svc-api)", "stock"],
+  ["Alex calls", "CascadeSubregistryV2.setSubregistry(vault)", "stock"],
   ["ENS checks", "the name exists and hasn't expired, then asks for the role", "stock"],
-  ["Own roles?", "none stored for the outsider — keep going (owners stop here)", "cascade"],
-  ["Level 1 · platform", "acme-labs registry points back down ✓ · dev-team's grant: can edit · is the outsider in dev-team? no", "cascade"],
-  ["Level 2 · acme-labs.eth", ".eth registry points back down ✓ · security's grant: can edit · is the outsider in security? → sre: yes", "cascade"],
+  ["Own roles?", "none stored for Alex — keep going (owners stop here)", "cascade"],
+  ["Level 1 · protocol", "orbit-dao registry points back down ✓ · core-devs' grant: can edit · is Alex in core-devs? no", "cascade"],
+  ["Level 2 · orbit-dao.eth", ".eth registry points back down ✓ · security-council's grant: can edit · is Alex in security-council? → auditors: yes", "cascade"],
   ["Result", "covered → stop and allow · nothing covers it → reverted by ENS's own check", "stock"],
 ] as const;
 
@@ -50,7 +50,7 @@ export function Architecture() {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <Reveal className="flex flex-col gap-4">
-          <span className="label">What happens when the outsider (in sre) edits a file</span>
+          <span className="label">What happens when Alex (in auditors) edits a file</span>
           <ol className="flex flex-col gap-2">
             {PATH.map(([who, what, kind], i) => (
               <li key={i} className={`grid grid-cols-[1.75rem_minmax(0,1fr)] gap-3 rounded-2xl px-4 py-3 ${kind === "cascade" ? "bg-cascade-soft" : "bg-surface shadow-[inset_0_0_0_1px_var(--line)]"}`}>

@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   if (limited) return NextResponse.json({ error: limited }, { status: 429 });
   // Only the demo's own transactions: a public server should not replay arbitrary ones on request.
   if (!(await sentByDemo(hash as `0x${string}`))) return NextResponse.json({ error: "Only transactions sent by this demo can be traced here." }, { status: 403 });
-  const labels = (url.searchParams.get("labels") ?? "").split(",").filter((l) => /^svc-[0-9a-z]{1,16}$/.test(l)).slice(0, 12);
+  const labels = (url.searchParams.get("labels") ?? "").split(",").filter((l) => /^[a-z][0-9a-z-]{1,20}$/.test(l)).slice(0, 12);
   const a = actors();
   const people: Record<string, string> = {};
   if (a.outsider) people[a.outsider] = "outsider";

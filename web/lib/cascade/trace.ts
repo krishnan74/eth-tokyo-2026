@@ -35,9 +35,9 @@ export async function traceTx(hash: string, people: Record<string, string>, labe
   const names: Record<string, string> = {
     [SEPOLIA.cascade]: "CascadeSubregistry", [SEPOLIA.parent]: "OrgRegistry", [SEPOLIA.team]: "TeamRegistry",
     [SEPOLIA.attacker]: "AlwaysTrueTeam", [ENS.labelStore]: "LabelStore", [PLACEHOLDER]: "placeholder",
-    // Roadmap tree (acme-labs.eth), for traces from the /roadmap page.
-    [SEPOLIA_V2.cascade]: "CascadeSubregistryV2", [SEPOLIA_V2.org]: "AcmeLabsRegistry", [ENS.ethRegistry]: "EthRegistry",
-    [SEPOLIA_V2.devTeam]: "DevTeam", [SEPOLIA_V2.security]: "SecurityTeam", [SEPOLIA_V2.sre]: "SreTeam",
+    // The cascade tree (orbit-dao.eth), for traces from the Cascade tab.
+    [SEPOLIA_V2.cascade]: "CascadeSubregistryV2", [SEPOLIA_V2.org]: "OrbitDaoRegistry", [ENS.ethRegistry]: "EthRegistry",
+    [SEPOLIA_V2.devTeam]: "CoreDevs", [SEPOLIA_V2.security]: "SecurityCouncil", [SEPOLIA_V2.sre]: "Auditors",
     "0x000000000000000000000000000000000000dEaD": "placeholder", ...people,
   };
   const args = ["run", hash, "--rpc-url", RPC, ...Object.entries(names).flatMap(([a, n]) => ["--labels", `${a}:${n}`])];

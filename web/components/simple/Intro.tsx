@@ -20,12 +20,12 @@ export function Intro() {
       <Reveal className="grid overflow-hidden rounded-3xl ring-1 ring-line md:grid-cols-3">
         <div className="flex flex-col gap-2 bg-surface p-6">
           <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-ok-soft text-xs text-ok">✓</span>The directory tree</span>
-          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">ENSv2 already built it.</span> Every name can have its own registry, so names nest like folders: <span className="font-mono text-xs">acme-labs.eth › platform › svc-api</span>. But every folder is a separate registry with its own permission list — so a team&apos;s access multiplies with every folder.</p>
+          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">ENSv2 already built it.</span> Every name can have its own registry, so names nest like folders: <span className="font-mono text-xs">orbit-dao.eth › protocol › vault</span>. But every folder is a separate registry with its own permission list — so a team&apos;s access multiplies with every folder.</p>
         </div>
         <div className="flex flex-col gap-2 border-t border-line bg-surface p-6 md:border-l md:border-t-0">
           <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-bad-soft text-xs text-bad">✗</span>The sharing layer</span>
           <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">Missing.</span> Permissions are granted one address on one name. There&apos;s no way to share a folder with a group.</p>
-          <p className="text-sm leading-relaxed text-ink-2">A team of 5 managing 20 names across 3 folders: <span className="font-medium text-bad">300 grants</span>, and <span className="font-medium text-bad">60 revokes</span> when someone leaves. <span className="text-muted">(ENSv2&apos;s registry-wide grants cut it to 15 — but every join or leave still touches every folder. A worked example.)</span></p>
+          <p className="text-sm leading-relaxed text-ink-2">A web3 org's team of 5 managing 20 names across 3 folders: <span className="font-medium text-bad">300 grants</span>, and <span className="font-medium text-bad">60 revokes</span> when someone leaves. <span className="text-muted">(ENSv2&apos;s registry-wide grants cut it to 15 — but every join or leave still touches every folder. A worked example.)</span></p>
         </div>
         <div className="flex flex-col gap-2 border-t border-line bg-inv p-6 text-inv-fg md:border-t-0">
           <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-white/10 text-xs text-inv-accent">→</span>ENS Drive adds it</span>
@@ -44,7 +44,7 @@ export function ProblemCards() {
         <span className="label">In ENS today</span>
         <p className="text-xl font-medium leading-snug">Like sharing <span className="text-bad">each file with each person.</span></p>
         <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] gap-x-3 gap-y-2 font-mono text-xs">
-          <span />{["svc-api", "svc-db", "svc-cdn"].map((n) => <span key={n} className="text-muted">{n}</span>)}
+          <span />{["vault", "oracle", "bridge"].map((n) => <span key={n} className="text-muted">{n}</span>)}
           {["Alice", "Bob"].map((p) => (
             <span key={p} className="contents">
               <span className="font-sans text-sm">{p}</span>
@@ -58,9 +58,9 @@ export function ProblemCards() {
         <span className="label !text-inv-muted">With ENS Drive</span>
         <p className="text-xl font-medium leading-snug">Like sharing <span className="text-inv-accent">the folder with a group</span>.</p>
         <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          <span className="rounded bg-white/10 px-2 py-1">acme-labs.eth</span>
+          <span className="rounded bg-white/10 px-2 py-1">orbit-dao.eth</span>
           <span className="text-inv-muted">→ one grant →</span>
-          <span className="rounded bg-white/10 px-2 py-1 text-inv-accent">security</span>
+          <span className="rounded bg-white/10 px-2 py-1 text-inv-accent">security-council</span>
           <span className="text-inv-muted">→</span>
           <span className="rounded bg-white/10 px-2 py-1">every name below</span>
         </div>

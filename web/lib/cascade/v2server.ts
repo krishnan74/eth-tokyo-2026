@@ -1,4 +1,5 @@
-// Server-only: the /roadmap page's reads and writes on the CascadeSubregistryV2 tree (acme-labs.eth).
+// Server-only: the cascade drive's reads and writes on the CascadeSubregistryV2 tree (orbit-dao.eth).
+// Internal team keys: "dev-team" = core-devs, "sre" = auditors (inside security-council); names are UI-only.
 // Local-only like the v1 demo's writes: signed with the main operator/outsider keys from the repo's .env,
 // which own that tree. The v1 demo's contracts are never written from here.
 import { BaseError, ContractFunctionRevertedError, createPublicClient, createWalletClient, http, parseEther, type Address, type Hex } from "viem";
@@ -6,7 +7,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
 import { ENS, REGISTRY_ABI, SEPOLIA, ROLE_RENEW, ROLE_SET_SUBREGISTRY, TEAM_ABI, TEAM_RESOURCE, ROLE_MEMBER, ZERO, labelId } from "../../../core/cascade/contracts";
-import { CASCADE_V2_ABI, FOLDER_V2, NESTED_TEAM_ABI, ORG_V2, ROLE_SET_RESOLVER, SEPOLIA_V2 } from "../../../core/cascade/v2";
+import { CASCADE_V2_ABI, FOLDER_V2, MEMBER_LABELS_V2, NESTED_TEAM_ABI, ORG_V2, ROLE_SET_RESOLVER, SEPOLIA_V2, TEAMS_V2 } from "../../../core/cascade/v2";
 import { WRITES_ENABLED } from "./server";
 
 const RPC = process.env.CASCADE_RPC_URL ?? process.env.NEXT_PUBLIC_RPC_URL ?? process.env.SEPOLIA_RPC_URL ?? "https://ethereum-sepolia-rpc.publicnode.com";
@@ -14,6 +15,7 @@ const chain = { ...sepolia, contracts: { ...sepolia.contracts, ensUniversalResol
 const transport = http(RPC);
 const pub = createPublicClient({ chain, transport });
 const PLACEHOLDER = "0x000000000000000000000000000000000000dEaD" as Address;
+const OWNER_ABI = [{ type: "function", name: "getOwner", stateMutability: "view", inputs: [{ name: "anyId", type: "uint256" }], outputs: [{ name: "", type: "address" }] }] as const;
 
 function wallet(name: string) {
   const v = process.env[name];
@@ -26,6 +28,8 @@ type Explained = { allowed: boolean; native: boolean; team: Address; level: numb
 
 export type V2State = {
   outsider: Address;
+  /** The outsider's own ENS name in the org, if the account owns one (checked on-chain), e.g. alex.orbit-dao.eth. */
+  outsiderName: string | null;
   writesEnabled: boolean;
   depth: number;
   ancestry: { registry: Address; label: string }[];
@@ -64,6 +68,10 @@ export async function v2State(labels: string[]): Promise<V2State> {
     const e = (await pub.readContract({ address: c, abi: CASCADE_V2_ABI, functionName: "explain", args: [labelId(label), role, out] })) as unknown as Explained & { level: bigint };
     return { allowed: e.allowed, native: e.native, team: e.team, level: Number(e.level), ancestor: e.ancestor, label: e.label };
   };
+  const owners = await Promise.all(MEMBER_LABELS_V2.map((l) =>
+    pub.readContract({ address: SEPOLIA_V2.org, abi: OWNER_ABI, functionName: "getOwner", args: [labelId(l)] }).catch(() => ZERO)));
+  const i = owners.findIndex((o) => (o as string).toLowerCase() === out.toLowerCase());
+  const outsiderName = i >= 0 ? `${MEMBER_LABELS_V2[i]}.${ORG_V2}.eth` : null;
   const [devGrants, secGrants, files] = await Promise.all([
     grantsFor(SEPOLIA_V2.devTeam),
     grantsFor(SEPOLIA_V2.security),
@@ -71,12 +79,13 @@ export async function v2State(labels: string[]): Promise<V2State> {
   ]);
   return {
     outsider: out,
+    outsiderName,
     writesEnabled: WRITES_ENABLED,
     depth: Number(depth),
     ancestry: (ancestors as Address[]).map((registry, i) => ({ registry, label: (ancLabels as string[])[i] })),
     teams: [
-      { name: "dev-team", address: SEPOLIA_V2.devTeam, member: memberDev as boolean, grants: devGrants },
-      { name: "security", address: SEPOLIA_V2.security, member: memberSec as boolean, grants: secGrants },
+      { name: TEAMS_V2.dev, address: SEPOLIA_V2.devTeam, member: memberDev as boolean, grants: devGrants },
+      { name: TEAMS_V2.sec, address: SEPOLIA_V2.security, member: memberSec as boolean, grants: secGrants },
     ],
     sre: { address: SEPOLIA_V2.sre, member: memberSre as boolean },
     files,

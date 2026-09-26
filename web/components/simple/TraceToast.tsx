@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import type { TraceState } from "@/lib/cascade/hooks";
 import type { TraceNode } from "@/lib/cascade/trace";
 
-const TEAM: Record<string, string> = { DevTeam: "dev-team", SecurityTeam: "security", SreTeam: "sre", TeamRegistry: "devops-team" };
+const TEAM: Record<string, string> = { CoreDevs: "core-devs", SecurityCouncil: "security-council", Auditors: "auditors", TeamRegistry: "devops-team" };
 
 function say(n: TraceNode): string | null {
   const c = n.contract ?? "";
@@ -17,12 +17,12 @@ function say(n: TraceNode): string | null {
     case "getSubregistry": return "Does this folder really contain the next one?";
     case "getParent": return "Step up to the folder above";
     case "roles":
-      if (c === "AcmeLabsRegistry") return "What does platform grant this team?";
-      if (c === "EthRegistry") return "What does acme-labs.eth grant this team?";
+      if (c === "OrbitDaoRegistry") return "What does protocol grant this team?";
+      if (c === "EthRegistry") return "What does orbit-dao.eth grant this team?";
       if (c === "OrgRegistry") return "What does devops grant the team?";
       return "What does the folder grant this team?";
     case "isMember": return `Is this person in ${TEAM[c] ?? "the team"}?`;
-    case "isMemberWithin": return "security asks the team inside it, sre";
+    case "isMemberWithin": return "security-council asks the team inside it, auditors";
     case "grantRoles": return "One membership change on the team — no name touched";
     case "revokeRoles": return "One membership change on the team — no name touched";
     case "register": return "A new file (subname) is created";
