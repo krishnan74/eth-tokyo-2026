@@ -65,18 +65,20 @@ On Sepolia a full run is 14 transactions, about three minutes of confirmations; 
 
 ## Roadmap: from the MVP rule to full ReBAC
 
-Pitched on the page as chapter 05. Only step 0 is built; the rest are planned and may be reordered by ENS feedback. Every step keeps the same invariants: native grants untouched, admin and root roles never inherited, bounded lookups that fail closed.
+Pitched on the page as chapter 05. Step 0 is live on Sepolia. Steps 1–4 are built and tested on the `roadmap/full-rebac` branch but **not deployed** — the demo still runs step 0. Step 5 waits for ENS feedback. Every step keeps the same invariants: native grants untouched, admin and root roles never inherited, bounded lookups that fail closed.
 
 | # | Step | Model | Status |
 |---|---|---|---|
 | 0 | One hop | parent → team → member | **live (MVP)** |
-| 1 | Many teams per role | several relation tuples per name (e.g. `teams[role]`) | next — this hackathon |
-| 2 | Teams of teams | nested groups, bounded depth | next — this hackathon |
-| 3 | Multi-hop names | inheritance up the name tree, bounded depth | next — this hackathon |
-| 4 | Bring your own roster | Hats role / Safe owners behind `isMember()` (gas-checked) | next — this hackathon |
+| 1 | Many teams per role | up to 4 teams per registry; each gets whatever the parent grants it (`CascadeSubregistryV2`) | built on branch, not deployed |
+| 2 | Teams of teams | `NestedTeam`: up to 4 sub-teams, 3 levels, cycles end at the limit; no Cascade change | built on branch, not deployed |
+| 3 | Multi-hop names | `depth` 1–3 up the tree via stock `getParent`; each level counts only if the ancestor points back down (`getSubregistry`) (`CascadeSubregistryV2`) | built on branch, not deployed |
+| 4 | Bring your own roster | `HatsTeam` (hat wearers), `SafeTeam` (Safe owners) behind `isMember()`; no Cascade change | built on branch (tested with mocks), not deployed |
 | 5 | Who-can-access queries, resolver records, agent fleets | reverse lookups via events + indexer; record-level rights (a second mechanism — resolver permissions aren't keyed by parent name); agents as the use case | after ENS feedback |
 
 Before any of 1–4: invariant/fuzz tests for the step-0 rule, so each extension is checked against the same properties — **done** (`contracts/test/CascadeInvariant.t.sol`: 5 invariants, 5 fuzz tests).
+
+**Open trade-off, needs a decision:** every lookup on a v2 subname reads every team's grant at every level, native owners included. Measured locally (warm): a native owner's `setSubregistry` costs 73,091 gas on v1, 89,355 on v2 with 2 teams at depth 1, and 133,017 at depth 3. Worst case with 4 hostile teams at depth 3 is bounded at ~553k per lookup. A native-first fast path (skip the lookups when the caller's stored roles already cover the check — safe because inheritance only adds roles) would remove the owner's overhead; not built pending approval.
 
 ## Cut list
 

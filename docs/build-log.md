@@ -76,3 +76,14 @@
 - First run passed vacuously: every `join`/`leave` reverted because `vm.prank` was consumed by the `TEAM_RESOURCE()` view call (the same pitfall as earlier). Caught from the handler's revert table; fixed with literal constants and an `afterInvariant` check that someone actually joined.
 - Mutation check: removing the ROOT early return, or the admin-bit mask, in `CascadeSubregistry` makes the new suite fail (both restored from git; contract unchanged).
 - Runs in ~8 s (64 runs × depth 100). Full suite: 17 unit + 5 fuzz + 5 invariants, all passing.
+
+## 2026-09-26 (later) — roadmap steps 1–4 on `roadmap/full-rebac` (not deployed)
+
+- `CascadeSubregistryV2`: up to 4 teams (`addTeam`/`removeTeam`, same guards as `setTeam`) and inheritance up to 3 levels (`setDepth`, default 1 = v1 behaviour). Each level comes from stock `getParent()` and counts only if the ancestor's `getSubregistry(label)` points back down, which also cuts inheritance when any name on the path expires. Membership is asked only when a team's grant would add something. `explain()` reports which team and level supplied a role; `ancestry()` shows the verified path.
+- `NestedTeam` (teams of teams, 4 sub-teams, 3 levels, depth passed down so cycles end), `HatsTeam`, `SafeTeam`. Cascade needs no change for these; its member-call cap went from 30k to 100k so nesting and Hats eligibility fit.
+- Lint flagged return bombs: v2 and `NestedTeam` now copy at most one word (or a size-checked `getParent` reply) from untrusted callees. v1 has the same pattern, bounded by its gas caps; left unchanged because it is deployed.
+- `getParent()` returns a string, so a hostile ancestor could send undecodable data; it is decoded in a self-call inside try/catch so it can only end the walk.
+- Tests: `CascadeV2.t.sol` — 16 v2 tests (incl. a hostile-ancestor fuzz), 9 team tests (nesting, depth limit, cycles, broken sub-teams, Hats over-cap eligibility, Safe owners), and an invariant over teams × levels with an independent model of the tree. 49 tests pass overall.
+- Mutation checks, one at a time: removing the link check, the ROOT early return, or the admin mask each fails the v2 suite. First attempt at this used `git checkout` to restore an untracked file, which silently did nothing, so mutations stacked; caught from the results, restored by hand, re-run individually.
+- The "someone joined" guard in both invariant suites was flaky (a run can have no join by chance, and Forge replays saved failures). Replaced with a deterministic check: joins/leaves are try/caught and any failure is an invariant violation; confirmed it catches the consumed-prank bug.
+- Gas (local, warm): native owner `setSubregistry` 73,091 on v1 → 89,355 on v2 (2 teams, depth 1) → 133,017 (depth 3). Worst case, 4 looping teams at depth 3: ~553k per lookup. Native-first fast path proposed, not built.
