@@ -18,6 +18,10 @@ First-hand notes from pitches to the ENS team. Their words as relayed, then what
 
 **Open:** the four questions from the Ask section (holder discovery, `_getRoles` as the hook, value over root grants, narrow team contracts) and the agent-fleet question were not reported as answered in this pitch.
 
+## Pitch 3 — 2026-09-26
+
+On the roadmap work (v2): the gas cost, two suggestions (short-circuiting the union; the team's permission as a bitmap), whether subnames must be tokens, and test coverage. Full notes and our analysis: [`ens-pitch-3.md`](ens-pitch-3.md).
+
 ## Developer feedback on ENSv2 (from building ENS Drive)
 
 First-hand friction from building on the ENSv2 beta this weekend, each with where we hit it and a concrete suggestion.
