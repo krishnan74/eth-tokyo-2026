@@ -35,11 +35,13 @@ npm run demo -- --recap               # replay the last run's visuals (no transa
 npm run setup -- --rpc http://127.0.0.1:8545   # rehearse on `anvil --fork-url $SEPOLIA_RPC_URL`
 ```
 
-## Web UI — the pitch
+## Web UI
 
-A single-page MVP pitch for the ENS team, in six chapters: **the gap** (EAC grants roles to addresses and has no way to say "members of this team"; today's workarounds), **the idea** (`roles = EAC's grants ∪ the team's grant`), **the live demo**, **how it fits** (one hook; every other layer stock ENSv2; what changes, named), **the ask** (four questions for the ENS team, and possible next steps), and **the fine print** (limits and the workarounds in numbers).
+A deliberately simple page, shaped by ENS team feedback: **the problem** (in ENS today every permission is one address on one name; with Cascade the parent name trusts a team and members inherit), **try it** (the drag-and-drop board on real Sepolia contracts), and **under the hood** (the three contracts, what each stores, the path of a write, and how the override reaches ENS's own code). Everything else — workarounds, how it fits, roadmap, questions for ENS, limits, transaction history — sits in a collapsed "More detail" section.
 
-The live demo is a drag-and-drop board on real contracts: drag the outsider into the TeamRegistry roster to grant membership, drag them back out to revoke, press Write on any subname to try a write as the outsider, and drop the attacker's always-true contract on the team socket to attempt the hijack. Every drop is a transaction; chips only move once the chain confirms (a dashed ghost waits in the meantime), and their position comes from the live membership read, not local state. Every subname under `devops` locks and unlocks together. Below the board, the outsider's roles are read twice — *stored in EAC* (never changes) and *effective with Cascade* — next to the three-check pipeline and the transaction log. Guided mode walks the seven steps; Free play allows any order. Keyboard users can press Enter on a chip instead of dragging.
+**Behind the scenes, live:** after each action the server replays the mined transaction with Foundry's `cast run` and the page shows the EVM's own call tree — `setSubregistry` → `OrgRegistry.roles(devops, TeamRegistry)` → `TeamRegistry.isMember(outsider)` → emit or revert — with gas, return values and revert reasons decoded into names. If the full replay isn't available from the RPC it falls back to `cast run --quick`, labelled as such. Needs Foundry on the machine running the UI (the same local-only setup as its transactions). A **Reset demo** button removes the outsider from the team if a previous run left them in.
+
+The contract-level architecture, with diagrams, is in [`docs/architecture.md`](docs/architecture.md).
 
 ```bash
 npm run ui                             # http://localhost:3000 — reads Sepolia live, sends real transactions

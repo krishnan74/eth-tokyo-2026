@@ -38,3 +38,11 @@
 - Rebuilt the UI as an MVP pitch for the ENS team (via the top-design skill): Instrument Serif display over IBM Plex, one owned teal accent on mineral paper, staggered hero reveal, scroll reveals with custom easing, Lenis smooth scroll (skipped under reduced motion). Chapters: gap, idea, live demo, how it fits, the ask, fine print.
 - The demo became a drag-and-drop board: drag the outsider into/out of the roster (grant/revoke), Write per subname, drop the attacker's contract on the team socket (hijack). Chip positions come from the live membership read; a ghost chip waits during confirmation. Per-subname access is read live for every subname.
 - Real-mouse Playwright run on a fork caught a genuine bug: the socket is nested in the roster and the roster was hit-tested first, so hijack drops were swallowed. Fixed (smallest zone first). Final run: all seven steps as expected; stored roles `none` throughout, effective roles gained/lost SET_SUBREGISTRY on join/leave; no console errors; no overflow at 400px. Not re-run on Sepolia after this change.
+
+## 2026-09-26 (later) — simpler UI and behind-the-scenes traces, after ENS feedback
+
+- ENS feedback (pitch 2): liked it, MVP is a strong implementation, wants the contract-level "behind the scenes" and a much simpler UI. Recorded in `docs/feedback/ens.md`.
+- Public RPCs don't serve `debug_traceTransaction`; `cast run` replays a fresh transaction and prints the EVM call tree. `--decode-internal` didn't surface internal functions, so internal steps are shown separately, labelled as from source.
+- First decoding pass decoded label hashes and timestamps as role lists — misleading; rewrote it to decode by context. Full replay failed once on live Sepolia (re-executing the block's earlier txs); added a labelled `--quick` fallback.
+- Page reduced to problem / try it / under the hood, plus a collapsed "More detail". Added `docs/architecture.md` (Mermaid) and a Reset demo action; used it on Sepolia to take the outsider out of the team left over from the pitch run.
+- Fork click-through: all seven steps as expected, every step's trace decoded correctly, no console errors, no overflow at 400px.

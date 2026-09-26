@@ -69,6 +69,8 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 - Next 16 (Turbopack) bundles the whole repo into server output if a route touches `fs` with a dynamic path — the `.env` lookup in `server.ts` carries `/*turbopackIgnore: true*/` for that reason. Check `web/.next` for keys after changing it.
 - A sticky column taller than the viewport inside a shared grid slides over later rows; the UI's side column has its own grid and `max-h` + `overflow-y-auto`.
 - DemoBoard drop zones are hit-tested by rectangle; the team socket sits inside the roster, so the socket must be tested first (a real bug the drag test caught).
+- Public Sepolia RPCs do not serve debug_traceTransaction; traces come from `cast run` replaying fresh txs (old txs fail: historical state pruned). Full replay can fail intermittently re-executing the block's earlier txs, hence the `--quick` fallback.
+- Trace decoding must be context-aware: only decode role names for `roles()` returns and EAC revert roles — a label hash or timestamp decoded as a bitmap reads as nonsense roles.
 - `next dev` writes `web/AGENTS.md` / `web/CLAUDE.md` (Next's own agent notes). Commit them as-is.
 - `vm.prank` is consumed by the first external call — including a view call used as an argument (`team.grantRoles(team.TEAM_RESOURCE(), …)`). Cache constants before pranking.
 - `cast wallet new --json` output shape varies by version; regex the 64-hex key instead of indexing.
@@ -83,7 +85,7 @@ contracts/src/demo/  AlwaysTrueTeam — the attacker's contract for demo step 6 
 contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)
 scripts/             lib.ts (env, clients, book), setup.ts (deploy/wire, --redeploy), demo.ts (8 steps, --recap), ui.ts (terminal rendering), gen-core.ts
-web/                 Next.js 16 app (deps in the root package.json): app/page.tsx, app/api/{action,actors}, lib/cascade/{hooks,server,wagmi}.ts; components/pitch/: Sections (hero, gap, idea, fit, ask, fine print), DemoBoard (drag-and-drop board), Coach (guided steps), Reveal (scroll reveals + chapter header), SmoothScroll (Lenis); components/cascade/: TopBar, RolesStrip, Checks, Activity, Context, primitives, steps.ts (actions + walkthrough copy)
+web/                 Next.js 16 app (deps in the root package.json): app/page.tsx, app/api/{action,actors}, lib/cascade/{hooks,server,wagmi}.ts; components/simple/: Intro (problem), TracePanel (live cast-run trace), Architecture, MoreDetail (collapsed sections); components/pitch/: DemoBoard, Coach, Sections (gap, fit, roadmap, ask — shown inside More detail), Reveal, SmoothScroll; components/cascade/: TopBar, RolesStrip, Activity, Context, primitives, steps.ts; lib/cascade/trace.ts (cast run replay + context-aware decoding), app/api/trace
 deployments/         sepolia.json — current + retired addresses, setup tx hashes (written by setup.ts)
 evidence/            raw demo logs; last-run.json feeds --recap
 lib/               contracts-v2@48b3e2d, openzeppelin-contracts, forge-std (submodules)
