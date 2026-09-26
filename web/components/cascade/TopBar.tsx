@@ -23,6 +23,7 @@ function ThemeToggle() {
 }
 
 import { SEPOLIA } from "@/lib/cascade/contracts";
+import { SEPOLIA_V2 } from "../../../core/cascade/v2";
 import { IS_FORK } from "@/lib/cascade/wagmi";
 
 import { CopyAddress } from "./primitives";
@@ -49,7 +50,7 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
         </div>
 
         <nav className="hidden items-center gap-6 text-sm text-ink-2 md:flex" aria-label="Sections">
-          {[["The problem", "#problem"], ["Try it", "#try"], ["Behind the scenes", "#trace"], ["Under the hood", "#under-the-hood"]].map(([t, h]) => (
+          {[["Try it", "#try"], ["Behind the scenes", "#trace"], ["The problem", "#problem"], ["Under the hood", "#under-the-hood"]].map(([t, h]) => (
             <a key={h} href={h} className="relative transition-colors hover:text-ink after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-cascade after:transition-[width] after:duration-500 hover:after:w-full">{t}</a>
           ))}
         </nav>
@@ -72,8 +73,15 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
                     {IS_FORK ? "A local fork of Sepolia. Transactions are real on the fork only." : "Live contracts on Sepolia (ENSv2 beta). Every action is a real transaction."}
                   </p>
                   <div className="divide-y divide-line">
-                    <CopyAddress label="Org registry" value={SEPOLIA.parent} />
+                    <span className="block pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">Cascade · acme-labs.eth</span>
+                    <CopyAddress label="CascadeSubregistryV2" value={SEPOLIA_V2.cascade} />
+                    <CopyAddress label="acme-labs registry" value={SEPOLIA_V2.org} />
+                    <CopyAddress label="dev-team" value={SEPOLIA_V2.devTeam} />
+                    <CopyAddress label="security (⊃ sre)" value={SEPOLIA_V2.security} />
+                    <CopyAddress label="sre" value={SEPOLIA_V2.sre} />
+                    <span className="block pb-1 pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">One folder · acme-corp.eth</span>
                     <CopyAddress label="CascadeSubregistry" value={SEPOLIA.cascade} />
+                    <CopyAddress label="Org registry" value={SEPOLIA.parent} />
                     <CopyAddress label="TeamRegistry" value={SEPOLIA.team} />
                     {outsider && <CopyAddress label="Outsider" value={outsider} />}
                     {operator && <CopyAddress label="Operator" value={operator} />}

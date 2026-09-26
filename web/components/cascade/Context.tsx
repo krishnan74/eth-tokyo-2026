@@ -6,8 +6,8 @@ import { useState } from "react";
 import { costOfAccess } from "@/lib/cascade/explain";
 
 const LIMITS: { title: string; summary: string; detail: string }[] = [
-  { title: "One hop, one team — MVP scope", summary: "Deliberately limited; the roadmap widens it.",
-    detail: "Today only the immediate parent's grant is found, through one team per registry. A grant two levels up is not found. Many teams per role, teams of teams and bounded multi-hop inheritance are the planned next steps (see the roadmap)." },
+  { title: "Bounded by design", summary: "Up to 4 teams per folder, 3 folders deep, 4 sub-teams, 3 nesting levels.",
+    detail: "Every lookup is capped so the worst case is known (~553k gas with 4 misbehaving teams at depth 3). Sharing only ever adds access: a subfolder can't opt out of a grant made above it — like Google shared drives. The one-folder version (the other tab) is one hop, one team." },
   { title: "The pointer is a trust anchor", summary: "Whoever holds ROLE_SET_TEAM chooses the team contract.",
     detail: "Changing the pointer needs ROLE_SET_TEAM; the address must be a contract declaring the team interface through ERC-165, and every change emits TeamPointerUpdated(old, new, by). A contract can lie about ERC-165, so the role holder is trusted — as with any namespace admin. The hijack step shows an outsider refused." },
   { title: "A compromised team", summary: "Members get exactly the parent's grant, nothing more.",
@@ -16,12 +16,12 @@ const LIMITS: { title: string; summary: string; detail: string }[] = [
     detail: "TeamRegistry is ordinary EAC, so it inherits EAC's cap of 15 accounts per role. It suits a team, not an org chart." },
   { title: "Parent re-issue — resolved", summary: "Re-registering devops ends the team's authority.",
     detail: "The parent's grant is read live from devops's current registration: unregister, expiry or re-registration ends it, as with native grants (terminal demo step 8, tests). A transfer keeps it, as stock ENSv2 does for every delegate; the new owner can revoke it in one call." },
-  { title: "A small cost for everyone", summary: "About 2,300 gas extra per write, native owners included.",
-    detail: "The logic sits in EAC's _getRoles hook, so every role lookup on a subname can make two external calls — measured locally." },
+  { title: "What it costs", summary: "Owners pay nothing extra; members pay for the folders walked.",
+    detail: "Writes check the caller's own roles first and stop as soon as the role is covered, asking only teams whose grant could help. On Sepolia: a member edit via the folder itself ≈97.7k gas (the one-folder version: ≈91.9k), via the folder above ≈138k, an owner's edit ≈37k. Views (hasRoles) still compute the full answer." },
   { title: "explain() skips expiry", summary: "It reports roles only.",
     detail: "The write path rejects an expired name before checking roles; explain() does not check expiry." },
-  { title: "Beta network, server-side signing", summary: "ENSv2 beta on Sepolia; transactions only when run locally.",
-    detail: "This is the ENSv2 beta deployment, not production ENS. The demo's two accounts sign on this app's server with keys that never reach the browser, so transactions are enabled only for a local dev server. The browser reads the chain and waits for every receipt itself." },
+  { title: "Beta network, a shared demo account", summary: "ENSv2 beta on Sepolia; every visitor drives the same outsider.",
+    detail: "This is the ENSv2 beta deployment, not production ENS. The hosted demo signs on its server with dedicated keys that can only create files, move the outsider between groups and flip the cascade switch — they can't touch the names or their grants. Rate-limited, with a capped test-ETH budget. Not audited." },
 ];
 
 function Limit({ l }: { l: (typeof LIMITS)[number] }) {

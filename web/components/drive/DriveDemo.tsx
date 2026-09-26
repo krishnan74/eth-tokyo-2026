@@ -293,7 +293,7 @@ export function DriveDemo(p: Props) {
   );
 }
 
-/** Folders nest like ENSv2 registries. The parent-folder cascade is the roadmap — shown, clearly not built. */
+/** Folders nest like ENSv2 registries. This drive is one level; the cascade lives in the other tab (DriveDemoV2). */
 function FolderTree({ grant }: { grant?: boolean }) {
   return (
     <div className="flex flex-col gap-1 rounded-2xl bg-paper p-3 text-sm">
@@ -304,7 +304,7 @@ function FolderTree({ grant }: { grant?: boolean }) {
         {grant && <span className="ml-auto text-cascade" title="Shared with devops-team"><GroupIcon /></span>}
       </span>
       <p className="mt-2 rounded-lg border border-dashed border-line px-2 py-1.5 text-[11px] leading-snug text-muted">
-        <span className="font-medium text-ink-2">Next — not built yet:</span> share <span className="font-mono">acme-corp.eth</span> itself, and access cascades into every subfolder. Today it&apos;s one level: a folder&apos;s own files.
+        <span className="font-medium text-ink-2">One level here:</span> a folder&apos;s own files. For sharing that flows into subfolders — and groups inside groups — see the <span className="font-medium text-ink-2">Cascade</span> tab.
       </p>
     </div>
   );

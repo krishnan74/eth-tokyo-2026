@@ -126,39 +126,40 @@ export function Fit() {
 
 // ── roadmap: from the MVP rule to full ReBAC ────────────────────────────
 
-type Rung = { status: "live" | "next" | "later"; title: string; body: string; model: string };
+type Rung = { status: "live" | "v2" | "built" | "later"; title: string; body: string; model: string };
 const RUNGS: Rung[] = [
-  { status: "live", title: "One hop", model: "parent → team → member",
-    body: "A grant on devops reaches every subname under it, through one team. What the demo above runs." },
-  { status: "next", title: "Many teams per role", model: "several relation tuples per name",
-    body: "More than one team on the same parent, each with its own role — devops can edit, security can revoke." },
-  { status: "next", title: "Teams of teams", model: "nested groups, bounded depth",
-    body: "A team can contain other teams, so an org's structure maps directly. Depth- and gas-bounded, failing closed." },
-  { status: "next", title: "Multi-hop names", model: "inheritance up the name tree, bounded depth",
-    body: "A grant on acme-corp.eth can reach svc.devops.acme-corp.eth, registry by registry, with a hard depth cap." },
-  { status: "next", title: "Bring your own roster", model: "external membership sources",
-    body: "An existing on-chain roster — a Hats role, a Safe's owners — becomes the team through the same isMember() interface." },
+  { status: "live", title: "One folder", model: "parent → team → member",
+    body: "A grant on devops reaches every subname under it, through one team. The “One folder” tab above (CascadeSubregistry)." },
+  { status: "v2", title: "Many teams per folder", model: "up to 4 teams, each with its own roles",
+    body: "dev-team can edit platform; security can edit and set resolvers from acme-labs.eth. The “Cascade” tab above." },
+  { status: "v2", title: "Teams of teams", model: "nested groups, bounded depth",
+    body: "security contains sre, so sre's members get security's access. Up to 4 sub-teams, 3 levels; cycles end at the limit." },
+  { status: "v2", title: "Sharing flows down the tree", model: "inheritance up to 3 folders, each link verified",
+    body: "A grant on acme-labs.eth reaches svc-api.platform.acme-labs.eth. Each folder must point back down to count; the switch in the demo turns it off." },
+  { status: "built", title: "Bring your own roster", model: "Hats role · Safe owners behind isMember()",
+    body: "Adapters for Hats Protocol and Safe, tested against the real Hats v1 and Safe 1.4.1 on a Sepolia fork. Not deployed until there's a real roster to point at." },
   { status: "later", title: "Who-can-access queries, resolver records, agent fleets", model: "reverse lookups · a second mechanism · the flagship use case",
     body: "Answering “who can edit this name?” via events and an indexer; record-level rights, which need your input because resolver permissions aren't organised by parent name; and agent fleets as the use case." },
 ];
 const STATUS: Record<Rung["status"], { label: string; cls: string }> = {
-  live: { label: "Live · MVP", cls: "bg-ok-soft text-ok" },
-  next: { label: "Next · this hackathon", cls: "bg-cascade-soft text-cascade" },
+  live: { label: "Live · one folder", cls: "bg-ok-soft text-ok" },
+  v2: { label: "Live · cascade", cls: "bg-ok-soft text-ok" },
+  built: { label: "Built · tested on a fork", cls: "bg-cascade-soft text-cascade" },
   later: { label: "After your feedback", cls: "bg-sunken text-ink-2" },
 };
 
 export function Roadmap() {
   return (
     <section className="flex flex-col gap-14">
-      <Chapter id="roadmap" n="" kicker="Roadmap" title={<>From one hop <span className="italic text-muted">to full relationship-based access.</span></>}
-        lede="The MVP proves the rule works inside EAC. Each next step widens the relationship — never the trust: native grants stay untouched, admin and root roles are never inherited, every lookup is bounded and fails closed." />
+      <Chapter id="roadmap" n="" kicker="Roadmap" title={<>From one folder <span className="italic text-muted">to full relationship-based access.</span></>}
+        lede="Each step widens the relationship — never the trust: native grants stay untouched, admin and root roles are never inherited, every lookup is bounded and fails closed." />
       <ol className="relative flex flex-col gap-3 md:ml-[25%]">
         <span className="absolute bottom-6 left-[15px] top-6 w-px bg-line" aria-hidden />
         {RUNGS.map((r, i) => (
           <Reveal key={r.title} delay={i * 0.05} className="relative flex gap-5">
             <span className={`relative z-10 mt-4 grid h-[31px] w-[31px] shrink-0 place-items-center rounded-full font-mono text-xs ${
-              r.status === "live" ? "bg-ok text-paper" : r.status === "next" ? "bg-surface text-cascade ring-2 ring-cascade" : "bg-surface text-muted ring-1 ring-line"}`}>{i}</span>
-            <div className={`flex flex-1 flex-col gap-1.5 rounded-2xl px-5 py-4 ${r.status === "live" ? "bg-surface shadow-[inset_0_0_0_2px_var(--ok)]" : "bg-surface shadow-[inset_0_0_0_1px_var(--line)]"}`}>
+              r.status === "live" || r.status === "v2" ? "bg-ok text-paper" : r.status === "built" ? "bg-surface text-cascade ring-2 ring-cascade" : "bg-surface text-muted ring-1 ring-line"}`}>{i}</span>
+            <div className={`flex flex-1 flex-col gap-1.5 rounded-2xl px-5 py-4 ${r.status === "live" || r.status === "v2" ? "bg-surface shadow-[inset_0_0_0_2px_var(--ok)]" : "bg-surface shadow-[inset_0_0_0_1px_var(--line)]"}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-base font-semibold">{r.title}</span>
                 <span className={`rounded-full px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
@@ -170,7 +171,7 @@ export function Roadmap() {
         ))}
       </ol>
       <Reveal className="md:ml-[25%]">
-        <p className="text-sm text-muted">Planned, not built. Only step 0 exists today; the order of the rest can change with your answers below.</p>
+        <p className="text-sm text-muted">Steps 0–3 are live on Sepolia; step 4 is built and tested; step 5 waits on your answers below.</p>
       </Reveal>
     </section>
   );
