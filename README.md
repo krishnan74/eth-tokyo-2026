@@ -35,9 +35,11 @@ npm run demo -- --recap               # replay the last run's visuals (no transa
 npm run setup -- --rpc http://127.0.0.1:8545   # rehearse on `anvil --fork-url $SEPOLIA_RPC_URL`
 ```
 
-## Web UI
+## Web UI — the pitch
 
-A Next.js page that teaches the same mechanism without narration: the relationship chain with the one link that flips, the three checks running one live read at a time with the previous run alongside, the name tree, a state card that flags what just changed, a transaction log with Etherscan links, the known limits, and a guided seven-step walkthrough.
+A single-page MVP pitch for the ENS team, in six chapters: **the gap** (EAC grants roles to addresses and has no way to say "members of this team"; today's workarounds), **the idea** (`roles = EAC's grants ∪ the team's grant`), **the live demo**, **how it fits** (one hook; every other layer stock ENSv2; what changes, named), **the ask** (four questions for the ENS team, and possible next steps), and **the fine print** (limits and the workarounds in numbers).
+
+The live demo is a drag-and-drop board on real contracts: drag the outsider into the TeamRegistry roster to grant membership, drag them back out to revoke, press Write on any subname to try a write as the outsider, and drop the attacker's always-true contract on the team socket to attempt the hijack. Every drop is a transaction; chips only move once the chain confirms (a dashed ghost waits in the meantime), and their position comes from the live membership read, not local state. Every subname under `devops` locks and unlocks together. Below the board, the outsider's roles are read twice — *stored in EAC* (never changes) and *effective with Cascade* — next to the three-check pipeline and the transaction log. Guided mode walks the seven steps; Free play allows any order. Keyboard users can press Enter on a chip instead of dragging.
 
 ```bash
 npm run ui                             # http://localhost:3000 — reads Sepolia live, sends real transactions
@@ -70,6 +72,10 @@ The **`team` pointer** needs `ROLE_SET_TEAM` on root, must be a contract, must d
 4. **`ROLE_SET_SUBREGISTRY` on `devops` itself.** The team contract also holds it in the parent. `TeamRegistry` has no function that could exercise it; a team contract that could make arbitrary calls would be able to repoint the namespace.
 
 Rehearsed answers to the questions this usually raises (root grants, a compromised team contract, what `explain()` proves, token-ID mutation) are in [`docs/qa.md`](docs/qa.md). The audit items and how each was resolved are in [`docs/remediation.md`](docs/remediation.md).
+
+## Roadmap
+
+The MVP is deliberately **one hop and one team per registry**. Planned next, in this hackathon: many teams per role, teams of teams, bounded multi-hop inheritance up the name tree, and bring-your-own roster (Hats / Safe) behind `isMember()`. After ENS feedback: who-can-access queries, resolver-record relations (a separate mechanism), and agent fleets as the use case. Details and status in [`docs/plan.md`](docs/plan.md#roadmap-from-the-mvp-rule-to-full-rebac). None of these are built yet.
 
 ## Honest limits
 

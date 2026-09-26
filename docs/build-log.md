@@ -22,3 +22,19 @@
 - Turbopack warned that the `.env` lookup would trace the whole repo (including `.env`) into server output; excluded it and confirmed no key in `web/.next`.
 - Drove the API through the full sequence on a fork, then clicked the guided walkthrough in headless Chrome on the fork and on Sepolia: all 7 steps as expected, no console errors, no horizontal overflow at 400px.
 - Screenshot review caught a sticky side column sliding over the limits section and a truncated node name; both fixed and re-checked.
+
+## 2026-09-26 (later) — UI makeover
+
+- Replaced ten stacked cards with one "player": a single stage merging the relationship chain, the name tree and the computed-access line; the three checks as a one-line pipeline with inline "was ✓/✗" and details on demand; one primary action at a time (Guided) or a compact Manual toolbar; Activity as a side column with state chips; limits and cost below as quiet sections. Same hooks, same live reads and real transactions.
+- Clicked through all seven steps twice on a fork (every outcome as expected, no console errors, no overflow at 400px, dark mode checked). Fixed ENS names breaking mid-label (now wrap only after dots) and step-4 copy that still referred to the old side-by-side checks. Not re-run on Sepolia after the makeover; the network path is unchanged from the earlier Sepolia click-through.
+
+## 2026-09-26 (later) — framing the gap and the layering
+
+- Added a "gap" section (what EAC stores, what a team needs to say, today's two workarounds, and Cascade's one extra term), a live "stored in EAC vs effective with Cascade" strip read from `nativeRoles()` and `roles()`, and a "layered on EAC" section (the four-layer stack, what stays the same, what changes — including that inherited roles emit no events). Role bitmaps decode through a shared `roleNames()` in the core.
+- Fork click-through logged the strip at every step: stored stayed `none` throughout; effective gained `SET_SUBREGISTRY` on join and lost it on leave. The user's own dev server was running on :3000 (Sepolia), so the test used a separate production build on :3100 against a fork; the normal build was restored afterwards.
+
+## 2026-09-26 (later) — pitch page and drag-and-drop board
+
+- Rebuilt the UI as an MVP pitch for the ENS team (via the top-design skill): Instrument Serif display over IBM Plex, one owned teal accent on mineral paper, staggered hero reveal, scroll reveals with custom easing, Lenis smooth scroll (skipped under reduced motion). Chapters: gap, idea, live demo, how it fits, the ask, fine print.
+- The demo became a drag-and-drop board: drag the outsider into/out of the roster (grant/revoke), Write per subname, drop the attacker's contract on the team socket (hijack). Chip positions come from the live membership read; a ghost chip waits during confirmation. Per-subname access is read live for every subname.
+- Real-mouse Playwright run on a fork caught a genuine bug: the socket is nested in the roster and the roster was hit-tested first, so hijack drops were swallowed. Fixed (smallest zone first). Final run: all seven steps as expected; stored roles `none` throughout, effective roles gained/lost SET_SUBREGISTRY on join/leave; no console errors; no overflow at 400px. Not re-run on Sepolia after this change.

@@ -24,7 +24,7 @@ Audience: the ENS team, for design feedback. Not a prize submission — no time-
 | Explainer page for the ENS team | published (private) | claude.ai artifact, version 2 — share from its Share menu |
 | Repository | private on GitHub | keep private until the user says otherwise |
 | Shared core (`core/cascade/`) | done | terminal demo re-run on a fork after extraction: every outcome as expected |
-| Next.js UI (`web/`) | **clicked through on Sepolia** | guided 7 steps, each outcome as expected, no console errors; also on an anvil fork. Writes local-only |
+| Next.js pitch UI (`web/`) | drag-and-drop board clicked through on a fork; earlier UI version clicked through on Sepolia | guided 7 steps, each outcome as expected, no console errors. Writes local-only |
 
 ## Thesis
 
@@ -56,6 +56,21 @@ A subname registry whose EAC role lookup also asks the parent name: *does it gra
 8. Parent re-issues `devops`; member writes → **reverts** (grant scoped to the old registration). Setup restored.
 
 On Sepolia a full run is 14 transactions, about three minutes of confirmations; `--step` for presenting, `--recap` to replay the last run without transactions.
+
+## Roadmap: from the MVP rule to full ReBAC
+
+Pitched on the page as chapter 05. Only step 0 is built; the rest are planned and may be reordered by ENS feedback. Every step keeps the same invariants: native grants untouched, admin and root roles never inherited, bounded lookups that fail closed.
+
+| # | Step | Model | Status |
+|---|---|---|---|
+| 0 | One hop | parent → team → member | **live (MVP)** |
+| 1 | Many teams per role | several relation tuples per name (e.g. `teams[role]`) | next — this hackathon |
+| 2 | Teams of teams | nested groups, bounded depth | next — this hackathon |
+| 3 | Multi-hop names | inheritance up the name tree, bounded depth | next — this hackathon |
+| 4 | Bring your own roster | Hats role / Safe owners behind `isMember()` (gas-checked) | next — this hackathon |
+| 5 | Who-can-access queries, resolver records, agent fleets | reverse lookups via events + indexer; record-level rights (a second mechanism — resolver permissions aren't keyed by parent name); agents as the use case | after ENS feedback |
+
+Before any of 1–4: invariant/fuzz tests for the step-0 rule, so each extension is checked against the same properties.
 
 ## Cut list
 
