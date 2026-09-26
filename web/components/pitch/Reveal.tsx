@@ -17,7 +17,7 @@ export function Chapter({ n, kicker, title, lede, id }: { n: string; kicker: str
   return (
     <div id={id} className="grid scroll-mt-24 gap-6 md:grid-cols-12">
       <Reveal className="md:col-span-3">
-        <span className="label flex items-center gap-3"><span className="text-cascade">{n}</span><span className="h-px w-8 bg-line" />{kicker}</span>
+        <span className="label flex items-center gap-3">{n && <><span className="text-cascade">{n}</span><span className="h-px w-8 bg-line" /></>}{kicker}</span>
       </Reveal>
       <div className="flex flex-col gap-5 md:col-span-9">
         <Reveal delay={0.05}><h2 className="display text-[clamp(2.4rem,5.2vw,4.6rem)]">{title}</h2></Reveal>

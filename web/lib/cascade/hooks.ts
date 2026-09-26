@@ -9,7 +9,7 @@ import {
 } from "./contracts";
 import { agrees, checkReads, decide, readExplain, type Answer, type Explanation } from "./explain";
 
-export type ActionName = "create" | "write" | "grant" | "revoke" | "hijack";
+export type ActionName = "create" | "write" | "grant" | "revoke" | "hijack" | "reset";
 export type Kind = "native" | "cascade";
 
 export type TxEntry = {
@@ -37,6 +37,18 @@ export type CheckRun = {
 };
 
 export type LastWrite = { status: "success" | "reverted"; label: string; at: number } | null;
+
+/** The real execution trace of the latest transaction, replayed on the server with `cast run`. */
+export type TraceState = {
+  hash: Hex;
+  action: ActionName;
+  title: string;
+  status?: "success" | "reverted";
+  gas?: string;
+  loading: boolean;
+  data?: { ok: boolean; gasUsed?: number; nodes: import("./trace").TraceNode[]; raw: string; mode: import("./trace").TraceMode };
+  error?: string;
+} | null;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -115,6 +127,8 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
   const [runs, setRuns] = useState<CheckRun[]>([]);
   const [lastWrite, setLastWrite] = useState<LastWrite>(null);
   const [pending, setPending] = useState<ActionName | "recheck" | null>(null);
+  const [trace, setTrace] = useState<TraceState>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const live = useLiveState(outsider, target);
   const visible = subnames.slice(0, 6);
   const perName = useSubnameAccess(outsider, visible);
@@ -165,12 +179,19 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
     if (!client) return;
     const id = uid();
     setPending(action);
+    setNotice(null);
     setTxs((l) => [{ id, title: meta.title, kind: meta.kind, status: "sending", at: Date.now() }, ...l]);
     try {
       const res = await fetch("/api/action", { method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ action, label: action === "write" ? name ?? undefined : undefined }) });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+      if (body.noop) {
+        setTxs((l) => l.filter((t) => t.id !== id));
+        setNotice(body.noop);
+        await live.refetch();
+        return "noop" as const;
+      }
       if (body.funding) {
         setTxs((l) => [{ id: uid(), title: "Top up the outsider's gas from the operator", kind: "native", status: "success", hash: body.funding, at: Date.now() }, ...l]);
       }
@@ -178,6 +199,13 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
       const receipt = await client.waitForTransactionReceipt({ hash: body.hash });
       const status = receipt.status === "success" ? "success" : "reverted";
       patchTx(id, { status, gas: String(receipt.gasUsed), reason: status === "reverted" ? body.expectedRevertReason : undefined });
+
+      // Replay it on the server while the state is fresh, for the "behind the scenes" panel.
+      setTrace({ hash: body.hash, action, title: meta.title, status, gas: String(receipt.gasUsed), loading: true });
+      const traceLabels = [...new Set([body.label, name, ...subnames].filter(Boolean))].join(",");
+      fetch(`/api/trace?hash=${body.hash}&labels=${traceLabels}`).then((r) => r.json())
+        .then((t) => setTrace((cur) => (cur && cur.hash === body.hash ? { ...cur, loading: false, ...(t.error ? { error: t.error } : { data: t }) } : cur)))
+        .catch((e) => setTrace((cur) => (cur && cur.hash === body.hash ? { ...cur, loading: false, error: String(e) } : cur)));
 
       if (action === "create" && status === "success") {
         setTarget(body.label);
@@ -199,7 +227,7 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
     } finally {
       setPending(null);
     }
-  }, [client, target, live, perName, runChecks]);
+  }, [client, target, subnames, live, perName, runChecks]);
 
   const recheck = useCallback(async () => {
     if (!target) return;
@@ -208,5 +236,5 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
   }, [target, runChecks]);
 
   const fqdn = target ? `${target}.${TEAM_NAME}` : null;
-  return { target, setTarget, fqdn, subnames: visible, access: perName.access, txs, runs, lastWrite, pending, live, act, recheck };
+  return { target, setTarget, fqdn, subnames: visible, access: perName.access, txs, runs, lastWrite, pending, live, act, recheck, trace, notice, setNotice };
 }

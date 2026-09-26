@@ -10,6 +10,8 @@ export const ACTIONS: Record<ActionName, { short: string; label: string; consequ
     consequence: "One ordinary EAC grant on TeamRegistry. Nothing is written to any subname." },
   revoke: { short: "Remove from team", label: "Remove the outsider from the team", kind: "native", logTitle: "Remove outsider from TeamRegistry",
     consequence: "One ordinary EAC revoke. No per-subname cleanup, because nothing was stored per subname." },
+  reset: { short: "Reset demo", label: "Reset the demo", kind: "native", logTitle: "Reset: remove the outsider from the team",
+    consequence: "Removes the outsider from the team if a previous run left them in, so the demo starts clean." },
   hijack: { short: "Hijack pointer", label: "Point Cascade at an attacker's contract", kind: "cascade", logTitle: "Outsider tries setTeam(AlwaysTrueTeam)",
     consequence: "The outsider tries to swap the team for a contract that says everyone is a member. It should be refused." },
 };
