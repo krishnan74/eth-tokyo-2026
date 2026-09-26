@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* Same visual grammar as the terminal demo: native EAC = gray, Cascade = teal, success = green, failure = coral. */
+:root {
+  --bg: #f3f5f4;
+  --surface: #ffffff;
+  --sunken: #eef1f0;
+  --ink: #16202a;
+  --muted: #5a6571;
+  --rule: #dce2e3;
+  --native: #66717d;
+  --native-soft: #e9ecee;
+  --cascade: #0b7f86;
+  --cascade-soft: #dff1f1;
+  --ok: #1d7f47;
+  --ok-soft: #e1f3e8;
+  --bad: #bf3f2b;
+  --bad-soft: #f8e5e1;
+  --warn: #9a6400;
+  --warn-soft: #f7edd8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1317; --surface: #151c22; --sunken: #111820; --ink: #e2e8eb; --muted: #95a2ad; --rule: #263039;
+    --native: #8e9aa6; --native-soft: #1d252d; --cascade: #3cc3cb; --cascade-soft: #12302f;
+    --ok: #52c283; --ok-soft: #132c1f; --bad: #ee7b65; --bad-soft: #35201b; --warn: #e3b35c; --warn-soft: #30271a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1317; --surface: #151c22; --sunken: #111820; --ink: #e2e8eb; --muted: #95a2ad; --rule: #263039;
+  --native: #8e9aa6; --native-soft: #1d252d; --cascade: #3cc3cb; --cascade-soft: #12302f;
+  --ok: #52c283; --ok-soft: #132c1f; --bad: #ee7b65; --bad-soft: #35201b; --warn: #e3b35c; --warn-soft: #30271a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-native: var(--native);
+  --color-native-soft: var(--native-soft);
+  --color-cascade: var(--cascade);
+  --color-cascade-soft: var(--cascade-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--cascade); outline-offset: 2px; }
+.tabular { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -6,15 +6,29 @@
     "build": "forge build",
     "test": "forge test -vv",
     "setup": "tsx --env-file=.env scripts/setup.ts",
-    "demo": "tsx --env-file=.env scripts/demo.ts"
+    "demo": "tsx --env-file=.env scripts/demo.ts",
+    "gen": "tsx scripts/gen-core.ts",
+    "ui": "next dev web",
+    "ui:build": "next build web",
+    "ui:start": "next start web"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.103.3",
     "cli-table3": "^0.6.5",
+    "framer-motion": "^13.4.4",
+    "next": "^16.3.6",
     "picocolors": "^1.1.1",
-    "viem": "^2.56.9"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "viem": "^2.56.9",
+    "wagmi": "^3.7.7"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
