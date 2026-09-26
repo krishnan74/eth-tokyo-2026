@@ -5,12 +5,28 @@ export function Intro() {
   return (
     <section className="flex flex-col gap-14 pt-14 md:pt-20">
       <div className="flex max-w-4xl flex-col gap-6">
-        <span className="label"><span className="text-cascade">Cascade</span> · team access for ENSv2 names</span>
+        <span className="label"><span className="text-cascade">Cascade</span> · Google Drive–style sharing for ENS names</span>
         <h1 className="display text-[clamp(3rem,8vw,7rem)]">Share ENS names like a <span className="italic text-cascade">folder</span>.</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-ink-2">
           In a shared drive you share a folder with a group, and everyone in the group can edit every file inside — including files added later. Cascade brings that to ENSv2 names: a name trusts a team, and the team&apos;s members can manage every subname under it. Built into ENSv2&apos;s own access control, replacing nothing.
         </p>
       </div>
+
+      {/* The one message: ENSv2 has the tree; Cascade adds the permission layer. */}
+      <Reveal className="grid overflow-hidden rounded-3xl ring-1 ring-line md:grid-cols-3">
+        <div className="flex flex-col gap-2 bg-surface p-6">
+          <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-ok-soft text-xs text-ok">✓</span>The directory tree</span>
+          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">ENSv2 already built it.</span> Every name can have its own registry, so names nest like folders: <span className="font-mono text-xs">acme-corp.eth › devops › svc-api</span>.</p>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-line bg-surface p-6 md:border-l md:border-t-0">
+          <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-bad-soft text-xs text-bad">✗</span>The sharing layer</span>
+          <p className="text-sm leading-relaxed text-ink-2"><span className="font-medium text-ink">Missing.</span> Permissions are granted one address on one name. There&apos;s no way to share a folder with a group.</p>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-line bg-inv p-6 text-inv-fg md:border-t-0">
+          <span className="flex items-center gap-2 text-sm font-medium"><span className="grid h-5 w-5 place-items-center rounded-full bg-white/10 text-xs text-inv-accent">→</span>Cascade adds it</span>
+          <p className="text-sm leading-relaxed text-inv-muted">A permission layer on ENSv2&apos;s own access control, using <span className="font-medium text-inv-fg">relationship-based access control (ReBAC)</span>: a name trusts a team, and the team&apos;s members inherit — checked live, nothing copied.</p>
+        </div>
+      </Reveal>
 
       <div id="problem" className="grid scroll-mt-24 gap-5 md:grid-cols-2">
         <Reveal className="flex flex-col gap-4 rounded-3xl bg-surface p-6 shadow-[inset_0_0_0_1px_var(--line)] sm:p-8">
