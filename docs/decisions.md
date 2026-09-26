@@ -76,7 +76,7 @@
 
 - **Context:** multi-hop walks up with `getParent()`, which is only a pointer set by the registry's own root admin — a registry could name any parent.
 - **Decision:** a level counts only if `ancestor.getSubregistry(label)` is the registry below it; the walk stops at the first broken link.
-- **Consequences:** inheritance always follows the real ENS tree, "who can access" stays answerable, and expiry anywhere on the path cuts inheritance above it (`getSubregistry` returns 0 for expired names). Costs one extra read per level.
+- **Consequences:** inheritance always follows the real ENS tree and "who can access" stays answerable. Costs one extra read per level. (Correction, 2026-09-27: expiry was credited to the link check here; in fact ENSv2 already hides grants on an expired name — its EAC resource becomes `eacVersionId + 1` — so v1 and v2 both stop inheriting from an expired parent, with or without the check. The link check's job is rejecting parent pointers that don't point back. It is also a real difference from v1, which trusts its parent pointer: v2 at depth 1 equals v1 only for trees whose parents point back down.)
 
 ## 14. Union only — no opt-out below a grant
 
