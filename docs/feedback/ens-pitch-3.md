@@ -124,8 +124,39 @@ Items 1–5 are about a day of test work; item 6 is fork tests; items 7–8 are 
 
 ---
 
-## 7. Questions to take back to the ENS team
+## 7. A possible misunderstanding from pitch 1 (added 2026-09-27)
 
+**What happened.** In the first pitch, when the ENS team asked what the access / write operation actually is, the presenter answered **"text records"** and didn't mention the registry side. That doesn't match the implementation.
+
+**What ENS Drive actually controls.** Registry roles on the subname's entry in its registry, not resolver records:
+
+- **v1 (the demo):** `SET_SUBREGISTRY` — where the name's children live. "Edit as outsider" is `setSubregistry`.
+- **v2 (roadmap branch):** also `SET_RESOLVER` — which resolver the name uses.
+- **Text records** are resolver data in a `PermissionedResolver`, behind the resolver's own roles (e.g. `ROLE_SET_TEXT`) on `(namehash, part)`. ENS Drive doesn't touch them today; per-record rights are roadmap step 5.
+- The closest true statement: in v2, a member with `SET_RESOLVER` can point a name at a resolver they control and then write any records there. That is coarse control (swap the whole resolver), not per-record rights.
+
+**Why it may explain pitch 3's questions (our inference, unconfirmed).** If the team member still pictures "team access to text records":
+
+- **Question C** (token vs resolver data) follows directly: records can live in a resolver under wildcard resolution with no token, so minting a token per subname would look unnecessary.
+- **Suggestion B** (a team as a bitmap `R1 | … | RN` on a resource) fits the resolver model naturally: `PermissionedResolver` scopes permissions per name and per record, so a team as `ROLE_SET_TEXT | ROLE_SET_ADDR` on one resolver resource is easy to picture — and within one resolver it would work.
+- **Suggestion A** (the gas discussion) stands either way.
+
+**Against it:** in pitches 2 and 3 they saw the UI and the traces, which show `setSubregistry`, and the mapping line under the drive says "Can edit = `SET_SUBREGISTRY`". So the token question may simply be a genuine design question — creating a file does cost ~165k gas.
+
+**Correction to send (proposed):**
+
+> Quick correction from the first pitch: ENS Drive doesn't grant text-record access. It passes down **registry** permissions on the subname entry — in the demo, `SET_SUBREGISTRY` (where the name's children live), and in v2 also `SET_RESOLVER` (which resolver the name uses). Per-record rights (text/addr) in the `PermissionedResolver` are a separate mechanism on our roadmap. Given that, is your token-vs-resolver-data question about the registry model, or were you picturing record access?
+
+**Why the answer matters for what to build next:**
+
+- **If they meant record access:** the resolver-data version (tokens for folders, records for files; §5) becomes the main direction, and Suggestion B fits it well.
+- **If they meant the registry model:** the current direction stands, and the Suggestion A pruning prototype comes first.
+
+---
+
+## 8. Questions to take back to the ENS team
+
+0. **The correction in §7 first:** was the question about the registry model, or about record access?
 1. **Suggestion A:** is short-circuiting inside `_checkRoles` (knowing the requested role) acceptable as the extension point, alongside `_getRoles`? Would ENS consider making `hasRoles` `virtual` so views can short-circuit too?
 2. **Suggestion B:** did you mean membership stored as a group role bit inside one registry? If so, is the one-level limit acceptable for your use case, or is the multi-registry case the one that matters?
 3. **Question C:** would "tokens for folders, resolver data for files" match what you had in mind? Is a resolver-scoped permission (every name this resolver serves) enough, or do you need parent-scoped record rights?
@@ -133,8 +164,8 @@ Items 1–5 are about a day of test work; item 6 is fork tests; items 7–8 are 
 
 ---
 
-## 8. Proposed next steps (not started; pending the presenter's decision)
+## 9. Proposed next steps (not started; pending the presenter's decision)
 
 - **Prototype Suggestion A** on `roadmap/full-rebac`: move v2's evaluation into `_checkRoles` with early exit and role-aware pruning, plus an optional per-transaction memo; extend the invariants to prove it matches the full computation; measure against today's v2 numbers (locally and on Sepolia).
 - **Close test gaps 1–5**: widen the random actions, add time warps and approvals, the 15-member cap test, and a v1 vs v2 differential test.
-- **Scope a resolver-data "files" variant** (roadmap step 5) only after ENS answers question 3.
+- **Scope a resolver-data "files" variant** (roadmap step 5) only after ENS answers question 0 and question 3 — if they meant record access, this moves ahead of the other two.
