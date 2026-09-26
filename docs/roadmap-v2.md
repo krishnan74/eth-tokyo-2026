@@ -1,6 +1,6 @@
 # Roadmap v2 — many teams, teams of teams, multi-hop names
 
-> Branch `roadmap/full-rebac` only. The submitted demo (`main`, `acme-corp.eth`) is unchanged and still runs v1, the one-hop MVP. Everything here runs on its own name tree, `acme-labs.eth`, deployed from this branch; no transaction touches a v1 contract, name or grant.
+> Built on branch `roadmap/full-rebac`, merged into `main` on 2026-09-27: the **Cascade** tab of the home page (and https://ens-drive.vercel.app) runs this; the **One folder** tab still runs v1 on `acme-corp.eth`. The two use separate name trees and contracts — no v2 transaction touches a v1 contract, name or grant.
 
 What roadmap steps 1–4 add, how they keep the MVP's guarantees, where they are deployed, and how to try them in the browser. Design reasoning is in [`decisions.md`](decisions.md) (12–17); the build story in [`build-log.md`](build-log.md).
 
@@ -69,7 +69,7 @@ npm run smoke:v2               # terminal check of every step; cleans up after i
 npm run ui                     # on this branch, the home page's drive runs on v2: http://localhost:3000
 ```
 
-**The home page's drive, on this branch** (local only, like the v1 demo's writes; signs with the repo's `.env` keys, which own the v2 tree; `main` and the hosted site keep the v1 drive): two folder levels, `acme-labs.eth` shared with **security** (can set resolvers) and `platform` shared with **dev-team** (can edit); drag the outsider into dev-team, or into **sre** inside security; a switch "sharing on acme-labs.eth reaches platform's files" (`setDepth` 2 / 1); per file, both permissions with "Edit as outsider" / "Set resolver as outsider"; Who has access shows which group and which folder level each permission comes from (`explain()`); an 11-step guide; the attack (outsider `addTeam(AlwaysTrueTeam)`, refused); Start over; and the live `cast run` trace, which for a level-2 write shows the whole walk: link check → `getParent` → link check → grants at both levels → dev-team, then security → sre.
+**The home page's Cascade tab** (hosted at https://ens-drive.vercel.app with the dedicated demo keys, or `npm run ui` locally with the `.env` keys, which own the v2 tree): two folder levels, `acme-labs.eth` shared with **security** and `platform` shared with **dev-team** — both **"can edit"** (`SET_SUBREGISTRY`; security also has `SET_RESOLVER`). The main path is one verb, eight guided steps: refused → drag into dev-team → edit works (via platform) → drag from dev-team into **sre** (inside security) → edit works (via acme-labs.eth, one folder up) → switch "Sharing flows into subfolders" off (`setDepth(1)`) → refused → on again. One step off the main path, nothing removed: "each group gets its own permissions" (set resolver as outsider), + New file, the attack (outsider `addTeam(AlwaysTrueTeam)`, refused), Start over, and the live `cast run` trace — the result bar shows the call chain in one line (link check → `getParent` → link check → grants → dev-team, then security → sre).
 
 ## 5. Evidence (Sepolia)
 

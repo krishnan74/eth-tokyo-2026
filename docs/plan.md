@@ -65,7 +65,7 @@ On Sepolia a full run is 14 transactions, about three minutes of confirmations; 
 
 ## Roadmap: from the MVP rule to full ReBAC
 
-Pitched on the page as chapter 05. Step 0 is live on Sepolia and is what the demo runs. Steps 1–3 are also live on Sepolia from the `roadmap/full-rebac` branch, on a separate name tree (`acme-labs.eth`) that shares nothing with the demo's `acme-corp.eth`; step 4's adapters are tested with mocks only. Step 5 waits for ENS feedback. Every step keeps the same invariants: native grants untouched, admin and root roles never inherited, bounded lookups that fail closed.
+Steps 0–3 are live on Sepolia and in the demo (`roadmap/full-rebac` merged into `main` 2026-09-27): the **Cascade** tab runs steps 1–3 on `acme-labs.eth`, the **One folder** tab runs step 0 on `acme-corp.eth`. Step 4's adapters are tested against the real Hats and Safe on a fork, not deployed. Step 5 waits for ENS feedback. Every step keeps the same invariants: native grants untouched, admin and root roles never inherited, bounded lookups that fail closed.
 
 | # | Step | Model | Status |
 |---|---|---|---|

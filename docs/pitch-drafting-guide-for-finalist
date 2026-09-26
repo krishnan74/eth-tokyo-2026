@@ -1,0 +1,113 @@
+2. The recurring pitch structure
+The strongest commonality in this transcript is that most teams follow a recognizable sequence:
+Name the problem
+ALMA starts with the claim that many liquidity-provider positions are out of range and not earning fees. npmguard opens with the risk of malicious npm packages. DIVE begins with problems in centralized prediction-market oracles.
+Introduce the solution in one sentence
+The teams give the audience a product identity and a simple explanation. Maki is a DeFi agent in your terminal; ENShell is an on-chain firewall for AI agents; PaintGlobal is a platform for preserving and sharing workshop paintings.
+Show a concrete user journey
+Most of the demos are not just screenshots. They show a user performing an action, followed by an observable result: a trade executes, a liquidity position is rebalanced, a transaction is signed, a package is audited, or a painting is minted.
+Explain the technical innovation
+The presenters then describe how the product works and which integrations or mechanisms enable it. The details differ substantially across projects.
+Finish with a working result or a clear product benefit
+Several presenters end by restating the utility, while others show the final state of the application. PaintGlobal goes a step further by inviting the audience to try the product and contribute their paintings.
+Derived from the individual presentations in the supplied Cannes transcript. 
+Pasted text.txt
+This sequence is particularly clear in the pitches for ALMA, Maki and npmguard. Each explains the problem, identifies the solution, then uses a live demo to make the product understandable.
+3. What the individual finalists did well—and what to learn
+These are observations about the recorded pitches, not claims about why the judges selected these teams.
+Défi: Make the product understandable immediately
+Clear product framing
+The presenter explains the product as a one-on-one trading competition with a friend. They then demonstrate creating a challenge, sharing the link, choosing the trade and watching both players' positions and profit-and-loss figures update in real time.
+Takeaway: Give the audience an intuitive mental picture before introducing the technical stack. Here, the social competition is the hook; the integrations and real-time trading are supporting details.
+ALMA: Use a quantitative problem statement
+Problem-led opening
+ALMA begins with a statistic about liquidity positions sitting outside their range and the resulting unproductive capital. It then shows two positions being delegated to its agent, followed by rebalancing and the updated in-range positions.
+The presenter also acknowledges that the displayed APY is a placeholder. That's a useful reminder that a live demo should distinguish real outputs from illustrative or unfinished elements.
+Takeaway: When you have a credible metric, use it to make the problem concrete. Then demonstrate the specific action your product takes to solve it.
+Veil VPN: Demonstrate several differentiators in one journey
+Multiple visible proof points
+Veil explains the trust problem with conventional VPN providers, then introduces its TEE-based architecture and usage-based payments. In the demo, the presenter connects through an ENS subdomain, shows the changed IP address and displays the balance decreasing as network traffic is used. The presenter also demonstrates a human-verification flow using World ID.
+Takeaway: A single user journey can prove multiple product claims if the actions are well chosen. But be careful not to overload the pitch with too many features: each additional feature needs to earn its time.
+Maki: Make security visible
+Clear technical demonstration
+Maki explains that the agent can interact with DeFi from the terminal while keeping private keys on the user's device or hardware wallet. The presenter demonstrates a balance query, an attempted transaction, user confirmation and signing, and a swap.
+The first launch fails during the presentation, but the presenter switches to an already running instance and continues with the demo.
+Takeaway: Don't let a failed demo setup consume the whole presentation. Have a fallback that still demonstrates the essential working functionality. More importantly, make the security architecture visible through the actual signing flow.
+EVM PORST: Lead with a high-stakes technical problem
+Technical deep dive
+This presenter opens with the threat of quantum computers to current cryptography, then explains the proposed signature scheme, Merkle octopus optimization and gas savings. The demo is a deployed Sepolia contract returning the expected ERC-1271 magic value.
+Takeaway: For an infrastructure project, the technical contribution may be the product's core value. The challenge is to make the problem and the improvement comprehensible before the detailed mathematical explanation. The demo should validate the implementation, not merely show source code.
+ENShell: Explain the threat model, then show the controls
+Problem and interface connected
+ENShell opens by explaining how prompt injection, malicious agent-to-agent communication and hallucinations could lead to harmful transactions. It compares this risk to SQL injection and introduces its transaction-analysis and decision-making SDK.
+The presenter then shows a live detection interface, the reasons a transaction was blocked, agent threat scores, registry information and a Ledger-based control for killing an agent.
+Takeaway: When the product is a security tool, show the threat, the detection and the response. An explanation of the attack alone is not enough; the demo should make the mitigation tangible.
+DIVE: Start with a familiar product and expose its limitation
+Ambitious problem framing
+DIVE uses Polymarket as an example of the problem of relying on a centralized oracle. It then describes a decentralized verification network in which AI agents gather evidence, debate outcomes and develop reputations.
+The demo shows agent registration, an explorer with activity and payout information, and a proposed market-dispute flow. Some of the more complex agent interaction and dispute mechanics are explained verbally rather than fully played out in a complete live sequence.
+Takeaway: A comparison to an existing product can quickly establish why your solution matters. However, for a complex protocol, be especially selective about which part of the architecture you demonstrate live.
+npmguard: Demonstrate a real workflow and explain the underlying system
+End-to-end use case
+The team opens with a security problem affecting developers, then demonstrates running its CLI, checking dependencies, paying for an audit and installing a package after it passes the audit. The second part of the demo explains its three-stage approach: scanning package files, sandboxed execution and generating a reproducible report.
+Takeaway: A compelling technical demo can have two layers: a straightforward user workflow followed by a deeper explanation of the machinery that makes it possible.
+Corpus: Show the product as a sequence of decisions
+Complex multi-agent workflow
+Corpus explains its idea through the analogy of an AI-agent corporation. It introduces the setup of the agents, their operating policies, their work on go-to-market activities, agent-to-agent purchases and human approval for spending above a threshold.
+Takeaway: For a complicated product with many interacting components, a demo should follow one coherent scenario from setup to outcome. Otherwise, the audience can get lost in the feature list.
+PaintGlobal: Connect the product to the event itself
+Contextual storytelling
+PaintGlobal begins with the audience's experience of a painting workshop at the hackathon. It explains the problem of forgetting or losing track of the artwork, then shows NFC login, uploading a painting, voting, NFT minting and auctioning.
+The presenter ends by inviting attendees to use the application and upload their own paintings. The host subsequently praises the project for connecting the event activity to a full crypto-enabled experience.
+Takeaway: A real-world use case that is already happening around you can be a very effective opening. The pitch is easy to follow because the audience has a direct connection to the problem.
+All project observations above are based on the supplied transcript. 
+Pasted text.txt
+4. The most useful pattern: one complete journey, backed by a technical reason to care
+The presentations suggest three distinct ingredients that work together:
+The finalist demo formula
+1. An understandable problem
+Give the judge a reason to care before asking them to understand your technology.
+2. A working end-to-end experience
+Show one user action, the system's response and a meaningful outcome. Prefer an actual interaction over a slide describing what the product will do.
+3. A clear technical differentiator
+Show what your implementation makes possible and why the underlying mechanism matters.
+There is also an important lesson about polish. In the transcript, several presenters experience errors, pauses or nervousness, yet complete their presentations. That doesn't prove judges overlook polish, but it does show that the finalist presentations were not all flawless performances. The content and demonstration still give us plenty to learn from.
+5. What the host's comments add
+The closing ceremony host offers some direct, though limited, insight into what he personally found notable:
+After Défi, he praises the quick demo and its use of DeFi.
+After ALMA, he calls the demonstration quick and useful.
+After Veil VPN, he emphasizes the live demonstration and practical consumer utility.
+After npmguard, he describes it as a full product ready to use.
+After PaintGlobal, he highlights the connection between the painting workshop, NFC, Web3 and audience participation.
+These are the host's reactions, not a complete account of the judges' reasoning. The transcript also says judges stayed an additional two hours to talk to teams and review their demos, but does not provide individual judging scores or a detailed explanation of why each finalist was selected. 
+Pasted text.txt
+6. A pitch script you can adapt
+If I were using these presentations as a reference for a new ETHGlobal submission, I'd draft the spoken pitch in this format:
+
+Writing
+[Opening: 0:00–0:20]
+Imagine you're [specific user] trying to [specific task]. Today, you have to [describe the existing difficulty]. We built [project name] to solve this.
+
+[Solution: 0:20–0:40]
+
+[Project name] is a [simple description of the product]. It lets users [main benefit] by [distinctive mechanism].
+
+[Demo: 0:40–1:50]
+
+Let me show you how it works.
+
+First, [show the initial user action]. As you can see, [show the system response].
+
+Next, [show the central technical action]. This is where [key integration or mechanism] comes in.
+
+And here's the result: [show a real, verifiable outcome].
+
+[Technical differentiation: 1:50–2:40]
+
+The important part is how we achieved this. Instead of [existing approach or limitation], we use [technical contribution]. This enables [specific benefit] while [relevant trade-off, security property or efficiency gain].
+
+[Proof and conclusion: 2:40–3:00]
+
+We built [specific completed functionality] during the hackathon, and the demonstration shows [what is verified]. The next step is [one realistic next milestone].
+
+That's [project name]: [one-sentence summary]. Thank you.

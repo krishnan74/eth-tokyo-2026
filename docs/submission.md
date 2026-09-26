@@ -73,6 +73,12 @@ The form's "How are you using this Protocol / API?" field takes this section's t
 - ≈2,300 extra gas per write on subnames, native owners included (local measurement).
 - ENSv2 beta on Sepolia, not production ENS; not audited; contracts not yet source-verified on Etherscan.
 
+## If you edit the submission: copy for the cascade demo
+
+The live demo now opens on the **Cascade** tab. A description paragraph that matches it:
+
+> ENS Drive brings Google Drive–style sharing to ENSv2 names. ENSv2 already gives every name its own registry, so names nest like folders — but permissions are granted one address on one name. ENS Drive adds the sharing layer inside ENSv2's own access control: share a name with a team, and the team's members can manage every name under it — including names in the folders below, and through teams inside teams. In the live demo, the outsider can't edit a file; dragged into dev-team (shared on the platform folder) they can; moved into sre, a team inside security (shared on acme-labs.eth, one folder up), they still can — and turning off "sharing flows into subfolders" takes it away. Every click is a real transaction on the ENSv2 beta, and each result shows the contract calls that decided it. The first, one-folder version is still there in the second tab.
+
 ## Links
 
 - **Repo:** `https://github.com/krishnan74/eth-tokyo-2026` — **still private.** The ENS track requires open source on GitHub; judges get a 404 until it is made public.
