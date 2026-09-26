@@ -1,0 +1,67 @@
+# Cascade v2 — team-governed subnames via a one-hop EAC fallthrough
+
+A feedback demo for the ENS team, on the ENSv2 beta deployment on Sepolia.
+
+**The idea:** a subname registry whose EAC role lookup also asks one level up: *does the parent name grant a team contract a role on me, and is this account a member of that team?* If so, the account holds that role on every subname here. Joining or leaving the team then governs every current **and future** subname under `devops.acme-corp.eth` — one role write, no per-subname grants, no token transfers.
+
+## What is new, and what is stock ENSv2
+
+| Piece | Code |
+|---|---|
+| `acme-corp.eth` registration (commit–reveal via the beta `ETHRegistrar`) | stock |
+| Org registry for `acme-corp.eth` | stock `PermissionedRegistry` (`contracts-v2@48b3e2d`), unmodified |
+| Granting `TeamRegistry` `ROLE_SET_SUBREGISTRY` on `devops` | one ordinary `grantRoles` call |
+| `TeamRegistry` — roster in native EAC, plus `isMember` and ERC-165 | [`TeamRegistry.sol`](contracts/src/TeamRegistry.sol) |
+| **`CascadeSubregistry`** — `PermissionedRegistry` overriding EAC's `_getRoles` hook, a validated `team` pointer, `explain()` | [`CascadeSubregistry.sol`](contracts/src/CascadeSubregistry.sol) — **the only real contribution** |
+
+## The demo (live on Sepolia — every step has a tx hash in [`docs/evidence.md`](docs/evidence.md))
+
+1. The org registry grants `TeamRegistry` `ROLE_SET_SUBREGISTRY` on `devops`. Native EAC.
+2. A brand-new `svc-….devops.acme-corp.eth` is registered. An outsider calls `setSubregistry` on it → **reverted on-chain**.
+3. The outsider is granted `MEMBER` on `TeamRegistry`.
+4. Same write → **succeeds**, on a name that did not exist when anyone was granted anything. The stock `hasRoles()` now reports the role too.
+5. `MEMBER` revoked → same write **reverted**, immediately.
+6. The outsider tries to point the fallthrough at an attacker's always-true team contract → **reverted** (`EACUnauthorizedAccountRoles`: no `ROLE_SET_TEAM`).
+7. The operator, who holds `ROLE_SET_TEAM`, tries to set a plain wallet as the team → **reverted** (`TeamNotContract`).
+8. The parent re-issues `devops` (unregister + register). Same pointer, same member → write **reverted**: the team's grant was scoped to the old registration.
+
+```bash
+npm install && forge build
+npm test                              # 17 Foundry tests
+npm run demo                          # the eight steps, live on Sepolia (setup already done)
+npm run demo -- --step                # same, waits for Enter between steps — for presenting
+npm run demo -- --core                # steps 1–5 only
+npm run demo -- --recap               # replay the last run's visuals (no transactions)
+npm run setup -- --rpc http://127.0.0.1:8545   # rehearse on `anvil --fork-url $SEPOLIA_RPC_URL`
+```
+
+## How the fallthrough works
+
+EAC documents `_getRoles(resource, account)` as the hook for injecting role logic at read time; `PermissionedRegistry` already uses it to give ERC1155-approved operators the owner's roles. `CascadeSubregistry` overrides the same hook:
+
+- For any **non-root** resource, an account's roles are its own roles, plus — if `team.isMember(account)` — the **regular** roles the parent currently grants `team` on this registry's label (`parent.roles(label, team)`).
+- **Admin bits are masked off**, so members can never grant or revoke. **Root is never inherited**, so register, setParent, setTeam and upgrades stay native-only.
+- Because it is the hook, everything agrees: writes (`_checkRoles`), the public `hasRoles` / `roles` views, and `explain()`. `nativeRoles()` exposes the stock-only view.
+- Both external calls are STATICCALLs (they run in view context, so a callback cannot change state) with fixed gas caps (`isMember` 30k, parent `roles` 50k). Malformed return data, reverts, and gas exhaustion all fail closed without affecting native holders.
+
+The **`team` pointer** needs `ROLE_SET_TEAM` on root, must be a contract, must declare `ITeam` via ERC-165, and every change emits `TeamPointerUpdated(old, new, by)`. The deliberate trust assumption: whoever holds `ROLE_SET_TEAM` is trusted to point it at a genuine team contract — a contract can lie about ERC-165.
+
+**Invalidation** needs no extra code: the inherited roles are read live from the parent's *current* EAC resource for the label, so unregistering, expiry, or re-registration of the parent name ends the team's authority exactly as it ends every native grant on it (demo step 8; tests). A parent **transfer** keeps third-party grants in place — stock ENSv2 behaviour for every delegate, not specific to Cascade; the new owner can revoke in one call.
+
+## Design questions for the ENS team
+
+1. **Holder discovery.** The plan was to "look up who holds the role on the parent". EAC exposes holder *counts* (`roleCount`, `getAssigneeCount`), not holder *identities*, so `CascadeSubregistry` stores a `team` pointer and reads the parent's grant to it live. Is that the right shape, or would you rather see holder enumeration?
+2. **Is overriding `_getRoles` the intended use of the hook for cross-contract inheritance?** It makes `hasRoles` truthful, but every non-root role lookup on this registry now makes up to two external calls — including for native owners (≈2.3k gas extra per write, measured locally).
+3. **Is this worth it over root grants?** Root grants already cover new subnames in one registry. Cascade's case is one roster shared by many registries, and separating team admins from namespace admins.
+4. **`ROLE_SET_SUBREGISTRY` on `devops` itself.** The team contract also holds it in the parent. `TeamRegistry` has no function that could exercise it; a team contract that could make arbitrary calls would be able to repoint the namespace.
+
+Rehearsed answers to the questions this usually raises (root grants, a compromised team contract, what `explain()` proves, token-ID mutation) are in [`docs/qa.md`](docs/qa.md). The audit items and how each was resolved are in [`docs/remediation.md`](docs/remediation.md).
+
+## Honest limits
+
+- **One hop only.** A grant two levels above the new subname is not found. A deeper tree needs a `CascadeSubregistry`, with its own team and parent, at each level that should inherit.
+- **No off-chain computation, proof, or relayer.** Everything is on-chain view calls.
+- **`TeamRegistry` inherits EAC's 15-assignees-per-role cap.** A small team, not an org chart.
+- **Not a tokenized subname.** The child's ERC1155 never moves; membership is a role write on `TeamRegistry`.
+- **Beta deployment, not production ENS.** Addresses are in [`scripts/lib.ts`](scripts/lib.ts), verified behaviourally on 2026-09-26.
+- **`explain().allowed` does not check expiry.** The write path rejects an expired name first; `explain()` reports roles only.
