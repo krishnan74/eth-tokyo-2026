@@ -351,6 +351,29 @@ contract CascadeV2Test is V2Fixture {
         assertLt(used, 4 * v2.MEMBER_CALL_GAS() + 16 * v2.PARENT_CALL_GAS() + 200_000);
     }
 
+    function test_fastPath_nativeOwnerWriteMakesNoLookups() public {
+        vm.startPrank(op);
+        org.grantRoles(DEVOPS, SET_SUB, address(dev));
+        root.grantRoles(ACME, SET_RES, address(dev));
+        v2.setDepth(3);
+        vm.stopPrank();
+        // The operator holds SET_SUBREGISTRY natively (registry-wide, at root): no ancestor or team
+        // may be consulted during its write.
+        vm.expectCall(address(org), abi.encodeWithSelector(IEnhancedAccessControl.roles.selector), 0);
+        vm.expectCall(address(root), abi.encodeWithSelector(IEnhancedAccessControl.roles.selector), 0);
+        vm.expectCall(address(dev), abi.encodeWithSelector(ITeam.isMember.selector), 0);
+        vm.prank(op);
+        v2.setSubregistry(ci, IRegistry(address(0x1)));
+    }
+
+    function test_fastPath_memberStillLooksUp() public {
+        vm.prank(op);
+        org.grantRoles(DEVOPS, SET_SUB, address(dev));
+        _join(dev, alice);
+        vm.expectCall(address(dev), abi.encodeWithSelector(ITeam.isMember.selector, alice));
+        assertTrue(_canSetSub(alice));
+    }
+
     function test_gas_nativeOwnerCost() public {
         vm.startPrank(op);
         org.grantRoles(DEVOPS, SET_SUB, address(dev));

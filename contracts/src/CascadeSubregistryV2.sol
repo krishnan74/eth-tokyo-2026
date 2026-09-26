@@ -150,6 +150,17 @@ contract CascadeSubregistryV2 is PermissionedRegistry {
 
     // ── the rule ─────────────────────────────────────────────────────────────
 
+    /// @dev Native-first fast path for writes: if the caller's stored roles (on the name or on root,
+    ///      including stock approved-operator roles) already cover the check, no team or ancestor is
+    ///      consulted. The outcome is identical to the full check, because inheritance only ever adds
+    ///      roles — it just spares native owners the lookups. Views (`hasRoles`, `roles`) are not
+    ///      overridable in PermissionedRegistry and always compute the full answer.
+    function _checkRoles(uint256 resource, uint256 roleBitmap, address account) internal view override {
+        if (_nativeRoles(resource, account) & roleBitmap == roleBitmap) return;
+        super._checkRoles(resource, roleBitmap, account);
+    }
+
+
     function _getRoles(uint256 resource, address account) internal view override returns (uint256 roleBitmap) {
         roleBitmap = super._getRoles(resource, account);
         if (resource == ROOT_RESOURCE) return roleBitmap;
