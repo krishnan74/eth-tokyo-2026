@@ -537,6 +537,101 @@ contract TeamsTest is V2Fixture {
     }
 }
 
+/// Exposes the write-side check so it can be compared with the full union directly.
+contract V2Harness is CascadeSubregistryV2 {
+    constructor(ILabelStore l, address root_, uint256 roles_) CascadeSubregistryV2(l, root_, roles_) {}
+    function checkOrRevert(uint256 anyId, uint256 roleBitmap, address account) external view {
+        _checkRoles(getResource(anyId), roleBitmap, account);
+    }
+}
+
+/// The lazy check must give the same yes/no as the full union, for any state and any requested roles.
+contract CascadeV2LazyCheckTest is Test {
+    address op = makeAddr("operator");
+    uint256 constant ACME = uint256(keccak256("acme-corp"));
+    uint256 constant DEVOPS = uint256(keccak256("devops"));
+    uint256[6] ROLES = [SET_SUB, SET_RES, RegistryRolesLib.ROLE_RENEW, RegistryRolesLib.ROLE_REGISTRAR, RegistryRolesLib.ROLE_UNREGISTER, RegistryRolesLib.ROLE_SET_URI];
+
+    PermissionedRegistry root;
+    PermissionedRegistry org;
+    V2Harness h;
+    TeamRegistry[3] teams;
+    uint256 ci;
+
+    function setUp() public {
+        ILabelStore labels = new NoopLabelStore();
+        uint64 exp = uint64(block.timestamp + 365 days);
+        address[] memory admins = new address[](1);
+        admins[0] = op;
+        vm.startPrank(op);
+        root = new PermissionedRegistry(labels, op, ALL_ROLES);
+        org = new PermissionedRegistry(labels, op, ALL_ROLES);
+        h = new V2Harness(labels, op, ALL_ROLES);
+        root.register("acme-corp", op, IRegistry(address(org)), address(0), ALL_ROLES, exp);
+        org.setParent(IRegistry(address(root)), "acme-corp");
+        org.register("devops", op, IRegistry(address(h)), address(0), ALL_ROLES, exp);
+        h.setParent(IRegistry(address(org)), "devops");
+        ci = h.register("ci", op, IRegistry(address(0)), address(0), 0, exp);
+        for (uint256 i; i < 3; ++i) {
+            teams[i] = new TeamRegistry(admins);
+            h.addTeam(address(teams[i]));
+        }
+        vm.stopPrank();
+    }
+
+    function _mask(uint256 seed) internal view returns (uint256 m) {
+        for (uint256 i; i < 6; ++i) if (seed & (1 << i) != 0) m |= ROLES[i];
+    }
+
+    function testFuzz_lazyCheckMatchesFullUnion(uint256 grants1, uint256 grants2, uint8 members, uint8 native, uint8 depthSeed, uint256 requested, bool withAdmin) public {
+        address alice = makeAddr("alice");
+        vm.startPrank(op);
+        for (uint256 i; i < 3; ++i) {
+            uint256 g1 = _mask(grants1 >> (i * 8));
+            uint256 g2 = _mask(grants2 >> (i * 8));
+            if (g1 != 0) org.grantRoles(DEVOPS, g1, address(teams[i]));
+            if (g2 != 0) root.grantRoles(ACME, g2, address(teams[i]));
+            if (members & (1 << i) != 0) teams[i].grantRoles(TEAM_RES, MEMBER, alice);
+        }
+        uint256 nat = _mask(native);
+        if (nat != 0) h.grantRoles(ci, nat, alice);
+        h.setDepth(1 + depthSeed % 3);
+        vm.stopPrank();
+
+        uint256 want = _mask(requested);
+        if (withAdmin) want |= SET_SUB << 128;
+        vm.assume(want != 0);
+        bool full = h.hasRoles(ci, want, alice);
+        bool lazy;
+        try h.checkOrRevert(ci, want, alice) { lazy = true; } catch {}
+        assertEq(lazy, full, "lazy _checkRoles disagrees with the full union");
+    }
+
+    function test_pruning_irrelevantTeamNotAsked() public {
+        address alice = makeAddr("alice");
+        vm.startPrank(op);
+        org.grantRoles(DEVOPS, SET_SUB, address(teams[0])); // teams[0] can't help with SET_RESOLVER
+        root.grantRoles(ACME, SET_RES, address(teams[1]));
+        teams[1].grantRoles(TEAM_RES, MEMBER, alice);
+        h.setDepth(2);
+        vm.stopPrank();
+        vm.expectCall(address(teams[0]), abi.encodeWithSelector(ITeam.isMember.selector), 0);
+        h.checkOrRevert(ci, SET_RES, alice);
+    }
+
+    function test_pruning_level2NotWalkedWhenLevel1Covers() public {
+        address alice = makeAddr("alice");
+        vm.startPrank(op);
+        org.grantRoles(DEVOPS, SET_SUB, address(teams[0]));
+        teams[0].grantRoles(TEAM_RES, MEMBER, alice);
+        h.setDepth(3);
+        vm.stopPrank();
+        vm.expectCall(address(org), abi.encodeWithSelector(IRegistry.getParent.selector), 0);
+        vm.expectCall(address(root), abi.encodeWithSelector(IEnhancedAccessControl.roles.selector), 0);
+        h.checkOrRevert(ci, SET_SUB, alice);
+    }
+}
+
 /// Random action sequences over teams × levels; the rule checked after every step.
 contract V2Handler is Test {
     PermissionedRegistry public root;
@@ -624,12 +719,19 @@ contract V2Handler is Test {
         else { v2.revokeRoles(ci, r, who); ghostNative[who] &= ~r; }
     }
 
-    function actorWrite(uint256 a) external {
+    /// A write whose outcome (the lazy, role-aware `_checkRoles`) must match `hasRoles` (the full union).
+    function actorWrite(uint256 a, uint256 op_) external {
         address who = actors[a % 3];
-        bool expected = v2.hasRoles(ci, SET_SUB, who);
+        uint256 w = op_ % 3;
+        uint256 role = w == 0 ? SET_SUB : w == 1 ? SET_RES : RegistryRolesLib.ROLE_RENEW;
+        bool expected = v2.hasRoles(ci, role, who);
+        uint64 expiry = v2.getExpiry(ci);
         vm.prank(who);
-        try v2.setSubregistry(ci, IRegistry(address(0xBEEF))) { if (!expected) writeMismatch++; }
-        catch { if (expected) writeMismatch++; }
+        bool ok;
+        if (w == 0) try v2.setSubregistry(ci, IRegistry(address(0xBEEF))) { ok = true; } catch {}
+        else if (w == 1) try v2.setResolver(ci, address(0xBEEF)) { ok = true; } catch {}
+        else try v2.renew(ci, expiry) { ok = true; } catch {}
+        if (ok != expected) writeMismatch++;
     }
 
     function actorConfigure(uint256 a, uint256 which) external {
