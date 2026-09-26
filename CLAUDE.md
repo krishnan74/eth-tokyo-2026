@@ -34,6 +34,8 @@ npm run demo -- --recap                            # replay last recorded run (e
 npm run gen                                        # regenerate core/cascade/generated.ts (ABIs + Sepolia addresses) after forge build / redeploy
 npm run ui                                         # Next.js UI on :3000 (Sepolia); NEXT_PUBLIC_RPC_URL + CASCADE_RPC_URL=http://127.0.0.1:8545 for a fork
 npm run ui:build                                   # production build (type-checks the UI)
+npm run setup:v2 -- --write                         # roadmap branch: deploy/wire CascadeSubregistryV2 on acme-labs.eth (idempotent; book: deployments/sepolia-v2.json)
+npm run smoke:v2                                   # roadmap branch: live check of many teams, nested team, multi-hop, fast path (cleans up after itself)
 npm run ui:start                                   # serve the production build (read-only unless CASCADE_UI_WRITES=1)
 ```
 
@@ -54,6 +56,8 @@ npm run ui:start                                   # serve the production build 
 | `CascadeSubregistry` (`devops.acme-corp.eth`) | `0x2f15c12d21d7561433ddc6f7b856e9f0e4455e13` |
 | `TeamRegistry` | `0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb` |
 | `AlwaysTrueTeam` (demo fixture) | `0xaa735fc88e25f7d846010469ee75f287c8ec20c1` |
+
+Roadmap branch only, separate tree `acme-labs.eth` (never touches the v1 demo): OrgRegistry v2 `0x35888867cc0c37d54ae0f902611ec4a5b8a73beb` · CascadeSubregistryV2 (`platform.acme-labs.eth`, depth 2) `0xa6b159d2e785a6146d9e21a1cc377b781e70a246` · dev-team `0xaa75275e77f89267f28a5bbf2f7f40b920941253` · security (NestedTeam ⊃ sre) `0x179aa1bac7758557defe517330147afd55f54134` · sre `0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163`.
 
 Retired: CascadeSubregistry `0xa6e5…3b22`, TeamRegistry `0x1a3d…b881` (see `deployments/sepolia.json`).
 
