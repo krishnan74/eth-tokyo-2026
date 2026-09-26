@@ -66,6 +66,10 @@ Revert reasons (decoded from a simulation before each refused tx was sent): step
 - Local Foundry, like-for-like warm writes (`test_gas_nativeVsFallthrough`): native owner 73,069 vs via team 75,382. Native owners also pay for the hook's external calls.
 - External call caps: `isMember` 30,000, parent `roles` 50,000.
 
+## Web UI run (Sepolia, 2026-09-26)
+
+The guided walkthrough was clicked through in headless Chrome against Sepolia: create → write (reverted, `EACUnauthorizedAccountRoles`) → grant → write (success) → revoke → write (reverted) → hijack (reverted, `EACUnauthorizedAccountRoles`). Every step matched its expected result (checked by the script). The captured screenshots (after steps 2, 4 and 7) show the three checks agreeing with `explain()`; the script did not assert agreement on every step. The UI's transactions are on the outsider's and operator's address pages: [outsider](https://sepolia.etherscan.io/address/0xF4ff37B96BF5474F8d2F58ABfB9F61F5A9629Fa8), [operator](https://sepolia.etherscan.io/address/0xDcbe075a907960951Cd4df379BB21461097eEa91).
+
 ## Tests (local Foundry, not Sepolia)
 
 `forge test` — 17/17 passing. Coverage by audit item is in [`remediation.md`](remediation.md).

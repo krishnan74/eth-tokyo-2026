@@ -35,3 +35,15 @@
 - **Context:** the audit worried the stored `team` pointer escapes ENSv2's invalidation when the parent changes hands.
 - **Decision:** no new code; the pointer confers nothing without the parent's grant, which is read live from the parent's current EAC resource. Demo step 8 and three tests prove re-issue and expiry invalidate it; transfer keeps it, as it does every delegate's grant in stock ENSv2.
 - **Consequences:** the audit's premise (token-ID changes on ownership change) was corrected in `qa.md`: token IDs regenerate on role changes; the EAC resource changes on unregister/expiry.
+
+## 7. The UI signs on its server, and only locally
+
+- **Context:** the demo needs two signers (operator, outsider) whose keys must not reach a browser; a viewer's own wallet can't create subnames or grant membership.
+- **Decision:** Next.js route handlers sign with the same `.env` keys as the terminal demo and return tx hashes; the browser reads via wagmi and waits for receipts itself. Writes are enabled only under `next dev` or `CASCADE_UI_WRITES=1`.
+- **Consequences:** a public deployment is read-only by default. Letting a visitor's wallet play the outsider (with server-side operator actions) is a possible later step, not built.
+
+## 8. One shared core for terminal and UI
+
+- **Context:** the UI spec requires that the "explain() matches the write path" claim can't silently diverge between two consumers.
+- **Decision:** `core/cascade/` holds addresses, ABIs (generated from the Foundry build), the three-check chain with its short-circuit, agreement check and cost numbers. `scripts/demo.ts` imports it for its checks; the UI imports it everywhere.
+- **Consequences:** `npm run gen` must follow a contract change or redeploy; `generated.ts` is committed so the UI builds without Foundry.

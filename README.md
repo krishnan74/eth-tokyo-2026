@@ -35,6 +35,20 @@ npm run demo -- --recap               # replay the last run's visuals (no transa
 npm run setup -- --rpc http://127.0.0.1:8545   # rehearse on `anvil --fork-url $SEPOLIA_RPC_URL`
 ```
 
+## Web UI
+
+A Next.js page that teaches the same mechanism without narration: the relationship chain with the one link that flips, the three checks running one live read at a time with the previous run alongside, the name tree, a state card that flags what just changed, a transaction log with Etherscan links, the known limits, and a guided seven-step walkthrough.
+
+```bash
+npm run ui                             # http://localhost:3000 — reads Sepolia live, sends real transactions
+NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545 CASCADE_RPC_URL=http://127.0.0.1:8545 npm run ui   # rehearse on an anvil fork
+```
+
+- **Who signs:** the operator and outsider keys stay in the repo's `.env` and sign on the Next.js server (`web/lib/cascade/server.ts`), exactly as the terminal demo does. The browser reads the chain through wagmi and waits for every receipt itself; nothing is shown as landed before it has.
+- **Transactions are on only for a local dev server** (or with `CASCADE_UI_WRITES=1`). A public deployment would otherwise let anyone spend the operator's Sepolia ETH; without writes, the page still reads everything live.
+- **Shared core:** addresses, ABIs, the three-check chain and the cost numbers live in [`core/cascade/`](core/cascade/), imported by both `scripts/demo.ts` and the UI, so the two cannot disagree. After a contract change or redeploy: `forge build && npm run gen`.
+- The terminal demo is unchanged in behaviour and also covers the wallet-as-team and parent re-issue edge cases, which the UI leaves out.
+
 ## How the fallthrough works
 
 EAC documents `_getRoles(resource, account)` as the hook for injecting role logic at read time; `PermissionedRegistry` already uses it to give ERC1155-approved operators the owner's roles. `CascadeSubregistry` overrides the same hook:

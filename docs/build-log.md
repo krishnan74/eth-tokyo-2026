@@ -14,3 +14,11 @@
 - First gas-capped version used `try/catch`; a test with a team returning 1 byte showed it reverts the whole check (including native owners). Switched to low-level `staticcall` + length check. ~10 min.
 - Two test mistakes, not contract bugs: tried to grant an admin bit on a name after registration (stock ENSv2 forbids it), and `explain()` only reported membership when the grant existed (changed to always report it).
 - Rehearsed `setup --redeploy` and the 8-step demo twice on a fork (second run confirmed step 8 restores state), then redeployed on Sepolia and ran all 8 steps live.
+
+## 2026-09-26 (later) — Next.js UI
+
+- Extracted `core/cascade/` (addresses, generated ABIs, three-check chain, cost numbers); switched `demo.ts` to it and re-ran the full 8-step terminal demo on a fork: every outcome as expected.
+- Built the Next.js 16 UI in `web/` (wagmi 3, Tailwind 4, Framer Motion), deps in the root package.
+- Turbopack warned that the `.env` lookup would trace the whole repo (including `.env`) into server output; excluded it and confirmed no key in `web/.next`.
+- Drove the API through the full sequence on a fork, then clicked the guided walkthrough in headless Chrome on the fork and on Sepolia: all 7 steps as expected, no console errors, no horizontal overflow at 400px.
+- Screenshot review caught a sticky side column sliding over the limits section and a truncated node name; both fixed and re-checked.

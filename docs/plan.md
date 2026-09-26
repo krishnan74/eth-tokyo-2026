@@ -23,7 +23,8 @@ Audience: the ENS team, for design feedback. Not a prize submission — no time-
 | Gas | measured | via team 91,946 / denied 69,921 (Sepolia); native vs team 73,069 / 75,382 (local, warm) |
 | Explainer page for the ENS team | published (private) | claude.ai artifact, version 2 — share from its Share menu |
 | Repository | private on GitHub | keep private until the user says otherwise |
-| UI | cut | the terminal walkthrough is the demo |
+| Shared core (`core/cascade/`) | done | terminal demo re-run on a fork after extraction: every outcome as expected |
+| Next.js UI (`web/`) | **clicked through on Sepolia** | guided 7 steps, each outcome as expected, no console errors; also on an anvil fork. Writes local-only |
 
 ## Thesis
 
@@ -58,7 +59,7 @@ On Sepolia a full run is 14 transactions, about three minutes of confirmations; 
 
 ## Cut list
 
-- UI — terminal walkthrough with Etherscan links is the demo.
+- UI edge cases: the wallet-as-team and parent re-issue steps stay terminal-only.
 - Prize tracks, time-box — not the goal of this build (user decision).
 
 ## Decisions taken
