@@ -8,6 +8,8 @@ const root = path.join(__dirname, "..");
 const nextConfig: NextConfig = {
   turbopack: { root },
   outputFileTracingRoot: root,
+  // The hosted demo's trace route runs a bundled `cast` (fetched at build time by scripts/fetch-cast.sh).
+  outputFileTracingIncludes: { "/api/trace": ["./bin/cast"] },
 };
 
 export default nextConfig;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { clientIp, limit } from "@/lib/cascade/ratelimit";
 import { WRITES_ENABLED, runAction, type ActionName } from "@/lib/cascade/server";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,8 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { action?: string; label?: string };
   if (!ACTIONS.includes(body.action as ActionName)) return NextResponse.json({ error: "unknown action" }, { status: 400 });
   if (body.label !== undefined && !/^svc-[0-9a-z]{1,16}$/.test(body.label)) return NextResponse.json({ error: "bad label" }, { status: 400 });
+  const limited = limit("action", clientIp(req));
+  if (limited) return NextResponse.json({ error: limited }, { status: 429 });
   try {
     const r = await runAction(body.action as ActionName, body.label);
     return NextResponse.json(JSON.parse(JSON.stringify(r)));

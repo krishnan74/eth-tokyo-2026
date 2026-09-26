@@ -14,7 +14,8 @@
     "setup:v2": "tsx --env-file=.env scripts/setup-v2.ts",
     "smoke:v2": "tsx --env-file=.env scripts/smoke-v2.ts",
     "test:fork": "FORK_TESTS=1 forge test --match-contract RosterForkTest -vv",
-    "prove": "forge build --ast && halmos --contract CascadeSymbolicTest --loop 4 --solver-timeout-assertion 0"
+    "prove": "forge build --ast && halmos --contract CascadeSymbolicTest --loop 4 --solver-timeout-assertion 0",
+    "setup:hosted": "tsx --env-file=.env scripts/setup-hosted.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.103.3",

@@ -5,6 +5,7 @@
 // Needs Foundry on the machine running the UI (the same local-only setup the UI's transactions use),
 // and recent chain state: free RPCs only keep recent blocks, so replay works for fresh transactions.
 import { execFile } from "node:child_process";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { keccak256, toHex } from "viem";
@@ -47,10 +48,35 @@ export async function traceTx(hash: string, people: Record<string, string>, labe
   return { error: quick.err ?? full.err ?? "replay failed" };
 }
 
+/**
+ * Which `cast` to run. Locally: Foundry's own install. On the hosted demo: a pinned Linux build bundled
+ * at web/bin/cast (fetched at build time by scripts/fetch-cast.sh); the deployment bundle may drop the
+ * executable bit, so it is copied to /tmp and made executable once.
+ */
+let castBin: string | undefined;
+function castPath(): string {
+  if (castBin) return castBin;
+  for (const p of [path.join(/*turbopackIgnore: true*/ process.cwd(), "bin", "cast"), path.join(/*turbopackIgnore: true*/ process.cwd(), "web", "bin", "cast")]) {
+    if (!fs.existsSync(/*turbopackIgnore: true*/ p)) continue;
+    try {
+      fs.accessSync(/*turbopackIgnore: true*/ p, fs.constants.X_OK);
+      return (castBin = p);
+    } catch {
+      const tmp = path.join(os.tmpdir(), "cast");
+      fs.copyFileSync(/*turbopackIgnore: true*/ p, /*turbopackIgnore: true*/ tmp);
+      fs.chmodSync(/*turbopackIgnore: true*/ tmp, 0o755);
+      return (castBin = tmp);
+    }
+  }
+  return (castBin = "cast");
+}
+
 function castRun(args: string[]) {
-  const env = { ...process.env, PATH: `${path.join(os.homedir(), ".foundry", "bin")}:${process.env.PATH ?? ""}`, NO_COLOR: "1" };
+  // HOME → a writable dir for cast's RPC cache on read-only serverless filesystems.
+  const home = fs.existsSync(/*turbopackIgnore: true*/ path.join(os.homedir(), ".foundry")) ? os.homedir() : os.tmpdir();
+  const env = { ...process.env, HOME: home, PATH: `${path.join(os.homedir(), ".foundry", "bin")}:${process.env.PATH ?? ""}`, NO_COLOR: "1" };
   return new Promise<{ text: string; failed: boolean; err?: string }>((resolve) => {
-    execFile("cast", args, { env, timeout: 120_000, maxBuffer: 4 << 20 }, (err, stdout, stderr) => {
+    execFile(/*turbopackIgnore: true*/ castPath(), args, { env, timeout: 110_000, maxBuffer: 4 << 20 }, (err, stdout, stderr) => {
       const text = `${stdout}\n${stderr}`;
       // `cast run` exits non-zero when the replayed transaction itself reverted; that's still a trace.
       if (err && !/Traces:/.test(text)) resolve({ text, failed: true, err: firstError(text) ?? err.message });
