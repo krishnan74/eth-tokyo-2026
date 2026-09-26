@@ -104,6 +104,8 @@ About **7 minutes of talking**, then questions. Stage directions are in **[brack
 
 ## 5:15 — Under the hood
 
+*If they want the deep version, switch to the full track in [`architecture-talk.md`](architecture-talk.md).*
+
 **[Scroll to Under the hood.]**
 
 > "Three contracts, one overridden function. The parent registry is stock ENSv2. Cascade is ENS's own `PermissionedRegistry` with one function overridden — `_getRoles`, the hook EAC documents for this, and that the stock registry already uses for approved operators. The team is a plain EAC contract.

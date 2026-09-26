@@ -124,7 +124,7 @@ if (granted != 0 && _isMember(account)) roleBitmap |= granted;
 
 ## H. The demo
 
-**34.** In the live demo, what do the **"Stored in EAC"** and **"Effective, with Cascade"** rows show before and after the outsider joins the team — and what does that prove?
+**34.** In the drive demo's **Who has access** panel, what do **"given directly"** and **"via the group"** show before and after the outsider joins devops-team — and what does that prove?
 
 **35.** Why does the demo *send* refused writes as real transactions instead of only simulating them?
 
@@ -211,7 +211,7 @@ An ENS engineer asks: *"Why wouldn't a DAO just give its Safe the role?"* Answer
 
 **33.** Any two, for example: **`_getRoles` stays overridable and feeds every check** (else Cascade can't hook in, or views would disagree with writes); **`roles()` on the parent reads the current resource** (else the live grant check changes); **grant rights come only from admin bits** (else the no-escalation guarantee must be re-proven); **resource versioning on unregister/expiry** (else automatic invalidation must be re-proven); **`setParent` / `getParent`** (else Cascade needs its own parent pointer).
 
-**34.** "Stored in EAC" stays **`none` the whole time**. "Effective, with Cascade" goes from `none` to **`SET_SUBREGISTRY`** when the outsider joins, and back to `none` when they leave. It proves Cascade **adds to** EAC without writing anything into it.
+**34.** "Given directly" (`nativeRoles()`) stays **`none` the whole time**. "Via the group" goes from `none` to **`SET_SUBREGISTRY`** when the outsider joins, and back to `none` when they leave. It proves Cascade **adds to** EAC without writing anything into it.
 
 **35.** A mined **failed transaction** on Etherscan is **evidence**; a simulation is only a claim. The revert reason is decoded from a simulation just before sending, so it comes from the chain, not from the script.
 

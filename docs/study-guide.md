@@ -2,7 +2,7 @@
 
 > **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
-Read top to bottom. Each block is time-boxed; the total is 20 minutes. Deeper detail lives in [`project-explainer.md`](project-explainer.md) and [`contracts-explained.md`](contracts-explained.md) — you don't need them to pitch.
+Read top to bottom. Each block is time-boxed; the total is 20 minutes. For explaining the contracts out loud, use [`architecture-talk.md`](architecture-talk.md). Deeper detail lives in [`project-explainer.md`](project-explainer.md) and [`contracts-explained.md`](contracts-explained.md) — you don't need them to pitch.
 
 ---
 
@@ -127,7 +127,7 @@ These came from the ETHOnline ENSv2 beta deployment and were verified behavioura
 ## Minute 19–20 · Pre-flight
 
 - [ ] `npm run ui` running; fresh browser window at the top of the page.
-- [ ] Outsider **not** in the team (the guided coach warns if they are).
+- [ ] Outsider **not** in the group — press **Start over** in the drive if a previous run left them in.
 - [ ] Fallback terminal: `npm run demo -- --core`; `--recap` replays the last run and says so.
 - [ ] Etherscan tab open for anyone who wants to verify.
 
@@ -139,7 +139,7 @@ These came from the ETHOnline ENSv2 beta deployment and were verified behavioura
 |---|---|---|
 | 0–2 | Frame | One-liner; MVP scope (one hop, one team). |
 | 2–5 | The gap + the idea | Ledger → the sentence EAC can't express → the formula. |
-| 5–10 | Live demo | Create → write fails → **drag in** → write succeeds → drag out → fails → **hijack refused**. Talk over the ~12 s confirmations. |
+| 5–10 | Live demo | New file → edit fails → **drag the outsider into devops-team** → edit succeeds → drag out → fails → **attack refused**. Then Behind the scenes. Talk over the ~12 s confirmations. |
 | 10–12 | How it fits | One hook; every other layer stock; name the changes yourself. |
 | 12–13 | Roadmap | Step 0 live; steps 1–4 next; 5 after feedback. Don't promise all of 1–4. |
 | 13–20 | **Their feedback** | The four questions, then agents & resolver records, then *"Is `_getRoles` a stable extension point?"* Write down their exact words. |

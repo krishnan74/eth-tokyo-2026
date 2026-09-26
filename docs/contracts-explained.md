@@ -113,7 +113,7 @@ Returns an `Explanation` struct:
 
 **`nativeRoles(uint256 anyId, address account)` — external view**
 
-The account's own roles on the name plus root, using `super._getRoles` so nothing is inherited. The UI shows it as "Stored in EAC".
+The account's own roles on the name plus root, using `super._getRoles` so nothing is inherited. The drive UI shows it as "given directly" in the Who has access panel.
 
 ### What Cascade leaves untouched
 

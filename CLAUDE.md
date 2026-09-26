@@ -68,7 +68,7 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 - The demo's step 8 unregisters and re-registers `devops`, then restores the team grant; a crash mid-step 8 leaves the grant missing — rerun `npm run setup -- --write` to restore.
 - Next 16 (Turbopack) bundles the whole repo into server output if a route touches `fs` with a dynamic path — the `.env` lookup in `server.ts` carries `/*turbopackIgnore: true*/` for that reason. Check `web/.next` for keys after changing it.
 - A sticky column taller than the viewport inside a shared grid slides over later rows; the UI's side column has its own grid and `max-h` + `overflow-y-auto`.
-- DemoBoard drop zones are hit-tested by rectangle; the team socket sits inside the roster, so the socket must be tested first (a real bug the drag test caught).
+- Drag-and-drop drop zones are hit-tested by rectangle; if one zone ever sits inside another, test the smaller one first (a real bug the drag test caught in the earlier board, where the team socket sat inside the roster).
 - Public Sepolia RPCs do not serve debug_traceTransaction; traces come from `cast run` replaying fresh txs (old txs fail: historical state pruned). Full replay can fail intermittently re-executing the block's earlier txs, hence the `--quick` fallback.
 - Trace decoding must be context-aware: only decode role names for `roles()` returns and EAC revert roles — a label hash or timestamp decoded as a bitmap reads as nonsense roles.
 - `next dev` writes `web/AGENTS.md` / `web/CLAUDE.md` (Next's own agent notes). Commit them as-is.

@@ -41,7 +41,7 @@ A deliberately simple page, shaped by ENS team feedback, that frames Cascade lik
 
 **Behind the scenes, live:** after each action the server replays the mined transaction with Foundry's `cast run` and the page shows the EVM's own call tree — `setSubregistry` → `OrgRegistry.roles(devops, TeamRegistry)` → `TeamRegistry.isMember(outsider)` → emit or revert — with gas, return values and revert reasons decoded into names. If the full replay isn't available from the RPC it falls back to `cast run --quick`, labelled as such. Needs Foundry on the machine running the UI (the same local-only setup as its transactions). "Start over" removes the outsider from the team if a previous run left them in. Light theme by default, with a toggle.
 
-The contract-level architecture, with diagrams, is in [`docs/architecture.md`](docs/architecture.md).
+The contract-level architecture, with diagrams and the exact function chain, is in [`docs/architecture.md`](docs/architecture.md); what to say when walking someone through it is in [`docs/architecture-talk.md`](docs/architecture-talk.md).
 
 ```bash
 npm run ui                             # http://localhost:3000 — reads Sepolia live, sends real transactions

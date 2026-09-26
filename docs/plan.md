@@ -26,7 +26,7 @@ Audience: the ENS team, for design feedback. Not a prize submission — no time-
 | Explainer page for the ENS team | published (private) | claude.ai artifact, version 2 — share from its Share menu |
 | Repository | private on GitHub | keep private until the user says otherwise |
 | Shared core (`core/cascade/`) | done | terminal demo re-run on a fork after extraction: every outcome as expected |
-| Next.js pitch UI (`web/`) | drag-and-drop board clicked through on a fork; earlier UI version clicked through on Sepolia | guided 7 steps, each outcome as expected, no console errors. Writes local-only |
+| ENS Drive web UI (`web/`) | shared-drive demo + live traces; clicked through on a fork; Reset + trace replay run on live Sepolia; an earlier UI version clicked through on Sepolia | seven actions as expected, every trace decoded, no console errors. Writes and traces local-only |
 
 ## Thesis
 
@@ -46,7 +46,11 @@ A subname registry whose EAC role lookup also asks the parent name: *does it gra
 - `devops.acme-corp.eth` — in the org registry, subregistry = `CascadeSubregistry`; `TeamRegistry` is granted `ROLE_SET_SUBREGISTRY` on it.
 - `svc-<id>.devops.acme-corp.eth` — created live during each demo run.
 
-## Demo path (`npm run demo`; `--core` runs 1–5)
+## Demo path — web (the pitch)
+
+The shared-drive view: open the Share dialog → **+ New file** → **Edit as outsider** (refused) → **drag the outsider into devops-team** → edit (saved; Who has access shows "Can edit · via devops-team", given directly: none) → drag out → edit (refused) → **attack** (refused) → **Behind the scenes** trace → **Under the hood**.
+
+## Demo path — terminal (`npm run demo`; `--core` runs 1–5)
 
 1. Setup, one line: the parent grants `TeamRegistry` `ROLE_SET_SUBREGISTRY` on `devops`. The fallthrough is the `_getRoles` hook.
 2. Create a new subname; the outsider's `setSubregistry` → **reverts**. Live per-check reads, relationship graph.

@@ -240,8 +240,8 @@ The first version overrode `_checkRoles`. It was replaced by the `_getRoles` ver
 ### Live runs
 
 - **The 8-step terminal demo on Sepolia:** every outcome as expected, every transaction on Etherscan.
-- **An earlier UI version:** clicked through on live Sepolia.
-- **The current drag-and-drop board:** clicked through on a **Sepolia fork**, not yet on live Sepolia.
+- **An earlier web UI version:** clicked through on live Sepolia.
+- **The current shared-drive UI:** clicked through on a **Sepolia fork** (all seven actions, every trace decoded); on live Sepolia, the Reset action and its trace replay were run. Do one full live run-through before presenting.
 
 ### Gas on Sepolia
 
@@ -267,28 +267,30 @@ Holds the addresses, the ABIs (generated from the Foundry build), the **three-ch
 
 **Refused writes are actually sent**, with a fixed gas limit, so each refusal is a **mined failed transaction** rather than a simulated claim. Revert reasons are decoded from a simulation.
 
-### Web UI (Next.js + wagmi)
+### Web UI (Next.js + wagmi): ENS Drive
+
+A deliberately simple page in three parts — the problem, try it, under the hood — with everything else in a collapsed "More detail".
+
+**The shared-drive demo**
+
+- **The mapping.** The `devops` folder is `devops.acme-corp.eth` (a name with its own registry); files are its subnames; the `devops-team` group is `TeamRegistry`; "Can edit" is the `SET_SUBREGISTRY` role; "Edit as outsider" is a real `setSubregistry` write.
+- **Share dialog.** The folder's "Shared with devops-team · Can edit" pill opens a read-only share dialog driven by the parent's live grant.
+- **Group and People.** Drag the outsider between them (or use the text button) to grant or revoke `MEMBER` on `TeamRegistry`. The chip's position comes from the live `isMember` read; a dashed placeholder waits while the transaction confirms.
+- **Who has access.** For the selected file: Admin (owner), devops-team (can edit, from the folder), and the outsider — "Can edit · via devops-team" or "No access". Underneath, in ENS terms, *given directly* (`nativeRoles()`, never changes) next to *via the group* (inherited). This is the visual proof that Cascade adds to EAC without writing into it.
+- **Folders tree.** `acme-corp.eth › devops`, with the parent-folder cascade marked "Next — not built yet".
+- **Attack.** "As the outsider, change who the folder is shared with" sends `setTeam` and is refused on-chain.
+- **Start over.** Removes the outsider from the group if a previous run left them in.
+
+**Behind the scenes**
+
+After each action, the server replays the mined transaction with Foundry's `cast run` and the page shows the EVM's own call tree — the calls, gas, return values, events and reverts — decoded into names by context, with a plain-language note per call. Internal steps (`_checkRoles` → Cascade's `_getRoles`) are shown separately, labelled as from the contract source, because the EVM doesn't record internal functions. If the full replay fails on the free RPC, it falls back to `cast run --quick`, labelled as such. Traces only work for fresh transactions.
 
 **Reads and writes**
 
 - **The browser reads the chain directly** and waits for every receipt itself. Nothing is shown as landed before it has.
 - **The two demo keys sign on the app's server** and never reach the browser.
-- **Transactions are only enabled locally.** A public server would let anyone spend the operator's ETH.
-
-**The checks**
-
-The "checking…" animation is real: each line is its own chain read, **pinned to the block of the write**, and the result is then compared with `explain()`.
-
-**The drag-and-drop board**
-
-- A chip's position comes from the live `isMember` read, not from local state.
-- A dashed "ghost" chip waits in the target zone while a transaction confirms.
-- Drops are resolved by hit-testing the zones. The team socket is tested before the roster, because it sits inside it.
-- Every subname's lock is a live `hasRoles` read.
-
-**The stored-vs-effective strip**
-
-This is the visual proof that Cascade aids EAC rather than replacing it. `nativeRoles()` ("stored in EAC") stays `none` the whole time, while `roles()` ("effective, with Cascade") gains and loses `SET_SUBREGISTRY` as the outsider joins and leaves.
+- **Transactions (and traces) only run locally.** A public server would let anyone spend the operator's ETH.
+- **Light theme by default**, with a toggle.
 
 ---
 
