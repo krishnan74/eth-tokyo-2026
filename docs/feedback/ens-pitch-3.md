@@ -126,6 +126,8 @@ Items 1–5 are about a day of test work; item 6 is fork tests; items 7–8 are 
 
 **Update 2026-09-27 — item 6 closed:** `contracts/test/RosterFork.t.sol` (`npm run test:fork`) runs `HatsTeam` against the real Hats Protocol v1 and `SafeTeam` against a real Safe 1.4.1 proxy on a Sepolia fork: wearing/renouncing a hat and adding/removing a Safe owner turn access on and off; lookups cost 17,420 and 11,273 gas.
 
+**Update 2026-09-27 — item 7 (formal verification) partly done:** Halmos proves, for all inputs, the v1 rule (no admin bits, nothing at root), that v2's lazy write check equals the full union, and that a parent not pointing back contributes nothing. One property (v2 `roles()` equals the union formula) is inconclusive: Halmos's counterexamples don't reproduce on the EVM. Item 8 (external audit) remains open. See [`../roadmap-v2.md`](../roadmap-v2.md#7-tests).
+
 ---
 
 ## 7. A possible misunderstanding from pitch 1 (added 2026-09-27)

@@ -37,6 +37,7 @@ npm run ui:build                                   # production build (type-chec
 npm run setup:v2 -- --write                         # roadmap branch: deploy/wire CascadeSubregistryV2 on acme-labs.eth (idempotent; book: deployments/sepolia-v2.json)
 npm run smoke:v2                                   # roadmap branch: live check of many teams, nested team, multi-hop, fast path (cleans up after itself)
 npm run test:fork                                  # roadmap branch: HatsTeam / SafeTeam against the real Hats v1 and Safe 1.4.1 on a Sepolia fork (network; skipped in npm test)
+npm run prove                                      # roadmap branch: Halmos symbolic proofs (pip install halmos; tested 0.3.3). Halmos needs `forge build --ast`: without the AST it silently skips contracts
 npm run ui:start                                   # serve the production build (read-only unless CASCADE_UI_WRITES=1)
 ```
 
