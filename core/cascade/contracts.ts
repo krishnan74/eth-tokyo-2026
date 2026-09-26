@@ -40,3 +40,21 @@ export const REGISTRY_ABI = parseAbi([
   "function hasRoles(uint256,uint256,address) view returns (bool)",
   "function roles(uint256,address) view returns (uint256)",
 ]);
+
+/** Registry role names, from RegistryRolesLib (plus CascadeSubregistry's ROLE_SET_TEAM). */
+export const ROLE_NAMES: [bigint, string][] = [
+  [1n << 0n, "REGISTRAR"], [1n << 4n, "REGISTER_RESERVED"], [1n << 8n, "SET_PARENT"], [1n << 12n, "UNREGISTER"],
+  [1n << 16n, "RENEW"], [1n << 20n, "SET_SUBREGISTRY"], [1n << 24n, "SET_RESOLVER"], [1n << 36n, "SET_URI"],
+  [1n << 40n, "SET_TEAM"], [1n << 120n, "CAN_NAME"], [1n << 124n, "UPGRADE"],
+];
+
+/** Decode a role bitmap into role names; admin bits (upper 128) are reported with an _ADMIN suffix. */
+export function roleNames(bitmap: bigint): string[] {
+  const out: string[] = [];
+  for (const [bit, name] of ROLE_NAMES) {
+    if (bitmap & bit) out.push(name);
+    if (bitmap & (bit << 128n)) out.push(`${name}_ADMIN`);
+  }
+  if (bitmap & ((1n << 28n) << 128n)) out.push("CAN_TRANSFER_ADMIN");
+  return out;
+}

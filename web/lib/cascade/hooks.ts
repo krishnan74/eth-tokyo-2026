@@ -72,6 +72,9 @@ export function useLiveState(outsider: Hex | null | undefined, target: string | 
       { address: SEPOLIA.parent, abi: REGISTRY_ABI, functionName: "roles", args: [labelId(TEAM_LABEL), SEPOLIA.team] },
       { address: SEPOLIA.cascade, abi: CASCADE_ABI, functionName: "team" },
       { address: SEPOLIA.cascade, abi: REGISTRY_ABI, functionName: "hasRoles", args: [labelId(target ?? "none"), ROLE_SET_SUBREGISTRY, who] },
+      // What EAC itself stores for the outsider on the subname, vs what it effectively holds with Cascade.
+      { address: SEPOLIA.cascade, abi: CASCADE_ABI, functionName: "nativeRoles", args: [labelId(target ?? "none"), who] },
+      { address: SEPOLIA.cascade, abi: REGISTRY_ABI, functionName: "roles", args: [labelId(target ?? "none"), who] },
     ],
     query: { enabled, refetchInterval: 12_000 },
   });
@@ -84,8 +87,23 @@ export function useLiveState(outsider: Hex | null | undefined, target: string | 
     parentGrantsTeam: roles === undefined ? undefined : (roles & ROLE_SET_SUBREGISTRY) === ROLE_SET_SUBREGISTRY,
     teamPointer: ok<Hex>(2),
     targetAccess: target ? ok<boolean>(3) : undefined,
+    storedRoles: target ? ok<bigint>(4) : undefined,
+    effectiveRoles: target ? ok<bigint>(5) : undefined,
     refetch: q.refetch,
   };
+}
+
+/** The outsider's live access on each subname — the same answer for all of them is the point. */
+export function useSubnameAccess(outsider: Hex | null | undefined, labels: string[]) {
+  const who = (outsider ?? "0x0000000000000000000000000000000000000000") as Hex;
+  const q = useReadContracts({
+    allowFailure: true,
+    contracts: labels.map((l) => ({ address: SEPOLIA.cascade, abi: REGISTRY_ABI, functionName: "hasRoles" as const, args: [labelId(l), ROLE_SET_SUBREGISTRY, who] as const })),
+    query: { enabled: !!outsider && labels.length > 0, refetchInterval: 12_000 },
+  });
+  const map: Record<string, boolean | undefined> = {};
+  labels.forEach((l, i) => { const r = q.data?.[i]; map[l] = r?.status === "success" ? (r.result as boolean) : undefined; });
+  return { access: map, refetch: q.refetch };
 }
 
 /** Everything the page drives: target subname, transactions, check runs, last write. */
@@ -98,6 +116,8 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
   const [lastWrite, setLastWrite] = useState<LastWrite>(null);
   const [pending, setPending] = useState<ActionName | "recheck" | null>(null);
   const live = useLiveState(outsider, target);
+  const visible = subnames.slice(0, 6);
+  const perName = useSubnameAccess(outsider, visible);
   const hydrated = useRef(false);
 
   // Per-viewer convenience: keep this viewer's subnames and log across reloads.
@@ -140,14 +160,15 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
       block: blockNumber === undefined ? undefined : String(blockNumber), done: true }));
   }, [client, outsider]);
 
-  const act = useCallback(async (action: ActionName, meta: { title: string; kind: Kind }) => {
+  const act = useCallback(async (action: ActionName, meta: { title: string; kind: Kind }, label?: string) => {
+    const name = label ?? target;
     if (!client) return;
     const id = uid();
     setPending(action);
     setTxs((l) => [{ id, title: meta.title, kind: meta.kind, status: "sending", at: Date.now() }, ...l]);
     try {
       const res = await fetch("/api/action", { method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action, label: action === "write" ? target ?? undefined : undefined }) });
+        body: JSON.stringify({ action, label: action === "write" ? name ?? undefined : undefined }) });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       if (body.funding) {
@@ -162,13 +183,15 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
         setTarget(body.label);
         setSubnames((l) => [body.label, ...l.filter((x) => x !== body.label)]);
       }
-      if (action === "write" && target) {
-        setLastWrite({ status, label: target, at: Date.now() });
+      if (action === "write" && name) {
+        setTarget(name);
+        setLastWrite({ status, label: name, at: Date.now() });
         await live.refetch();
-        await runChecks(target, `after the write in block ${receipt.blockNumber}`, receipt.blockNumber);
+        await runChecks(name, `after the write to ${name} in block ${receipt.blockNumber}`, receipt.blockNumber);
       } else {
         await live.refetch();
       }
+      await perName.refetch();
       return status;
     } catch (err) {
       patchTx(id, { status: "error", error: (err as Error).message });
@@ -176,7 +199,7 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
     } finally {
       setPending(null);
     }
-  }, [client, target, live, runChecks]);
+  }, [client, target, live, perName, runChecks]);
 
   const recheck = useCallback(async () => {
     if (!target) return;
@@ -185,5 +208,5 @@ export function useCascadeDemo(outsider: Hex | null | undefined) {
   }, [target, runChecks]);
 
   const fqdn = target ? `${target}.${TEAM_NAME}` : null;
-  return { target, fqdn, subnames, txs, runs, lastWrite, pending, live, act, recheck };
+  return { target, setTarget, fqdn, subnames: visible, access: perName.access, txs, runs, lastWrite, pending, live, act, recheck };
 }
