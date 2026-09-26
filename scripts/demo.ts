@@ -132,7 +132,7 @@ async function live() {
     return r.status;
   }
 
-  await say(`Cascade demo — ${FORK ? "anvil fork of Sepolia" : "Sepolia"}`,
+  await say(`ENS Drive demo (Cascade permission layer) — ${FORK ? "anvil fork of Sepolia" : "Sepolia"}`,
     pc.dim(`  org registry ${short(parent)} · CascadeSubregistry ${short(cascadeAddr)} · TeamRegistry ${short(team)} · outsider ${short(who)}`));
 
   const bal = await pub.getBalance({ address: who });

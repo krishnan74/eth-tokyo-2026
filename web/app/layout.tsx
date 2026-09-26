@@ -12,8 +12,8 @@ const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variabl
 const display = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument" });
 
 export const metadata: Metadata = {
-  title: "Cascade",
-  description: "Roles for teams, not just addresses — an MVP relationship layer for ENSv2 Enhanced Access Control, live on Sepolia.",
+  title: "ENS Drive",
+  description: "Google Drive–style sharing for ENS names, powered by Cascade — a relationship-based permission layer for ENSv2. Live on Sepolia.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

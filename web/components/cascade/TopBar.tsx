@@ -45,7 +45,7 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
           <span className="grid h-6 w-6 place-items-center rounded-md bg-ink text-bg">
             <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden><path d="M3 4h10M5.5 8h7.5M8 12h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           </span>
-          <span className="font-semibold tracking-tight">Cascade</span>
+          <span className="font-semibold tracking-tight">ENS Drive</span>
         </div>
 
         <nav className="hidden items-center gap-6 text-sm text-ink-2 md:flex" aria-label="Sections">

@@ -44,8 +44,8 @@ export default function Page() {
         <MoreDetail txs={demo.txs} member={demo.live.member} lastWrite={demo.lastWrite} />
 
         <footer className="flex flex-col gap-3 border-t border-line pt-8 text-sm text-muted">
-          <span className="display text-4xl text-ink">Cascade<span className="text-cascade">.</span></span>
-          <p className="max-w-3xl">ENSv2 beta on Sepolia · built on <span className="font-mono">ensdomains/contracts-v2@48b3e2d</span> · MVP scope: one hop, one team per registry.</p>
+          <span className="display text-4xl text-ink">ENS Drive<span className="text-cascade">.</span></span>
+          <p className="max-w-3xl">Powered by Cascade, a ReBAC permission layer for ENSv2 · ENSv2 beta on Sepolia · built on <span className="font-mono">ensdomains/contracts-v2@48b3e2d</span> · MVP scope: one hop, one team per registry.</p>
         </footer>
       </main>
     </>

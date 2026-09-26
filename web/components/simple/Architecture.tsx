@@ -27,7 +27,7 @@ export function Architecture() {
       <div className="flex max-w-3xl flex-col gap-3">
         <span className="label">Under the hood</span>
         <h2 className="display text-[clamp(2.2rem,4.6vw,3.8rem)]">Three contracts. <span className="italic text-muted">One overridden function.</span></h2>
-        <p className="text-base leading-relaxed text-ink-2">ENS&apos;s own code decides every write. Cascade changes the answer to one question it asks — <span className="font-mono text-sm">&ldquo;what roles does this account have here?&rdquo;</span> — by adding the team&apos;s grant for members.</p>
+        <p className="text-base leading-relaxed text-ink-2">ENS Drive&apos;s permission layer is <span className="font-medium text-ink">Cascade</span>. ENS&apos;s own code decides every write; Cascade changes the answer to one question it asks — <span className="font-mono text-sm">&ldquo;what roles does this account have here?&rdquo;</span> — by adding the team&apos;s grant for members.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
