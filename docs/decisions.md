@@ -47,3 +47,21 @@
 - **Context:** the UI spec requires that the "explain() matches the write path" claim can't silently diverge between two consumers.
 - **Decision:** `core/cascade/` holds addresses, ABIs (generated from the Foundry build), the three-check chain with its short-circuit, agreement check and cost numbers. `scripts/demo.ts` imports it for its checks; the UI imports it everywhere.
 - **Consequences:** `npm run gen` must follow a contract change or redeploy; `generated.ts` is committed so the UI builds without Foundry.
+
+## 9. Behind-the-scenes traces come from `cast run`, not a trace API
+
+- **Context:** ENS asked to see what happens at the contract level. Public Sepolia RPCs don't serve `debug_traceTransaction` (publicnode refuses; others need paid plans).
+- **Decision:** replay each just-mined demo transaction on the UI's server with Foundry's `cast run`, which prints the EVM's own call tree; decode values by context; fall back to `cast run --quick` if the full replay fails, labelled as such.
+- **Consequences:** real traces, but only for fresh transactions (the free RPC prunes old state) and only where Foundry is installed — the same local-only setup as the UI's transactions. Internal functions aren't in the EVM trace, so they're shown separately, labelled as from source.
+
+## 10. The demo is framed as a shared drive
+
+- **Context:** the presenter pitched the idea to ENS as "Google Drive for names"; ENS asked for a much simpler UI.
+- **Decision:** a minimal shared-drive view — folder = a name with its own registry, files = subnames, group = TeamRegistry, "Can edit" = `SET_SUBREGISTRY` — with a Who-has-access panel and a Share dialog. No Google branding. The architecture sections stay detailed.
+- **Consequences:** the mechanism reads instantly; the mapping line under the drive keeps the ENS terms honest.
+
+## 11. Product "ENS Drive", mechanism "Cascade"
+
+- **Context:** the presenter wanted the project renamed to ENS Drive.
+- **Decision:** rename the product in user-facing text only; keep Cascade as the name of the permission layer, and keep contract and code names (`CascadeSubregistry`, `core/cascade`) unchanged. No affiliation disclaimer, at the presenter's choice.
+- **Consequences:** no redeploy; the source still matches the Sepolia deployment and what ENS has seen.

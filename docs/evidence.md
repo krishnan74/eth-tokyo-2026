@@ -70,6 +70,12 @@ Revert reasons (decoded from a simulation before each refused tx was sent): step
 
 The guided walkthrough was clicked through in headless Chrome against Sepolia: create → write (reverted, `EACUnauthorizedAccountRoles`) → grant → write (success) → revoke → write (reverted) → hijack (reverted, `EACUnauthorizedAccountRoles`). Every step matched its expected result (checked by the script). The captured screenshots (after steps 2, 4 and 7) show the three checks agreeing with `explain()`; the script did not assert agreement on every step. The UI's transactions are on the outsider's and operator's address pages: [outsider](https://sepolia.etherscan.io/address/0xF4ff37B96BF5474F8d2F58ABfB9F61F5A9629Fa8), [operator](https://sepolia.etherscan.io/address/0xDcbe075a907960951Cd4df379BB21461097eEa91).
 
+## Current web UI (ENS Drive shared-drive view)
+
+- Clicked through on an **anvil fork of Sepolia**: all seven actions as expected, "Who has access" correct after each, every action's `cast run` trace decoded, theme defaults to light, no console errors, no overflow at 400px.
+- On **live Sepolia**, the Reset action removed the outsider left in the group from a pitch run — [`0x24e1f9c4…`](https://sepolia.etherscan.io/tx/0x24e1f9c442a689e317a57546c823a54db03ca42df94aa837e5d8bfc0967c7201) — and its trace was replayed with `cast run` (the full replay failed once on the free RPC; the `--quick` fallback exists for that).
+- Not yet: a full seven-action click-through of the drive UI on live Sepolia.
+
 ## Tests (local Foundry, not Sepolia)
 
 `forge test` — 17/17 passing. Coverage by audit item is in [`remediation.md`](remediation.md).

@@ -62,3 +62,10 @@
 ## 2026-09-26 (later) — renamed to ENS Drive
 
 - Product renamed to **ENS Drive**; **Cascade** stays the name of the permission layer (the `CascadeSubregistry` contract and the ReBAC rule), so contract and code names still match the Sepolia deployment. Updated the UI wordmark, page title, intro and footer, the README, CLAUDE.md, the showcase copy, the pitch script, the study docs' titles and the terminal demo's header. Historical entries (this log, feedback, decisions) keep their original wording. No affiliation disclaimer added, at the presenter's choice.
+
+## 2026-09-26 (later) — docs brought to the latest state
+
+- Replaced stale references to the old drag board, coach, "socket" and roles strip across the explainer, contracts doc, quiz, study guide, plan and CLAUDE.md with the shared-drive UI and trace panel.
+- `architecture.md` gains the exact function chain for a write, why `_getRoles` is also asked about `ROOT`, what `_teamGrant()` returns, and why trace gas differs from Etherscan gas.
+- Evidence records the live Sepolia reset (`0x24e1f9c4…`) and that the full drive click-through has only been run on a fork. Decisions 9–11 record the trace approach, the drive framing and the naming split.
+- Added `docs/architecture-talk.md`: the spoken technical walkthrough ENS asked for, at 30 seconds and ~3 minutes, with follow-up answers.
