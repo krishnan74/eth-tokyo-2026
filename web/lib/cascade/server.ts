@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-  BaseError, ContractFunctionRevertedError, createPublicClient, createWalletClient, http, parseEther, type Hex,
+  BaseError, ContractFunctionRevertedError, createPublicClient, createWalletClient, http, isAddress, parseEther, type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
@@ -40,13 +40,31 @@ function wallet(name: string) {
   return createWalletClient({ account: privateKeyToAccount(k), chain, transport });
 }
 
+/** A public address from env, for a read-only deployment that has no keys (e.g. the hosted demo). */
+function publicAddress(name: string): Hex | null {
+  const v = process.env[name];
+  return v && isAddress(v) ? (v as Hex) : null;
+}
+
 export function actors() {
   const op = key("OPERATOR_PRIVATE_KEY"), out = key("OUTSIDER_PRIVATE_KEY");
   return {
-    operator: op ? privateKeyToAccount(op).address : null,
-    outsider: out ? privateKeyToAccount(out).address : null,
+    operator: op ? privateKeyToAccount(op).address : publicAddress("CASCADE_OPERATOR_ADDRESS"),
+    outsider: out ? privateKeyToAccount(out).address : publicAddress("CASCADE_OUTSIDER_ADDRESS"),
     writesEnabled: WRITES_ENABLED,
   };
+}
+
+/** Whether a transaction was sent by one of the demo's two accounts. */
+export async function sentByDemo(hash: Hex): Promise<boolean> {
+  const a = actors();
+  const mine = [a.operator, a.outsider].filter(Boolean).map((x) => x!.toLowerCase());
+  try {
+    const tx = await pub.getTransaction({ hash });
+    return mine.includes(tx.from.toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 export type ActionName = "create" | "write" | "grant" | "revoke" | "hijack" | "reset";
@@ -73,9 +91,24 @@ async function fundOutsider(): Promise<Hex | undefined> {
   return hash;
 }
 
-export async function runAction(action: ActionName, label?: string): Promise<ActionResult> {
+/** Below this, the signer refuses to send: on the hosted demo, its balance is the hard budget. */
+const MIN_OPERATOR_BALANCE = parseEther("0.01");
+
+// One transaction at a time per server instance, so concurrent clicks don't race for the same nonce.
+let queue: Promise<unknown> = Promise.resolve();
+
+export function runAction(action: ActionName, label?: string): Promise<ActionResult> {
+  const next = queue.then(() => runActionNow(action, label));
+  queue = next.catch(() => undefined);
+  return next;
+}
+
+async function runActionNow(action: ActionName, label?: string): Promise<ActionResult> {
   const op = wallet("OPERATOR_PRIVATE_KEY");
   const out = wallet("OUTSIDER_PRIVATE_KEY");
+  if (action !== "reset" && (await pub.getBalance({ address: op.account.address })) < MIN_OPERATOR_BALANCE) {
+    throw new Error("The demo's Sepolia test-ETH budget is used up. Run the demo locally, or ask the author to top it up.");
+  }
   switch (action) {
     case "create": {
       const l = `svc-${Date.now().toString(36)}`;
