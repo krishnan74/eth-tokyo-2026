@@ -57,7 +57,7 @@ npm run ui:start                                   # serve the production build 
 | `TeamRegistry` | `0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb` |
 | `AlwaysTrueTeam` (demo fixture) | `0xaa735fc88e25f7d846010469ee75f287c8ec20c1` |
 
-Roadmap branch only, separate tree `acme-labs.eth` (never touches the v1 demo): OrgRegistry v2 `0x35888867cc0c37d54ae0f902611ec4a5b8a73beb` · CascadeSubregistryV2 (`platform.acme-labs.eth`, depth 2) `0xa6b159d2e785a6146d9e21a1cc377b781e70a246` · dev-team `0xaa75275e77f89267f28a5bbf2f7f40b920941253` · security (NestedTeam ⊃ sre) `0x179aa1bac7758557defe517330147afd55f54134` · sre `0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163`.
+Roadmap branch only, separate tree `acme-labs.eth` (never touches the v1 demo): OrgRegistry v2 `0x35888867cc0c37d54ae0f902611ec4a5b8a73beb` · CascadeSubregistryV2 (`platform.acme-labs.eth`, depth 2, lazy check) `0x1c361c62e2ea3330790f1d6c17e42b873081ddc8` (retired: `0xa6b159d2e785a6146d9e21a1cc377b781e70a246`, the full-union version) · dev-team `0xaa75275e77f89267f28a5bbf2f7f40b920941253` · security (NestedTeam ⊃ sre) `0x179aa1bac7758557defe517330147afd55f54134` · sre `0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163`.
 
 Retired: CascadeSubregistry `0xa6e5…3b22`, TeamRegistry `0x1a3d…b881` (see `deployments/sepolia.json`).
 
@@ -76,6 +76,7 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 - Drag-and-drop drop zones are hit-tested by rectangle; if one zone ever sits inside another, test the smaller one first (a real bug the drag test caught in the earlier board, where the team socket sat inside the roster).
 - Public Sepolia RPCs do not serve debug_traceTransaction; traces come from `cast run` replaying fresh txs (old txs fail: historical state pruned). Full replay can fail intermittently re-executing the block's earlier txs, hence the `--quick` fallback.
 - Trace decoding must be context-aware: only decode role names for `roles()` returns and EAC revert roles — a label hash or timestamp decoded as a bitmap reads as nonsense roles.
+- Deploy scripts read bytecode from `out/`, which can be stale — a mutation test once left a mutant build there and it was deployed to a fork (caught by the smoke test). After mutation tests, rebuild; `setup:v2` now runs `forge build` itself. Restore mutated files from a copy, never `git checkout`, when the change isn't committed.
 - `next dev` writes `web/AGENTS.md` / `web/CLAUDE.md` (Next's own agent notes). Commit them as-is.
 - `vm.prank` is consumed by the first external call — including a view call used as an argument (`team.grantRoles(team.TEAM_RESOURCE(), …)`). Cache constants before pranking.
 - `cast wallet new --json` output shape varies by version; regex the 64-hex key instead of indexing.

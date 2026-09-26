@@ -59,7 +59,7 @@ Visible in the Sepolia trace of a level-2 `setResolver`: `DevTeam.isMember` is c
 - **Views still pay in full**, because `hasRoles` can't be overridden. Off-chain reads are free; on-chain callers of views are not.
 - **Correctness:** because the union is monotone, stopping early returns the same yes/no as the full computation, so views still agree with writes. The existing invariant (write outcome == `hasRoles`) checks exactly this.
 
-**Expected effect (a guess until measured):** a level-1 member write should move toward v1's cost, since it would skip the level-2 walk and every unrelated team.
+**Built and measured (2026-09-27, branch `roadmap/full-rebac`, decision 18):** `_checkRoles` now evaluates lazily and role-aware; a differential fuzz test proves it matches the full union. On Sepolia, a level-1 member write went 165,723 → 97,665 gas (−41%, close to v1's 91,946), a level-2 write 148,473 → 138,289 (−7%); owner writes unchanged. Views still pay the full union. Details: [`../roadmap-v2.md`](../roadmap-v2.md#6-gas).
 
 ---
 

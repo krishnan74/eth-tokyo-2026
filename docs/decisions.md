@@ -101,3 +101,9 @@
 - **Context:** `HatsTeam` and `SafeTeam` need a real hat or Safe to be meaningful on Sepolia.
 - **Decision:** ship the adapters with tests against mocks (including an over-cap eligibility check); deploy when there is a real roster to point at.
 - **Consequences:** the live v2 tree shows many teams, nesting and multi-hop; the adapters are proven only locally.
+
+## 18. Writes check lazily, aware of the requested role (ENS pitch-3 suggestion)
+
+- **Context:** `_getRoles` isn't told which role is being checked, so v2 computed every team's grant at every level, and asked every team about membership, on every check (member level-1 write 165,723 gas on Sepolia). The ENS team suggested using the union to eliminate paths once part of the path has settled the permission.
+- **Decision:** `_checkRoles` (which is told the requested roles) evaluates lazily: stored roles, then one level at a time; membership only for teams whose grants include a still-missing role; stop when covered. `_getRoles` keeps computing the full union for views.
+- **Consequences:** member level-1 write 97,665 gas on Sepolia (−41%); level-2 −7%; denied checks −7–13% locally. Same yes/no as the full union by monotonicity, enforced by a differential fuzz test and the write-vs-`hasRoles` invariant. Views still pay the full union unless ENS makes `hasRoles` overridable.

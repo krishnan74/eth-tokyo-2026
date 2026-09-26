@@ -36,14 +36,15 @@ Still true, exactly as in v1: the logic lives in the `_getRoles` hook, so views 
 | Return data copied one word at most (assembly `staticcall` + `returndatacopy`) | A hostile team or ancestor could otherwise inflate the caller's gas with an oversized reply (lint `return-bomb`). |
 | `getParent()` reply size-checked (≤ 320 bytes) and decoded in a self-call (`decodeParent`) inside try/catch | It returns a string; undecodable data would otherwise revert every check. Now it can only end the walk. |
 | Membership asked only when a team's grant would add new bits | Saves calls; the result is identical. |
-| **Native-first fast path** in `_checkRoles` | If the caller's stored roles already cover a write, no team or ancestor is consulted. Same outcome (inheritance only adds), no overhead for owners. `hasRoles` isn't `virtual` in `PermissionedRegistry`, so views still compute the full answer. |
+| **Lazy, role-aware write check** in `_checkRoles` (after ENS's pitch-3 suggestion) | `_getRoles` isn't told which role is being checked, so it computes everything; `_checkRoles` is told. Writes now evaluate lazily: the caller's stored roles first (owners pay no lookup), then one level at a time; a team is asked about membership only when its grants so far include a still-missing role; a known non-member's grants aren't read again; evaluation stops as soon as the requested roles are covered. Same yes/no as the full union (inheritance only adds) — proven by a differential fuzz test. `hasRoles` isn't `virtual` in `PermissionedRegistry`, so views still compute the full union. |
 | `explain()` reports which team and level supplied a role; `ancestry()` returns the verified path | For the UI and for debugging. |
 
 ## 3. Contracts
 
 | Contract | File | Address (Sepolia) |
 |---|---|---|
-| `CascadeSubregistryV2` for `platform.acme-labs.eth` (depth 2, teams dev-team + security) | `contracts/src/CascadeSubregistryV2.sol` | [`0xa6b159d2e785a6146d9e21a1cc377b781e70a246`](https://sepolia.etherscan.io/address/0xa6b159d2e785a6146d9e21a1cc377b781e70a246) |
+| `CascadeSubregistryV2` for `platform.acme-labs.eth` (depth 2, teams dev-team + security; lazy check, deploy 2) | `contracts/src/CascadeSubregistryV2.sol` | [`0x1c361c62e2ea3330790f1d6c17e42b873081ddc8`](https://sepolia.etherscan.io/address/0x1c361c62e2ea3330790f1d6c17e42b873081ddc8) |
+| Retired: the first `CascadeSubregistryV2` (full-union check) | | [`0xa6b159d2e785a6146d9e21a1cc377b781e70a246`](https://sepolia.etherscan.io/address/0xa6b159d2e785a6146d9e21a1cc377b781e70a246) |
 | Org registry for `acme-labs.eth` (stock `PermissionedRegistry`, parent = `.eth` registry) | stock ENSv2 | [`0x35888867cc0c37d54ae0f902611ec4a5b8a73beb`](https://sepolia.etherscan.io/address/0x35888867cc0c37d54ae0f902611ec4a5b8a73beb) |
 | dev-team (`TeamRegistry`) | `contracts/src/TeamRegistry.sol` | [`0xaa75275e77f89267f28a5bbf2f7f40b920941253`](https://sepolia.etherscan.io/address/0xaa75275e77f89267f28a5bbf2f7f40b920941253) |
 | security (`NestedTeam`, contains sre) | `contracts/src/teams/NestedTeam.sol` | [`0x179aa1bac7758557defe517330147afd55f54134`](https://sepolia.etherscan.io/address/0x179aa1bac7758557defe517330147afd55f54134) |
@@ -72,7 +73,7 @@ npm run ui                     # on this branch, the home page's drive runs on v
 
 ## 5. Evidence (Sepolia)
 
-**Setup** (`npm run setup:v2 -- --write`, after a rehearsal on an anvil fork):
+**Deploy 1 — setup** (`npm run setup:v2 -- --write`, after a rehearsal on an anvil fork; the full-union check):
 
 | Step | Tx |
 |---|---|
@@ -95,7 +96,7 @@ npm run ui                     # on this branch, the home page's drive runs on v
 | grant security on acme-labs.eth | [`0x66c758a6…`](https://sepolia.etherscan.io/tx/0x66c758a6f18482241b2aab9e47360ffe7fb492e1e7a1a94601c26b58f673e21a) |
 | register svc-api | [`0xa141e292…`](https://sepolia.etherscan.io/tx/0xa141e2926a5acaf08c6aabb638929a7f8d69145604eca0e1cfe7d70af136861b) |
 
-**Smoke run** (`npm run smoke:v2`): outsider refused both roles → joined dev-team → `setSubregistry` allowed via level 1, `setResolver` still refused → joined sre → `setResolver` allowed via security two levels up → operator's native write → left both → refused again.
+**Deploy 1 — smoke run** (`npm run smoke:v2`): outsider refused both roles → joined dev-team → `setSubregistry` allowed via level 1, `setResolver` still refused → joined sre → `setResolver` allowed via security two levels up → operator's native write → left both → refused again.
 
 | Step | Tx |
 |---|---|
@@ -109,21 +110,58 @@ npm run ui                     # on this branch, the home page's drive runs on v
 
 **Browser run** (the drive's API on Sepolia, 2026-09-26): refused write before joining; dev-team → `SET_SUBREGISTRY` at level 1; sre → `SET_RESOLVER` at level 2; **depth 1 → `SET_RESOLVER` gone and the write mined as refused; depth 2 → back, write succeeded**; new file; the attack (outsider `addTeam`) refused with `EACUnauthorizedAccountRoles`; Start over. Trace of the level-2 write: `setResolver → AcmeLabsRegistry.getSubregistry → getParent → decodeParent → EthRegistry.getSubregistry → AcmeLabsRegistry.roles → EthRegistry.roles → DevTeam.isMember → … → SecurityTeam.isMember → SreTeam.isMember`.
 
+**Deploy 2 — the lazy check** (`npm run setup:v2 -- --write --redeploy`, rehearsed on a fresh fork, then `npm run smoke:v2`): a new `CascadeSubregistryV2` under the same `platform` name; teams, grants and depth carried over. The smoke run starts by removing the outsider from any team the browser demo left them in, then repeats every check — all passed.
+
+| Step | Tx |
+|---|---|
+| deploy cascade | [`0x053fa6ab…`](https://sepolia.etherscan.io/tx/0x053fa6abaeeb60bad519629a5660866a4a688e1de9d5ca7330dd9bd2cbec10b7) |
+| repoint platform subregistry | [`0x881658dc…`](https://sepolia.etherscan.io/tx/0x881658dc33e229baa77ea96b2edf2c5c7e84e44c8c5d3323d05e50b5c89177da) |
+| v2 setParent | [`0x3cd29c28…`](https://sepolia.etherscan.io/tx/0x3cd29c28845166f81c64041451b32121e3a08cba46f243adee902ec8cb22dc76) |
+| v2 addTeam dev-team | [`0x2de7b532…`](https://sepolia.etherscan.io/tx/0x2de7b532831769aeb7d72ada9f6ec444edd3de47946d8a055a9e5b675c5dfbe6) |
+| v2 addTeam security | [`0xae07c49d…`](https://sepolia.etherscan.io/tx/0xae07c49d758459ff22411f23fff88ccac73f6336a275f8393e57301d3e8c44dd) |
+| v2 setDepth 2 | [`0x331176c5…`](https://sepolia.etherscan.io/tx/0x331176c51a1db057a37bfb0dfaf1b2a9c8690bd23bc28cdf92e4cdfb40e68e69) |
+| register svc-api | [`0x77d08283…`](https://sepolia.etherscan.io/tx/0x77d082831671ff6f86d5e2fb115f84297c8b4929af3848c523693a5a3cabff99) |
+| smoke — dev-team remove outsider (clean start) | [`0x9e67a262…`](https://sepolia.etherscan.io/tx/0x9e67a262266b76d144aa838d8332deb5c88514fac9c027513d06c5b44615cd88) |
+| smoke — sre remove outsider (clean start) | [`0x4df5b598…`](https://sepolia.etherscan.io/tx/0x4df5b598a2e72b665415d70c0c39584ecfaf4c0d3eafe52e04ab3bb40733e372) |
+| smoke — dev-team add outsider | [`0xfe8c45e5…`](https://sepolia.etherscan.io/tx/0xfe8c45e53ddf63d47d367b43771b9a298a9bf1a8671fda7b205a8bf78fd4e27d) |
+| smoke — outsider setSubregistry (via dev-team) | [`0x1fa202f0…`](https://sepolia.etherscan.io/tx/0x1fa202f029e51ecc866e7a7e8134861e43f07b1d60bc29cd4fd3ea275da67e1c) |
+| smoke — sre add outsider | [`0x53737b6f…`](https://sepolia.etherscan.io/tx/0x53737b6f8eca181dd4dc9153a6319c5e8995a2c27112af6c5224b9f449422ee7) |
+| smoke — outsider setResolver (via security ⊃ sre, two levels up) | [`0x40ae7391…`](https://sepolia.etherscan.io/tx/0x40ae7391c4805e7ab8eded10767de2d5867b14f3c44ea48768a58a84f6f274ab) |
+| smoke — operator setSubregistry (native) | [`0x841d898c…`](https://sepolia.etherscan.io/tx/0x841d898cf644e03f169a5cc5b9a154a4cc7d59cc56b7c78b8ab128c9678ffc0a) |
+| smoke — dev-team remove outsider | [`0xedc5ecb7…`](https://sepolia.etherscan.io/tx/0xedc5ecb7976803d8ccc659b1026ca7b2b1fcd35f5f980d9099c888260bcb9138) |
+| smoke — sre remove outsider | [`0xcc886209…`](https://sepolia.etherscan.io/tx/0xcc886209b0e01e1d2c6dd7249edf9478003f09cb5155d7d073603ad82f0bfa14) |
+
 After all of the above, the v1 demo on Sepolia was unchanged (team pointer, `SET_SUBREGISTRY` grant on `devops`, outsider not in the v1 team).
 
 ## 6. Gas
 
-| | Gas | Where |
-|---|---|---|
-| Outsider write via level 1 (dev-team) | 165,723 | Sepolia, whole transaction |
-| Outsider write via level 2 through the nested team | 148,473 | Sepolia, whole transaction |
-| Native owner write (fast path) | 36,959 | Sepolia, whole transaction |
-| Native owner `setSubregistry`, 2 teams, depth 1 / depth 3, without → with fast path | 89,355 / 133,017 → 40,293 | local, warm |
-| Worst-case inherited lookup, 4 looping teams, depth 3 | ~553k (bounded by caps) | local |
+**The lazy check (deploy 2) vs the full-union check (deploy 1)** — Sepolia, whole transaction, same actions via `npm run smoke:v2`:
+
+| | Deploy 1 | Deploy 2 | Change |
+|---|---|---|---|
+| Outsider write via level 1 (dev-team) | 165,723 | 97,665 | −41% (v1 one-hop member write: 91,946) |
+| Outsider write via level 2 through the nested team | 148,473 | 138,289 | −7% |
+| Native owner write | 36,959 | 36,971 | unchanged (fast path in both) |
+
+**Local benchmark** (`contracts/test/CascadeV2Gas.t.sol`, gas used inside the call, cold; tree: dev-team `SET_SUBREGISTRY` at level 1, sec `SET_RESOLVER` at level 2, depth 2):
+
+| Scenario | Before | After | Change |
+|---|---|---|---|
+| owner `setSubregistry` | 63,957 | 63,969 | — |
+| dev member `setSubregistry` (level 1) | 160,223 | 104,763 | −35% |
+| member of both, `setSubregistry` (level 1) | 160,235 | 104,763 | −35% |
+| 4 teams, depth 3, dev member `setSubregistry` (level 1) | 207,284 | 100,260 | −52% |
+| sec member `setResolver` (level 2) | 143,100 | 132,928 | −7% |
+| dev member `setResolver` — denied | 138,125 | 128,028 | −7% |
+| non-member `setSubregistry` — denied | 138,159 | 120,367 | −13% |
+
+Where the savings come from: a level-1 answer no longer walks to level 2 (`getParent`, the decode self-call, the second link check and every level-2 grant read), and teams whose grants can't supply the missing role are never asked about membership. Level-2 writes save less because the walk is still needed; denied checks still have to rule out every path, but skip irrelevant membership calls.
+
+Unchanged: the worst-case bound (~553k per lookup with 4 looping teams at depth 3, capped); views pay the full union.
 
 ## 7. Tests
 
-`contracts/test/CascadeV2.t.sol`: 18 v2 tests (default depth behaves like v1; teams with different roles; guards; multi-hop with depth, broken links, lying parent pointers, re-issue and expiry at the top; root/admin never inherited; a hostile-ancestor fuzz; gas bounds; fast path makes no lookups for owners, members still look up), 9 team tests (nesting, depth limit, cycles, broken sub-teams, Hats over-cap eligibility, Safe owners), and an invariant over teams × levels against an independent model of the tree. Mutation-checked: removing the link check, the ROOT early return or the admin mask each fails the suite. Whole repo: 51 tests pass.
+`contracts/test/CascadeV2.t.sol`: 18 v2 tests (default depth behaves like v1; teams with different roles; guards; multi-hop with depth, broken links, lying parent pointers, re-issue and expiry at the top; root/admin never inherited; a hostile-ancestor fuzz; gas bounds; fast path makes no lookups for owners, members still look up), 9 team tests (nesting, depth limit, cycles, broken sub-teams, Hats over-cap eligibility, Safe owners), and an invariant over teams × levels against an independent model of the tree. Mutation-checked: removing the link check, the ROOT early return or the admin mask each fails the suite.  The lazy check adds `CascadeV2LazyCheckTest`: a differential fuzz (random teams, memberships, grants at both levels, native roles, depth and multi-role requests including admin bits) asserting the write check always equals the full union, plus two pruning tests (an irrelevant team isn't asked; level 2 isn't read when level 1 covers). The invariant's actors now also try `setResolver` and `renew`, each compared with `hasRoles`. Mutation-checked: answering yes after the first member team, skipping the link check, or skipping membership each fails the suite; removing the admin-bit early exit does not, because it is only a shortcut — grants are already masked to regular bits, so admin bits can never be covered. Whole repo: 61 tests pass.
 
 ## 8. Limits
 
