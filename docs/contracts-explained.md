@@ -18,6 +18,10 @@ How the contracts are structured, how a call flows through them, what state they
 | `lib/contracts-v2/.../EnhancedAccessControl.sol` | ENS's permission system (EAC). | Stock ENSv2 |
 | `contracts/test/Cascade.t.sol` | 17 Foundry tests, plus test-only helper contracts. | New |
 | `contracts/test/CascadeInvariant.t.sol` | The step-0 rule as 5 invariants over random action sequences, plus 5 fuzz tests. | New |
+| `contracts/src/CascadeSubregistryV2.sol` | Roadmap steps 1 + 3: up to 4 teams, inheritance up to 3 levels with a link check, native-first fast path. Branch `roadmap/full-rebac`; see [`roadmap-v2.md`](roadmap-v2.md). | New (roadmap) |
+| `contracts/src/teams/NestedTeam.sol` | Roadmap step 2: a roster that includes up to 4 sub-teams, 3 levels deep. | New (roadmap) |
+| `contracts/src/teams/HatsTeam.sol`, `SafeTeam.sol` | Roadmap step 4: hat wearers / Safe owners as a team, behind `isMember`. Not deployed. | New (roadmap) |
+| `contracts/test/CascadeV2.t.sol` | 18 v2 tests, 9 team tests, and an invariant over teams × levels. | New (roadmap) |
 
 All ENS code comes from the `ensdomains/contracts-v2` repository pinned at commit `48b3e2d`, the source that matches the ENSv2 beta deployment on Sepolia.
 

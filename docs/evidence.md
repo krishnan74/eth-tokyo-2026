@@ -15,6 +15,10 @@ Retired (replaced by `setup --redeploy`; `devops` no longer points at them):
 
 - `CascadeSubregistry` [`0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22`](https://sepolia.etherscan.io/address/0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22), `TeamRegistry` [`0x1a3dc7660515706ceec8409ff179c5fcc2e1b881`](https://sepolia.etherscan.io/address/0x1a3dc7660515706ceec8409ff179c5fcc2e1b881) — retired 2026-09-26
 
+## Roadmap v2 (branch `roadmap/full-rebac`, separate tree `acme-labs.eth`)
+
+Addresses, setup and smoke transactions, the browser run and gas are in [`roadmap-v2.md`](roadmap-v2.md#5-evidence-sepolia) (generated from `deployments/sepolia-v2.json`). None of it touches the contracts below.
+
 ## Setup transactions
 
 | Step | Tx |

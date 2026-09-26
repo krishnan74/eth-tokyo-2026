@@ -223,3 +223,15 @@ CascadeSubregistry.setTeam(AlwaysTrueTeam)                               3,731 g
 - Every role lookup on a subname can make two external calls — about 2,300 extra gas per write, native owners included (local measurement).
 - The team contract itself holds `SET_SUBREGISTRY` on `devops`; `TeamRegistry` has no function that uses it — team contracts should be narrow.
 - MVP scope: one hop, one team per registry.
+
+---
+
+## 7. Roadmap v2 (branch `roadmap/full-rebac`, not the demo)
+
+`CascadeSubregistryV2` keeps the same shape — one override of `_getRoles`, the same guarantees — and generalises the rule from one parent and one team to up to 4 teams and up to 3 levels:
+
+```
+roles = native  ∪  ⋃ over teams t, levels k ≤ depth, t.isMember(caller):  ancestor_k.roles(label_k, t) & regular bits
+```
+
+Each level comes from the previous ancestor's stock `getParent()` and counts only if that ancestor's `getSubregistry(label)` points back down. A write by a member at level 2 therefore reads, in order: link check on the parent → `getParent` → link check on the grandparent → each team's grant at both levels → membership (a `NestedTeam` asks its sub-teams). Writes by native holders skip all of it (fast path in `_checkRoles`). Full detail, addresses and evidence: [`roadmap-v2.md`](roadmap-v2.md).

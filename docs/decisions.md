@@ -65,3 +65,39 @@
 - **Context:** the presenter wanted the project renamed to ENS Drive.
 - **Decision:** rename the product in user-facing text only; keep Cascade as the name of the permission layer, and keep contract and code names (`CascadeSubregistry`, `core/cascade`) unchanged. No affiliation disclaimer, at the presenter's choice.
 - **Consequences:** no redeploy; the source still matches the Sepolia deployment and what ENS has seen.
+
+## 12. Roadmap v2 is a new contract beside v1, on its own name tree
+
+- **Context:** steps 1 and 3 change `CascadeSubregistry`'s storage (a team list, a depth); v1 is deployed, submitted and demoed, and there is no upgrade proxy.
+- **Decision:** a separate `CascadeSubregistryV2` on the `roadmap/full-rebac` branch, deployed under its own name, `acme-labs.eth`, with its own book (`deployments/sepolia-v2.json`). Depth defaults to 1, which is v1's behaviour.
+- **Consequences:** the live demo and the submission are untouched; v2 can be shown next to v1 on Sepolia. Moving the demo to v2 later means a redeploy, not an upgrade.
+
+## 13. Each ancestor must point back down (link check)
+
+- **Context:** multi-hop walks up with `getParent()`, which is only a pointer set by the registry's own root admin — a registry could name any parent.
+- **Decision:** a level counts only if `ancestor.getSubregistry(label)` is the registry below it; the walk stops at the first broken link.
+- **Consequences:** inheritance always follows the real ENS tree, "who can access" stays answerable, and expiry anywhere on the path cuts inheritance above it (`getSubregistry` returns 0 for expired names). Costs one extra read per level.
+
+## 14. Union only — no opt-out below a grant
+
+- **Context:** a shared-drive user might want to "unshare" one subfolder.
+- **Decision:** not supported. Inheritance only ever adds roles.
+- **Consequences:** keeps "views agree with writes", the fast path and every invariant simple and true; matches Google shared drives. A deny rule would be a different, non-monotone model.
+
+## 15. Native-first fast path in `_checkRoles`
+
+- **Context:** with several teams and levels, every check read every grant — owners included (89,355 → 133,017 gas for an owner write at depth 1 → 3, local).
+- **Decision:** `_checkRoles` returns early when the caller's stored roles already cover the check. `hasRoles` is not `virtual` in `PermissionedRegistry`, so this applies to writes; views still compute the full answer.
+- **Consequences:** same outcome by construction (inheritance only adds); owners pay no lookup (40,293 at any depth, local). The existing invariant that write outcomes match `hasRoles` covers it.
+
+## 16. Member-call cap 100k, and bounded return data
+
+- **Context:** nested teams and Hats eligibility modules need more than v1's 30k; a lint flagged unbounded return-data copies from untrusted callees.
+- **Decision:** 100k per `isMember` call; copy at most one word (or a size-checked `getParent` reply, decoded in a self-call inside try/catch).
+- **Consequences:** a roster over the cap, or any malformed reply, means "not a member" / "end of walk" — never a revert or extra roles. Worst-case inherited lookup is bounded (~553k with 4 hostile teams at depth 3).
+
+## 17. Roster adapters built, not deployed
+
+- **Context:** `HatsTeam` and `SafeTeam` need a real hat or Safe to be meaningful on Sepolia.
+- **Decision:** ship the adapters with tests against mocks (including an over-cap eligibility check); deploy when there is a real roster to point at.
+- **Consequences:** the live v2 tree shows many teams, nesting and multi-hop; the adapters are proven only locally.

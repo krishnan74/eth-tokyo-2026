@@ -86,7 +86,9 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 
 ```
 contracts/src/       CascadeSubregistry, TeamRegistry, ITeam (deployed); CascadeSubregistryV2 (roadmap 1+3: many teams, multi-hop — not deployed)
-contracts/src/teams/ NestedTeam (roadmap 2), HatsTeam + SafeTeam (roadmap 4) — not deployed
+contracts/src/teams/ NestedTeam (roadmap 2, live on Sepolia as `security`), HatsTeam + SafeTeam (roadmap 4) — adapters not deployed
+core/cascade/v2.ts   roadmap names/roles; generated-v2.ts (ABIs + v2 addresses) written by `npm run gen` from deployments/sepolia-v2.json
+web/components/drive/DriveDemoV2.tsx  roadmap branch: the home page's drive runs on CascadeSubregistryV2 (acme-labs.eth › platform, dev-team + security ⊃ sre, cascade switch = setDepth); state/actions via lib/cascade/v2hooks.ts → app/api/v2/{state,action} (lib/cascade/v2server.ts) — local-only writes, main .env keys. main keeps the v1 drive (DriveDemo.tsx).
 contracts/src/demo/  AlwaysTrueTeam — the attacker's contract for demo step 6 (fixture, not product)
 contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer; CascadeV2.t.sol — v2 + team contracts: unit tests, hostile-ancestor fuzz, gas bounds, and an invariant over teams × levels; CascadeInvariant.t.sol — the step-0 rule as 5 invariants (random action sequences via a Handler) + 5 fuzz tests (arbitrary team/parent return data, arbitrary role bitmaps)
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)

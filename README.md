@@ -79,7 +79,9 @@ Rehearsed answers to the questions this usually raises (root grants, a compromis
 
 ## Roadmap
 
-The MVP is deliberately **one hop and one team per registry**. Planned next, in this hackathon: many teams per role, teams of teams, bounded multi-hop inheritance up the name tree, and bring-your-own roster (Hats / Safe) behind `isMember()`. After ENS feedback: who-can-access queries, resolver-record relations (a separate mechanism), and agent fleets as the use case. Details and status in [`docs/plan.md`](docs/plan.md#roadmap-from-the-mvp-rule-to-full-rebac). None of these are built yet.
+The MVP is deliberately **one hop and one team per registry**. Planned next, in this hackathon: many teams per role, teams of teams, bounded multi-hop inheritance up the name tree, and bring-your-own roster (Hats / Safe) behind `isMember()`. After ENS feedback: who-can-access queries, resolver-record relations (a separate mechanism), and agent fleets as the use case. Details and status in [`docs/plan.md`](docs/plan.md#roadmap-from-the-mvp-rule-to-full-rebac).
+
+**On this branch (`roadmap/full-rebac`), steps 1–4 are built:** `CascadeSubregistryV2` (up to 4 teams, inheritance up to 3 levels with a link check at each level, a native-first fast path for owners), `NestedTeam` (teams of teams), and `HatsTeam` / `SafeTeam` roster adapters. Steps 1–3 are live on Sepolia on a separate tree, `acme-labs.eth`, which never touches the demo's `acme-corp.eth`; the adapters are tested with mocks only. Try it with `npm run ui` — on this branch the home page's drive runs on v2 (two folder levels, two groups, a cascade switch) — or `npm run smoke:v2` in the terminal. Everything about v2 — rule, contracts, addresses, evidence, gas, limits — is in [`docs/roadmap-v2.md`](docs/roadmap-v2.md). The submitted demo on `main` is unchanged.
 
 ## Honest limits
 

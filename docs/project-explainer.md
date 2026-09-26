@@ -303,7 +303,9 @@ After each action, the server replays the mined transaction with Foundry's `cast
 
 **One hop, one team per registry**, chosen deliberately to test the rule inside EAC.
 
-### Next (planned, not built)
+### Next — built on the `roadmap/full-rebac` branch, not in the demo
+
+Steps 1–3 are live on Sepolia on a separate tree (`acme-labs.eth`); step 4's adapters are tested with mocks only. Try them in the local UI on this branch (`npm run ui`): the home page's drive runs on v2. Detail: [`roadmap-v2.md`](roadmap-v2.md).
 
 1. **Many teams per role.** Devops can edit, security can revoke.
 2. **Teams of teams.** Nested groups, bounded in depth and gas.
