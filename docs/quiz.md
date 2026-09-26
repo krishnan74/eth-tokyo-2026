@@ -72,7 +72,7 @@
 
 **18.** Give one example each of a **registry** role and a **resolver** role.
 
-**19.** Resolver permissions are organised by **record type**, not by name. Why does that stop Cascade's rule from simply being applied to resolver records?
+**19.** Resolver permissions are keyed by **(namehash, record part)**. Why does that stop Cascade's rule from simply being applied to resolver records?
 
 **20.** A name's **token ID** changes on which events? Its **resource** changes on which events?
 
@@ -181,7 +181,7 @@ An ENS engineer asks: *"Why wouldn't a DAO just give its Safe the role?"* Answer
 
 **18.** Registry: `SET_SUBREGISTRY`, `SET_RESOLVER`, `RENEW`, `REGISTRAR`. Resolver: `SET_ADDRESS`, `SET_TEXT`.
 
-**19.** Cascade inherits from a **parent name**. Resolver permissions aren't organised by name, so there's no parent to walk up to — that needs a different mechanism, which is why it's a roadmap item that depends on ENS feedback.
+**19.** Cascade inherits from a **parent name**. A resolver permission is scoped to one name's namehash (or to every name in the resolver), and a namehash carries no link to its parent — so there's no parent to walk up to. That needs a different mechanism, which is why it's a roadmap item that depends on ENS feedback.
 
 **20.** Token ID: on every **grant or revoke** (and unregister). Resource: on **unregister / expiry / re-registration**.
 

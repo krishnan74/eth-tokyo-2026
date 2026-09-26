@@ -37,6 +37,10 @@ The pointer grants nothing by itself; the authority is the parent's grant to the
 
 It tells you how many, not who: `roleCount` and `getAssigneeCount` expose holder counts; there is no call that returns holder identities. That is why the registry names its candidate with a `team` pointer instead of discovering it.
 
+## "What exactly does the team get access to? Text records?"
+
+No — registry permissions, not records. The team inherits **registry roles on each subname's entry**: `SET_SUBREGISTRY` (where the name's children live — the demo's "Edit" is `setSubregistry`), and on the roadmap branch also `SET_RESOLVER` (which resolver the name uses). Text and address records live in a resolver behind the resolver's own roles, keyed by `(namehash, record part)`; per-record rights are a separate mechanism on the roadmap. The one overlap: whoever can set the resolver can point the name at a resolver they control. *Source: `CascadeSubregistry._getRoles`, the demo's `setSubregistry` write; `PermissionedResolver` in contracts-v2.*
+
 ## "Is this a shared resolver?"
 
 No. This governs `ROLE_SET_SUBREGISTRY`, a registry-level action — creating and repointing subnames — not resolver records. A shared resolver grant couldn't give anyone the ability to manage subnames.
