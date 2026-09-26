@@ -1,0 +1,7 @@
+.env
+node_modules/
+out/
+cache/
+broadcast/
+deployments/fork.json
+deployments/fork-last-run.json

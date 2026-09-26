@@ -1,0 +1,21 @@
+{
+  "name": "cascade",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test -vv",
+    "setup": "tsx --env-file=.env scripts/setup.ts",
+    "demo": "tsx --env-file=.env scripts/demo.ts"
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "picocolors": "^1.1.1",
+    "viem": "^2.56.9"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
