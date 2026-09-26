@@ -1,23 +1,23 @@
 # ENS Drive — 20-minute study guide
 
-> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` / `CascadeSubregistryV2` contracts and the ReBAC rule they implement. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
-Read top to bottom. Each block is time-boxed; the total is 20 minutes. For explaining the contracts out loud, use [`architecture-talk.md`](architecture-talk.md). Deeper detail lives in [`project-explainer.md`](project-explainer.md) and [`contracts-explained.md`](contracts-explained.md) — you don't need them to pitch.
+Read top to bottom. Each block is time-boxed; the total is 20 minutes. For explaining the contracts out loud, use [`architecture-talk.md`](architecture-talk.md); for the finalist pitch, [`pitch-finalist.md`](pitch-finalist.md). Deeper detail lives in [`project-explainer.md`](project-explainer.md) and [`contracts-explained.md`](contracts-explained.md) — you don't need them to pitch.
 
 ---
 
 ## Minutes 0–3 · The idea in four sentences
 
 1. **ENSv2's access control (EAC) grants roles to addresses**, one name at a time: every permission is a (name, address, role) entry.
-2. **It can't express a relationship** like "anyone on the devops team may manage every name under devops — including tomorrow's."
-3. **Cascade adds that one relationship** as a single extra term inside EAC's own role lookup: an account's roles on a subname = its own grants **∪** what the parent grants the team, *if it's a member*.
-4. **Nothing EAC does is replaced.** It's one subclass of ENS's own registry, overriding one hook. The MVP is deliberately **one hop and one team per registry**.
+2. **It can't express a relationship** like "anyone on core-devs may manage every name under protocol — including tomorrow's."
+3. **Cascade adds that one relationship** as an extra term inside EAC's own role lookup: an account's roles on a subname = its own grants **∪** what the folders above grant its teams, *if it's a member*.
+4. **Nothing EAC does is replaced.** It's one subclass of ENS's own registry, overriding the role lookup. The first version was one hop and one team; the live demo (the cascade) goes up to 3 folders up, 4 teams, and teams inside teams.
 
 **Memorise:** *"EAC can give a role to an address. It can't give one to a relationship. Cascade adds the relationship, inside EAC."*
 
 ---
 
-> **Say this precisely if asked what "access" means:** registry permissions on each subname's entry — `SET_SUBREGISTRY` in the demo (and `SET_RESOLVER` on the roadmap branch). **Not text records**: those are resolver data, behind the resolver's own roles, and per-record rights are a separate roadmap mechanism.
+> **Say this precisely if asked what "access" means:** registry permissions on each subname's entry — `SET_SUBREGISTRY` ("can edit"), and `SET_RESOLVER` for the security council in the cascade demo. **Not text records**: those are resolver data, behind the resolver's own roles, and per-record rights are a separate roadmap mechanism.
 
 ## Minutes 3–8 · The ENSv2 concepts you must be fluent in
 
@@ -28,7 +28,8 @@ Read top to bottom. Each block is time-boxed; the total is 20 minutes. For expla
 | **EAC resource** | The `uint256` a permission is scoped to. Each name has one; `ROOT_RESOURCE` (0) means "every name in this registry". |
 | **Role bitmap** | Roles packed 4 bits each; lower half regular, upper half admin (`role << 128`). Holding the admin lets you grant/revoke. Max 15 holders per role. |
 | **Counts, not identities** | EAC can tell you *how many* hold a role (`roleCount`), not *who*. That's why Cascade uses a team pointer. |
-| **`_getRoles`** | EAC's documented hook for adding role logic at read time. Stock `PermissionedRegistry` already uses it for approved operators. **Cascade's only override.** |
+| **`_getRoles`** | EAC's documented hook for adding role logic at read time. Stock `PermissionedRegistry` already uses it for approved operators. **v1's only override**; v2 also overrides `_checkRoles` (writes) with a lazy version. |
+| **`getParent` / `getSubregistry`** | Stock: a registry names its parent; a parent names each child's registry. v2 walks up with the first and checks the second points back down. |
 | **Registry vs resolver roles** | Registry roles = structure (children, resolver, renewal). Resolver roles = records, keyed by record, not by name. Cascade is registry-only. |
 | **Token ID vs resource versions** | Grants/revokes change a name's token ID. Unregister/expiry changes its resource — which wipes permissions, including the team's grant. |
 
@@ -58,7 +59,13 @@ if (granted != 0 && _isMember(account)) roleBitmap |= granted;
 - **Safe external calls:** read-only STATICCALLs, gas-capped (30k/50k), length-checked — reverts, loops and garbage all fail closed; native owners unaffected.
 - **Self-invalidating:** the grant is read from the parent's *current* registration, so re-issue or expiry ends it automatically. Transfer keeps it (stock behaviour for every delegate).
 
-**What changes (say it yourself):** views include inherited roles · inherited roles emit no events · ~2,300 gas per write, native owners too · one new root role + pointer · `hasRoles()` says yes on unregistered names for members (writes still refused).
+**What changes (say it yourself):** views include inherited roles · inherited roles emit no events · ~2,300 gas per write, native owners too (v1) · one new root role + pointer · `hasRoles()` says yes on unregistered names for members (writes still refused).
+
+**The cascade (v2, the live demo) — what it adds:**
+- **Up the tree:** up to `depth` 1–3 folders, found with stock `getParent`; a level counts only if its `getSubregistry(label)` points back down (a registry can't adopt a parent).
+- **Several teams:** up to 4 per registry (`addTeam`, needs `ROLE_SET_TEAM`); a `NestedTeam` counts its sub-teams' members (security-council ⊃ auditors).
+- **Lazy writes:** own roles first (owners: 36,971 gas, no lookups), then one folder at a time, membership asked only if a grant covers a missing role, stop when covered. Member via level 1: 97,665 gas on Sepolia (was 165,723). Same yes/no as the full union: fuzzed and Halmos-proven.
+- **Views pay the full lookup** (`hasRoles` isn't virtual). Union only: a name can't opt out of a grant from above.
 
 ---
 
@@ -106,6 +113,9 @@ These came from the ETHOnline ENSv2 beta deployment and were verified behavioura
 | `CascadeSubregistry` (`devops.acme-corp.eth`) | `0x2f15c12d21d7561433ddc6f7b856e9f0e4455e13` |
 | `TeamRegistry` | `0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb` |
 | `AlwaysTrueTeam` (fixture) | `0xaa735fc88e25f7d846010469ee75f287c8ec20c1` |
+| **The cascade demo:** org registry (`orbit-dao.eth`, stock) | `0x6e1d2249483700697eb92f959f629fc2ebd6fc48` |
+| `CascadeSubregistryV2` (`protocol.orbit-dao.eth`) | `0x7aa120442ccb9df297d81cd88975e4d9b129d0a3` |
+| core-devs / security-council (⊃ auditors) / auditors | `0x1709…adb0` / `0xce0b…acfa` / `0x6394…9b62` |
 
 ---
 
@@ -119,18 +129,20 @@ These came from the ETHOnline ENSv2 beta deployment and were verified behavioura
 6. **Does the team keep access if `devops` is re-issued?** → No — the grant is read from the current registration, so it ends automatically.
 7. **Why `_getRoles` and not `_checkRoles`?** → It's the documented hook, and it keeps `hasRoles()` truthful.
 8. **What do indexers see?** → No events for inherited roles; they should call `hasRoles()`.
-9. **What does it cost?** → ~2,300 gas per write, native owners included (local measurement); 91,946 gas for an allowed inherited write on Sepolia.
+9. **What does it cost?** → Cascade: owners nothing extra (36,971); a member via one folder 97,665, via two folders and the nested team 138,289 (Sepolia). v1: ~2,300 per write, owners included; 91,946 for an inherited write.
 10. **Is this a shared resolver / a token?** → Neither: a registry role; the subname token never moves.
-11. **What's next?** → Many teams per role, teams of teams, multi-hop names, bring-your-own roster (Hats / Safe). After your feedback: who-can-access queries, resolver records, agent fleets.
-12. **Is the demo live?** → Yes: Sepolia transactions, Etherscan links, revert reasons decoded from the chain.
+11. **What's next?** → Built: many teams, teams of teams, multi-hop names, Hats / Safe adapters (fork-tested, not deployed). Next: a virtual `hasRoles` from ENS so views can be lazy too; who-can-access queries, resolver records, agent fleets after your feedback.
+12. **Is the demo live?** → Yes: https://ens-drive.vercel.app, Sepolia transactions, Etherscan links, each one replayed with `cast run`.
+13. **Can a registry claim any parent?** → It can claim one, but the parent must point back down (`getSubregistry`), or that level and everything above count for nothing.
+14. **How is it tested?** → 71 Foundry tests and 3 Halmos proofs, including a v1/v2 equivalence invariant and the gaps you raised: approvals, expiry, the 15-member cap. Not audited.
 
 ---
 
 ## Minute 19–20 · Pre-flight
 
-- [ ] `npm run ui` running; fresh browser window at the top of the page.
-- [ ] Outsider **not** in the group — press **Start over** in the drive if a previous run left them in.
-- [ ] Fallback terminal: `npm run demo -- --core`; `--recap` replays the last run and says so.
+- [ ] https://ens-drive.vercel.app (or `npm run ui`) open at the top of the page, Cascade tab.
+- [ ] Alex in **no** group and sharing flowing into subfolders — press **Start over** if a previous run left them in.
+- [ ] Fallback terminal: `npm run smoke:v2`; for the one-folder version `npm run demo -- --core` (`--recap` replays the last run and says so).
 - [ ] Etherscan tab open for anyone who wants to verify.
 
 ---
@@ -139,11 +151,11 @@ These came from the ETHOnline ENSv2 beta deployment and were verified behavioura
 
 | Time | Segment | What happens |
 |---|---|---|
-| 0–2 | Frame | One-liner; MVP scope (one hop, one team). |
+| 0–2 | Frame | One-liner; imagine you lead a web3 organization that uses ENS for its names. |
 | 2–5 | The gap + the idea | Ledger → the sentence EAC can't express → the formula. |
-| 5–10 | Live demo | New file → edit fails → **drag the outsider into devops-team** → edit succeeds → drag out → fails → **attack refused**. Then Behind the scenes. Talk over the ~12 s confirmations. |
+| 5–10 | Live demo | Alex edits `vault` → refused → **drag Alex into core-devs** → all three files editable → **move Alex to the auditors** → still editable (security council, a folder up) → sharing into subfolders off → refused → **attack refused**. Then the "On-chain, just now" card and Behind the scenes. Talk over the ~12 s confirmations. |
 | 10–12 | How it fits | One hook; every other layer stock; name the changes yourself. |
-| 12–13 | Roadmap | Step 0 live; steps 1–4 next; 5 after feedback. Don't promise all of 1–4. |
-| 13–20 | **Their feedback** | The four questions, then agents & resolver records, then *"Is `_getRoles` a stable extension point?"* Write down their exact words. |
+| 12–13 | Roadmap | Steps 0–3 live, 4 fork-tested; 5 after feedback. |
+| 13–20 | **Their feedback** | The README's four questions (holder discovery, extension points and a virtual `hasRoles`, value over root grants, the team's own role), then agents & resolver records. Write down their exact words. |
 
 Leave at least **seven minutes for their answers** — that conversation is the point of the meeting.

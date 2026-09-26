@@ -1,6 +1,8 @@
 # ENS Drive — smart-contract architecture (the Cascade permission layer)
 
-> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` / `CascadeSubregistryV2` contracts and the ReBAC rule they implement. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+
+**Two versions, both live.** §1–6 walk through the first, one-folder version (`CascadeSubregistry` on `devops.acme-corp.eth`, the live site's **One folder** tab and the terminal demo) call by call, because every idea in the cascade starts there. §7 is the cascade version (`CascadeSubregistryV2` on `protocol.orbit-dao.eth`), the live site's default **Cascade** tab: the same override generalised to several teams, teams of teams and several folders, with a lazy write check.
 
 What happens at the contract level, behind every action in the demo. Diagrams render on GitHub (Mermaid). Addresses are the live Sepolia deployment on the ENSv2 beta; the source is `contracts/src/` built on `ensdomains/contracts-v2@48b3e2d`.
 
@@ -222,16 +224,76 @@ CascadeSubregistry.setTeam(AlwaysTrueTeam)                               3,731 g
 - Inherited roles emit no events; indexers should call `hasRoles()`.
 - Every role lookup on a subname can make two external calls — about 2,300 extra gas per write, native owners included (local measurement).
 - The team contract itself holds `SET_SUBREGISTRY` on `devops`; `TeamRegistry` has no function that uses it — team contracts should be narrow.
-- MVP scope: one hop, one team per registry.
+- v1 scope: one hop, one team per registry (the cascade version in §7 lifts both).
 
 ---
 
-## 7. Roadmap v2 (branch `roadmap/full-rebac`, not the demo)
+## 7. The cascade version — `CascadeSubregistryV2` (the live demo)
 
-`CascadeSubregistryV2` keeps the same shape — one override of `_getRoles`, the same guarantees — and generalises the rule from one parent and one team to up to 4 teams and up to 3 levels:
+`CascadeSubregistryV2` keeps the same shape — a `PermissionedRegistry` subclass, the same guarantees as §5 — and generalises the rule from one parent and one team to up to 4 teams and up to 3 levels:
 
 ```
 roles = native  ∪  ⋃ over teams t, levels k ≤ depth, t.isMember(caller):  ancestor_k.roles(label_k, t) & regular bits
 ```
 
-Each level comes from the previous ancestor's stock `getParent()` and counts only if that ancestor's `getSubregistry(label)` points back down. A write by a member at level 2 therefore reads, in order: link check on the parent → `getParent` → link check on the grandparent → each team's grant at both levels → membership (a `NestedTeam` asks its sub-teams). Writes by native holders skip all of it (fast path in `_checkRoles`). Full detail, addresses and evidence: [`roadmap-v2.md`](roadmap-v2.md).
+### The demo tree
+
+```mermaid
+flowchart LR
+  subgraph ETHR[".eth registry · stock"]
+    OD["name: orbit-dao<br/>grant: security-council holds SET_SUBREGISTRY + SET_RESOLVER"]
+  end
+  subgraph ORG["OrgRegistry · orbit-dao.eth · stock PermissionedRegistry"]
+    PR["name: protocol → CascadeSubregistryV2<br/>grant: core-devs holds SET_SUBREGISTRY"]
+  end
+  subgraph CAS["CascadeSubregistryV2 · protocol.orbit-dao.eth"]
+    F["names: vault, oracle, bridge"]
+    T["teams: core-devs, security-council · depth 2"]
+  end
+  subgraph TEAMS["Teams"]
+    CD["core-devs · TeamRegistry"]
+    SC["security-council · NestedTeam"]
+    AU["auditors · TeamRegistry"]
+  end
+  ETHR -->|"orbit-dao → subregistry"| ORG
+  PR -->|"children live in"| CAS
+  CAS -. "level 1: getSubregistry, roles(protocol, team)" .-> ORG
+  CAS -. "level 2: getSubregistry, roles(orbit-dao, team)" .-> ETHR
+  CAS -. "isMember(caller)" .-> TEAMS
+  SC -->|"sub-team"| AU
+```
+
+| Contract | Address (Sepolia) | Stores |
+|---|---|---|
+| OrgRegistry (`orbit-dao.eth`) | `0x6e1d2249483700697eb92f959f629fc2ebd6fc48` | stock; the name `protocol`; the grant *core-devs holds `SET_SUBREGISTRY` on protocol* |
+| CascadeSubregistryV2 (`protocol.orbit-dao.eth`) | `0x7aa120442ccb9df297d81cd88975e4d9b129d0a3` | the files `vault`, `oracle`, `bridge`; the teams list (≤ 4); `depth` (1–3); parent + label (stock `setParent`) |
+| core-devs (`TeamRegistry`) | `0x170943bc913b250cb16d3e2720d0d4852e91adb0` | `MEMBER` per account |
+| security-council (`NestedTeam`) | `0xce0bdedf8d6afb19c395f0d242395f62f975acfa` | its own members and its sub-teams (auditors); member if in it or in a sub-team, up to 3 levels |
+| auditors (`TeamRegistry`) | `0x63941f63430acb4af79c33d2eb5d6815683b9b62` | `MEMBER` per account |
+
+The security council's grant is on `orbit-dao.eth` itself, in the stock .eth registry — two registries above the files. Alex's names, `alex.orbit-dao.eth` (hosted demo account) and `alex-dev.orbit-dao.eth` (local), are ordinary names in the org registry. Setup and smoke transactions: [`roadmap-v2.md` §9](roadmap-v2.md#9-the-demo-tree-orbit-daoeth).
+
+### A write by Alex, in the auditors — `setSubregistry(vault, …)`
+
+`_checkRoles` (lazy, role-aware) runs in this order:
+
+1. **Own roles.** Alex holds nothing stored on `vault` → keep going. (An owner stops here: no external call.)
+2. **Level 1, `protocol`.** `OrgRegistry.getSubregistry("protocol")` points back to this registry ✓. core-devs' grant covers `SET_SUBREGISTRY` → `core-devs.isMember(alex)` → no. security-council's grant at this level is empty → not asked.
+3. **Step up.** `getParent()` on the org registry (decoded through a self-call, so a malformed answer fails closed) → the .eth registry, label `orbit-dao`.
+4. **Level 2, `orbit-dao.eth`.** `.eth registry.getSubregistry("orbit-dao")` points back to the org registry ✓. core-devs is a known non-member → skipped. security-council's grant covers `SET_SUBREGISTRY` → `security-council.isMember(alex)` → `auditors.isMemberWithin(alex, …)` → yes → covered, stop → allowed.
+
+If nothing covers the role, ENS's own `EACUnauthorizedAccountRoles` revert fires, as for any unauthorised caller. With the switch off (`setDepth(1)`), step 3 never happens, so Alex-in-auditors is refused.
+
+Views (`hasRoles`, `roles`, `explain`) go through `_getRoles`, which computes the full union: `hasRoles` isn't virtual in `PermissionedRegistry`, so it can't know the requested role. Because inheritance only adds roles, the lazy write check and the full union give the same yes/no; `testFuzz_lazyCheckMatchesFullUnion` and the Halmos proof `check_v2_lazyEqualsFullUnion` check it.
+
+### What v2 adds to §5's guarantees
+
+| Guarantee | Mechanism |
+|---|---|
+| A registry can't adopt a parent | each level counts only if the ancestor's `getSubregistry(label)` returns the child below it |
+| Owners pay nothing extra on writes | own roles first in `_checkRoles` |
+| Members pay only for paths that can help | membership asked only when a grant covers a missing role; stop when covered |
+| Bounded work | ≤ 4 teams, ≤ 3 levels, `NestedTeam` ≤ 4 sub-teams × 3 levels; caps: `isMember` 100k, parent reads and link checks 50k; `getParent` return ≤ 320 bytes |
+| Adding a team is guarded | `ROLE_SET_TEAM` on root, contract with `ITeam` via ERC-165, `TeamAdded` / `TeamRemoved` / `DepthUpdated` events |
+
+**Gas (Sepolia):** a member's write via level 1 is 97,665 (full-union v2: 165,723; v1: 91,946); via level 2 and the nested team 138,289; an owner's write 36,971. Worst case for an inherited lookup (4 hostile teams, depth 3) is bounded at ~553k locally. Full detail, both deployments and evidence: [`roadmap-v2.md`](roadmap-v2.md).

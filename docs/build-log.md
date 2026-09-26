@@ -135,3 +135,10 @@
 - Optimistic drag: the chip moves into the target team at once, dashed and "joining · confirming on Sepolia"; access badges only show confirmed state. The hook now refreshes state before clearing the pending flag so the chip never flashes back.
 - Found while renaming: the v2 action endpoint only accepted `svc-…` labels, so editing `vault` would have been rejected — widened to a plain lowercase-label pattern (and the trace route's label filter).
 - Pitch script: opens with "Imagine you lead a web3 organization that uses ENS for its names" (checked against the Cannes guide; framed as a scenario, orbit-dao fictional, ENSv2 beta stated).
+
+## 2026-09-27 (later) — orbit-dao live, pitch scripts, More detail trimmed, docs refreshed
+
+- Deployed the `orbit-dao` work to https://ens-drive.vercel.app on the user's go-ahead: re-ran `setup:hosted` so the hosted operator also holds the orbit tree's roles, regenerated the core for `CASCADE_TREE=orbit`, deployed. On the live site: Alex joining core-devs flipped all three files, the trace replayed on Vercel, Start over left the tree clean.
+- Rewrote the video and live pitch scripts (`pitch-finalist.md`) in a natural speaking voice at the user's request: names spoken as said aloud ("orbit dao dot eth"), no dashes in spoken lines, lines to fill each block wait.
+- Removed Roadmap and Questions for the ENS team from More detail (user request); both still live in the README and `docs/`. Pushed and deployed; checked live.
+- Refreshed every doc to the current state, starting with the submission form copy (`submission.md`, now re-pasteable for the cascade version with a pinned v2 code link). v1-first explainers keep their line-by-line v1 walkthroughs and gained cascade sections; `pitch-script.md` is marked superseded by `pitch-finalist.md`. Caught while writing: the first draft described the Halmos proofs as "only adds / admin bits / root"; the actual three proofs are the v1 rule, lazy == full union, and a broken link contributing nothing — corrected before commit.

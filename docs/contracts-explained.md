@@ -1,8 +1,10 @@
 # ENS Drive contracts, explained (Cascade)
 
-> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` / `CascadeSubregistryV2` contracts and the ReBAC rule they implement. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
-How the contracts are structured, how a call flows through them, what state they hold, how they were deployed and wired, and the technical details worth knowing before anyone asks. Everything here matches the code in `contracts/src/` and the Sepolia deployment in `deployments/sepolia.json`.
+How the contracts are structured, how a call flows through them, what state they hold, how they were deployed and wired, and the technical details worth knowing before anyone asks. Everything here matches the code in `contracts/src/` and the Sepolia books in `deployments/`.
+
+**Two versions, both live.** §2–9 explain the first, one-folder version (`CascadeSubregistry`, `deployments/sepolia.json`) in full, because every idea in the cascade starts there. §10 covers what the cascade version (`CascadeSubregistryV2`, the live demo's default, `deployments/sepolia-orbit.json`) adds; the call-by-call path of a two-level write is in [`architecture.md` §7](architecture.md#7-the-cascade-version--cascadesubregistryv2-the-live-demo) and everything else in [`roadmap-v2.md`](roadmap-v2.md).
 
 ---
 
@@ -10,18 +12,20 @@ How the contracts are structured, how a call flows through them, what state they
 
 | File | What it is | New or stock |
 |---|---|---|
-| `contracts/src/CascadeSubregistry.sol` | The registry that implements the one-hop inheritance rule. | **New — the contribution** |
+| `contracts/src/CascadeSubregistryV2.sol` | The cascade: up to 4 teams, inheritance up to 3 levels with a link check at each, a lazy role-aware write check. The live demo, on `protocol.orbit-dao.eth`. | **New — the contribution** |
+| `contracts/src/CascadeSubregistry.sol` | The first version: the one-hop inheritance rule (one parent, one team). The One folder tab, on `devops.acme-corp.eth`. | New |
 | `contracts/src/TeamRegistry.sol` | The team roster: a plain EAC contract with an `isMember` view. | New, thin |
 | `contracts/src/ITeam.sol` | The one-function interface Cascade calls on a team: `isMember(address) → bool`. | New |
 | `contracts/src/demo/AlwaysTrueTeam.sol` | Demo fixture: an attacker's team that says everyone is a member. Used only to show the hijack being refused. | Fixture, not product |
 | `lib/contracts-v2/.../PermissionedRegistry.sol` | ENS's standard registry. Cascade inherits it; the org registry *is* it. | Stock ENSv2 |
 | `lib/contracts-v2/.../EnhancedAccessControl.sol` | ENS's permission system (EAC). | Stock ENSv2 |
-| `contracts/test/Cascade.t.sol` | 17 Foundry tests, plus test-only helper contracts. | New |
-| `contracts/test/CascadeInvariant.t.sol` | The step-0 rule as 5 invariants over random action sequences, plus 5 fuzz tests. | New |
-| `contracts/src/CascadeSubregistryV2.sol` | Roadmap steps 1 + 3: up to 4 teams, inheritance up to 3 levels with a link check, native-first fast path. Branch `roadmap/full-rebac`; see [`roadmap-v2.md`](roadmap-v2.md). | New (roadmap) |
-| `contracts/src/teams/NestedTeam.sol` | Roadmap step 2: a roster that includes up to 4 sub-teams, 3 levels deep. | New (roadmap) |
-| `contracts/src/teams/HatsTeam.sol`, `SafeTeam.sol` | Roadmap step 4: hat wearers / Safe owners as a team, behind `isMember`. Not deployed. | New (roadmap) |
-| `contracts/test/CascadeV2.t.sol` | 18 v2 tests, 9 team tests, and an invariant over teams × levels. | New (roadmap) |
+| `contracts/src/teams/NestedTeam.sol` | Teams of teams: a roster that includes up to 4 sub-teams, 3 levels deep. The demo's security-council. | New |
+| `contracts/src/teams/HatsTeam.sol`, `SafeTeam.sol` | Hat wearers / Safe owners as a team, behind `isMember`. Fork-tested against the real Hats v1 and Safe 1.4.1; not deployed. | New |
+| `contracts/test/Cascade.t.sol` | 17 v1 unit tests, plus test-only helper contracts. | New |
+| `contracts/test/CascadeInvariant.t.sol` | The v1 rule as invariants over random action sequences, plus 5 fuzz tests. | New |
+| `contracts/test/CascadeV2.t.sol` | 18 v2 tests, 9 team tests, the lazy-check differential fuzz and pruning tests, and invariants over teams × levels. | New |
+| `contracts/test/CascadeGaps.t.sol` | The gaps the ENS team raised: approvals, expiry, the 15-member cap, members never administering, and a v1/v2 equivalence invariant. | New |
+| `contracts/test/CascadeV2Gas.t.sol`, `RosterFork.t.sol`, `CascadeSymbolic.t.sol` | Gas benchmark; Hats/Safe fork tests (opt-in, `npm run test:fork`); 3 Halmos proofs (`npm run prove`). | New |
 
 All ENS code comes from the `ensdomains/contracts-v2` repository pinned at commit `48b3e2d`, the source that matches the ENSv2 beta deployment on Sepolia.
 
@@ -237,8 +241,8 @@ During each demo, subnames are created with `cascade.register("svc-…", operato
 - **Foundry** (`forge`), Solidity **0.8.26**, `evm_version = cancun`, optimizer 200 runs. Foundry is not on `PATH` by default: `export PATH="$HOME/.foundry/bin:$PATH"`.
 - **Dependencies are git submodules** pinned to exact commits: `lib/contracts-v2` (`48b3e2d`), `lib/openzeppelin-contracts`, `lib/forge-std`.
 - **Remappings:** `@ens/v2/` → `lib/contracts-v2/contracts/src/`, `@openzeppelin/contracts/` → `lib/openzeppelin-contracts/contracts/`.
-- **Commands:** `forge build`, `npm test` (17 unit tests, 5 fuzz tests, 5 invariants), `npm run gen` (regenerates `core/cascade/generated.ts` — the ABIs and addresses the terminal demo and web UI share — after any contract change or redeploy).
-- **Deployment and wiring** is `scripts/setup.ts` (viem), not a Forge script, because commit–reveal needs a 60-second wait between transactions.
+- **Commands:** `forge build`, `npm test` (71 tests across all suites), `npm run prove` (3 Halmos proofs; needs `forge build --ast`), `npm run test:fork` (Hats/Safe on a fork), `npm run gen` (regenerates `core/cascade/generated.ts` — the ABIs and addresses the terminal demo and web UI share — after any contract change or redeploy).
+- **Deployment and wiring** is `scripts/setup.ts` (v1) and `scripts/setup-v2.ts` (the cascade tree, `--tree orbit|acme`) in viem, not Forge scripts, because commit–reveal needs a 60-second wait between transactions.
 
 ---
 
@@ -256,4 +260,28 @@ During each demo, subnames are created with `cascade.register("svc-…", operato
 | Invalidation | parent re-issue and parent expiry end the grant; parent transfer keeps it, and the new owner can revoke |
 | Gas | native vs inherited write, like for like |
 
-Invariant and fuzz tests of the rule are in `CascadeInvariant.t.sol`. Not yet covered: a Hats or Safe roster adapter.
+Invariant and fuzz tests of the rule are in `CascadeInvariant.t.sol`. The cascade's tests are summarised in §10.
+
+---
+
+## 10. What the cascade version adds (`CascadeSubregistryV2`)
+
+Same base (`PermissionedRegistry`), same guarantees as the one-folder version, and these differences:
+
+| | `CascadeSubregistry` (v1) | `CascadeSubregistryV2` (the demo) |
+|---|---|---|
+| Teams | one `team` pointer, `setTeam` | up to 4 (`MAX_TEAMS`), `addTeam` / `removeTeam`, `teams()` |
+| Levels | the parent only | `depth` 1–3 (`MAX_DEPTH`), `setDepth`; each level found with stock `getParent` |
+| Link check | none needed (one parent, set by the owner) | each ancestor counts only if its `getSubregistry(label)` returns the child below |
+| Overrides | `_getRoles` | `_getRoles` (full union: views) and `_checkRoles` (lazy: writes) |
+| Write cost for owners | two outside calls | none: own roles checked first |
+| Gas caps | `isMember` 30k, parent `roles` 50k | `isMember` 100k (room for a `NestedTeam`), parent `roles` and link checks 50k, `getParent` return ≤ 320 bytes |
+| Guard role | `ROLE_SET_TEAM` for `setTeam` | `ROLE_SET_TEAM` for `addTeam`, `removeTeam`, `setDepth` |
+| Events | `TeamPointerUpdated` | `TeamAdded`, `TeamRemoved`, `DepthUpdated` |
+| Views | `explain()`, `nativeRoles()` | the same, plus `ancestry()` |
+
+**The lazy check (`_checkRoles` → `_inheritsMissing`).** Own roles first; then, level by level, each team's grant at that level is added to what it had from the levels below; a team is asked about membership only if its grants cover a still-missing role, and a known non-member is skipped at later levels; stop as soon as nothing is missing. It gives the same yes/no as the full union because inheritance only adds roles.
+
+**Teams.** `NestedTeam` is a roster whose `isMember` is also true for members of its sub-teams (up to 4, 3 levels; cycles end at the limit), asked through `isMemberWithin` with a gas-capped STATICCALL. `HatsTeam` answers `isWearerOfHat`, `SafeTeam` answers `isOwner`; neither needs a change in Cascade.
+
+**Tests.** 18 v2 unit tests (many teams, remove team, guards, multi-hop, broken and lying links, re-issue and expiry at the top, fast path, worst-case gas), 9 team tests (nesting, cycles, broken sub-teams, Hats, Safe), the lazy-check differential fuzz and pruning tests, v2 invariants, the gap tests (`CascadeGaps.t.sol`), and the Halmos proofs `check_v1_rule`, `check_v2_lazyEqualsFullUnion`, `check_v2_brokenLinkContributesNothing`.

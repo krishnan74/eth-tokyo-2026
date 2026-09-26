@@ -1,8 +1,8 @@
 # ENS Drive quiz
 
-> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` / `CascadeSubregistryV2` contracts and the ReBAC rule they implement. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
-36 questions in 10 sections, from the basics up to pitch scenarios. Answer each one before scrolling to the **answer key** at the bottom — every answer comes with a one-line explanation. Aim for 30+ before pitching.
+41 questions in 11 sections, from the basics up to pitch scenarios. Sections A–J use the first, one-folder version (`devops.acme-corp.eth`), where the rule is simplest; section K is the cascade, the live demo's default (`orbit-dao.eth`). Answer each one before scrolling to the **answer key** at the bottom — every answer comes with a one-line explanation. Aim for 34+ before pitching.
 
 ---
 
@@ -124,7 +124,7 @@ if (granted != 0 && _isMember(account)) roleBitmap |= granted;
 
 ## H. The demo
 
-**34.** In the drive demo's **Who has access** panel, what do **"given directly"** and **"via the group"** show before and after the outsider joins devops-team — and what does that prove?
+**34.** In the One folder tab's **Who has access** panel, what do **"given directly"** and **"via the group"** show before and after the outsider joins devops-team — and what does that prove?
 
 **35.** Why does the demo *send* refused writes as real transactions instead of only simulating them?
 
@@ -133,6 +133,20 @@ if (granted != 0 && _isMember(account)) roleBitmap |= granted;
 ## I–J. Roadmap and pitch scenarios
 
 **36.** An ENS engineer says: *"This is just Zanzibar for ENS."* How do you respond accurately — and what are the next roadmap steps?
+
+---
+
+## K. The cascade (the live demo)
+
+**37.** In the cascade demo, Alex is in the auditors, not the security council. Why can Alex still edit `vault`, and which two registries does the check read grants from?
+
+**38.** `CascadeSubregistryV2` finds the folder above with stock `getParent`. Why isn't that enough on its own, and what does it check at each level?
+
+**39.** Writes use a lazy `_checkRoles`; views use the full `_getRoles`. Why do they always give the same yes/no — and why don't views use the lazy version too?
+
+**40.** Alex is in the auditors and "sharing flows into subfolders" is switched off. What does that switch change on-chain, and what happens when Alex edits `vault`?
+
+**41.** What does an owner's write cost on the cascade registry compared with a member's, and why?
 
 ---
 
@@ -215,10 +229,20 @@ An ENS engineer asks: *"Why wouldn't a DAO just give its Safe the role?"* Answer
 
 **35.** A mined **failed transaction** on Etherscan is **evidence**; a simulation is only a claim. The revert reason is decoded from a simulation just before sending, so it comes from the chain, not from the script.
 
-**36.** *"It's the same idea as Zanzibar's parent-inheritance rule, but one hop and one relation, inside EAC — not a general engine."* Next steps: many teams per role, teams of teams, multi-hop names, bring-your-own roster (Hats / Safe). After ENS feedback: who-can-access queries, resolver records, agent fleets.
+**36.** *"It's the same idea as Zanzibar's parent-inheritance and group-nesting rules, bounded and inside EAC — one relationship rule, not a general engine."* Built since the first version: many teams per role, teams of teams, multi-hop names (the live demo), bring-your-own roster (Hats / Safe, fork-tested). After ENS feedback: who-can-access queries, resolver records, agent fleets.
 
-**Bonus.** *"A Safe works, but every action is routed through the Safe and its signer rules, so members stop acting as themselves. With Cascade, each member signs with their own address and EAC's checks see them directly — and a Safe's owners could even be the team roster, which is a roadmap step."*
+**37.** The security council is a `NestedTeam` that includes the auditors, so Alex counts as a member. Its grant is on `orbit-dao.eth`, in the **.eth registry**, and the registry depth is 2, so it flows two folders down. The check reads grants from the **orbit-dao.eth org registry** (level 1: core-devs on `protocol`) and the **.eth registry** (level 2: security-council on `orbit-dao`).
+
+**38.** A registry can name any parent it likes, so a claim proves nothing. At each level the ancestor must point back down: its `getSubregistry(label)` must return the child below. If not, that level and everything above it contribute nothing.
+
+**39.** Inheritance only ever **adds** roles, so skipping a team or level that can't supply a missing role can't change the answer; stopping once covered can't either. Checked by a differential fuzz test and a Halmos proof. Views don't use it because `hasRoles` isn't `virtual` in `PermissionedRegistry` and doesn't pass down which role is being asked for — one of our questions to ENS.
+
+**40.** It calls `setDepth(1)` on the cascade registry (needs `ROLE_SET_TEAM`), so the walk stops at `protocol`'s own folder. Only core-devs' grant is reachable, Alex isn't in core-devs, so the edit reverts with `EACUnauthorizedAccountRoles`. Nothing about Alex or the teams changed.
+
+**41.** Owner: 36,971 gas, no outside calls — own roles are checked first and cover the role. Member via one folder: 97,665 (link check, grant read, membership); via two folders and the nested team: 138,289. Measured on Sepolia.
+
+**Bonus.** *"A Safe works, but every action is routed through the Safe and its signer rules, so members stop acting as themselves. With Cascade, each member signs with their own address and EAC's checks see them directly — and a Safe's owners can even be the team roster, through the `SafeTeam` adapter."*
 
 ---
 
-**Scoring:** 30–36: ready to pitch · 24–29: reread sections E–G of [`study-guide.md`](study-guide.md) · under 24: start with the prerequisites and [`contracts-explained.md`](contracts-explained.md).
+**Scoring:** 34–41: ready to pitch · 27–33: reread the mechanism sections of [`study-guide.md`](study-guide.md) and [`architecture.md` §7](architecture.md) · under 24: start with the prerequisites and [`contracts-explained.md`](contracts-explained.md).

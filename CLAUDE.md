@@ -1,6 +1,6 @@
 # ENS Drive (powered by Cascade) — working notes for Claude
 
-A one-hop EAC fallthrough for ENSv2 subnames: `CascadeSubregistry` overrides EAC's `_getRoles` hook so that, on any subname, an account also holds the regular roles the parent grants a team contract — if the account is a member of that team. Built at ETHGlobal Tokyo 2026 (Sept 25–27): pitched twice to the ENS team, now being submitted to the ENS track (Best Use of ENSv2) — the draft form copy is [`docs/submission.md`](docs/submission.md). **Naming:** the product is *ENS Drive*; *Cascade* is the permission mechanism — keep `Cascade…` for contracts and code identifiers (they match the Sepolia deployment); use "ENS Drive" in user-facing product text.
+Team-based permission inheritance for ENSv2 subnames, inside EAC. `CascadeSubregistryV2` (the live demo) overrides `_getRoles` and a lazy `_checkRoles` so that, on any subname, an account also holds the regular roles that registries up to 3 folders above grant any of its teams (up to 4, teams of teams allowed) — each level counted only if it points back down. `CascadeSubregistry` (v1) is the one-hop, one-team original. Built at ETHGlobal Tokyo 2026 (Sept 25–27): pitched three times to the ENS team, submitted to the ENS track (Best Use of ENSv2) — the form copy, kept current, is [`docs/submission.md`](docs/submission.md). **Naming:** the product is *ENS Drive*; *Cascade* is the permission mechanism — keep `Cascade…` for contracts and code identifiers (they match the Sepolia deployment); use "ENS Drive" in user-facing product text.
 
 Read [`docs/plan.md`](docs/plan.md) first — it opens with a status table.
 
@@ -22,7 +22,7 @@ export PATH="$HOME/.foundry/bin:$PATH"
 ## Commands
 
 ```bash
-forge build && npm test                            # 17 unit + 5 fuzz + 5 invariants (local EVM, ~8 s)
+forge build && npm test                            # 71 tests: v1 + v2 unit, fuzz, invariants, gaps, gas; 2 fork tests skip offline
 anvil --fork-url https://ethereum-sepolia-rpc.publicnode.com   # fork for rehearsal
 npm run setup -- --rpc http://127.0.0.1:8545       # rehearse wiring on the fork (writes deployments/fork.json)
 npm run setup                                      # Sepolia, simulate only
@@ -35,9 +35,9 @@ npm run gen                                        # regenerate core/cascade/gen
 npm run ui                                         # Next.js UI on :3000 (Sepolia); NEXT_PUBLIC_RPC_URL + CASCADE_RPC_URL=http://127.0.0.1:8545 for a fork
 npm run ui:build                                   # production build (type-checks the UI)
 npm run setup:v2 -- --write [--tree orbit|acme]     # deploy/wire a CascadeSubregistryV2 tree (idempotent). orbit (default): orbit-dao.eth, book deployments/sepolia-orbit.json — the demo; acme: acme-labs.eth, book deployments/sepolia-v2.json — the earlier tree
-npm run smoke:v2                                   # roadmap branch: live check of many teams, nested team, multi-hop, fast path (cleans up after itself)
-npm run test:fork                                  # roadmap branch: HatsTeam / SafeTeam against the real Hats v1 and Safe 1.4.1 on a Sepolia fork (network; skipped in npm test)
-npm run prove                                      # roadmap branch: Halmos symbolic proofs (pip install halmos; tested 0.3.3). Halmos needs `forge build --ast`: without the AST it silently skips contracts
+npm run smoke:v2                                   # live check of many teams, nested team, multi-hop, fast path (cleans up after itself)
+npm run test:fork                                  # HatsTeam / SafeTeam against the real Hats v1 and Safe 1.4.1 on a Sepolia fork (network; skipped in npm test)
+npm run prove                                      # Halmos symbolic proofs (pip install halmos; tested 0.3.3). Halmos needs `forge build --ast`: without the AST it silently skips contracts
 npm run ui:start                                   # serve the production build (read-only unless CASCADE_UI_WRITES=1)
 ```
 
@@ -47,7 +47,7 @@ npm run ui:start                                   # serve the production build 
 - Never print private keys. Derive addresses with `cast wallet address $KEY`.
 - The UI's server reads the same root `.env` (`web/lib/cascade/server.ts`); keys never go to the browser. Writes are enabled only under `next dev` or with `CASCADE_UI_WRITES=1` — do not deploy with writes on.
 - UI env: `NEXT_PUBLIC_RPC_URL` (browser reads), `CASCADE_RPC_URL` (server signing). Both default to Sepolia publicnode.
-- Hosted demo: https://ens-drive.vercel.app (Vercel project `ens-drive`, deployed from `main` with `npx vercel deploy --prod`). **Full demo with writes**, but signed by dedicated keys in `.env.hosted` (gitignored, never print or upload the file): hosted operator `0x0408826423AAFCEB93b3832c8847ED1225dBBD47` holds only `ROLE_REGISTRAR` on CascadeSubregistry root and `ROLE_MEMBER_ADMIN` on TeamRegistry root, funded by `npm run setup:hosted -- --write`; hosted outsider `0x76961ACBe3867400721C84434227a9e2EcaaE673`. Never put the main operator key on Vercel. Rate limits in `web/lib/cascade/ratelimit.ts`; `cast` for traces comes from `scripts/fetch-cast.sh` at build time. `.vercelignore` patterns must be anchored (`/lib/`) — an unanchored `lib/` also dropped `web/lib` and broke the first deploy.
+- Hosted demo: https://ens-drive.vercel.app (Vercel project `ens-drive`, deployed from `main` with `npx vercel deploy --prod`). **Full demo with writes**, but signed by dedicated keys in `.env.hosted` (gitignored, never print or upload the file): hosted operator `0x0408826423AAFCEB93b3832c8847ED1225dBBD47` holds only what the buttons need — `ROLE_REGISTRAR` on the cascade registries' roots, `ROLE_SET_TEAM` on the v2 roots (the depth switch), `ROLE_MEMBER_ADMIN` on the teams (v1, acme-v2 and orbit-v2 trees) — funded by `npm run setup:hosted -- --write`; hosted outsider `0x76961ACBe3867400721C84434227a9e2EcaaE673`. Never put the main operator key on Vercel. Rate limits in `web/lib/cascade/ratelimit.ts`; `cast` for traces comes from `scripts/fetch-cast.sh` at build time. `.vercelignore` patterns must be anchored (`/lib/`) — an unanchored `lib/` also dropped `web/lib` and broke the first deploy.
 
 ## Live (Sepolia, ENSv2 beta deployment)
 
@@ -90,10 +90,10 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 ## Layout
 
 ```
-contracts/src/       CascadeSubregistry, TeamRegistry, ITeam (deployed); CascadeSubregistryV2 (roadmap 1+3: many teams, multi-hop — not deployed)
-contracts/src/teams/ NestedTeam (roadmap 2, live on Sepolia as `security`), HatsTeam + SafeTeam (roadmap 4) — adapters not deployed
-core/cascade/v2.ts   roadmap names/roles; generated-v2.ts (ABIs + v2 addresses) written by `npm run gen` from deployments/sepolia-v2.json
-web/components/drive/DriveDemoV2.tsx  the home page's cascade drive on CascadeSubregistryV2 (orbit-dao.eth › protocol, core-devs + security-council ⊃ auditors, cascade switch = setDepth, optimistic drag); state/actions via lib/cascade/v2hooks.ts → app/api/v2/{state,action} (lib/cascade/v2server.ts) — local-only writes, main .env keys. main keeps the v1 drive (DriveDemo.tsx).
+contracts/src/       CascadeSubregistry, TeamRegistry, ITeam (deployed); CascadeSubregistryV2 (many teams, multi-hop, lazy check — live on Sepolia, the demo)
+contracts/src/teams/ NestedTeam (live on Sepolia as security-council), HatsTeam + SafeTeam (roadmap 4) — adapters not deployed
+core/cascade/v2.ts   roadmap names/roles; generated-v2.ts (ABIs + v2 addresses) written by `npm run gen` from the book `CASCADE_TREE` selects (default orbit: deployments/sepolia-orbit.json)
+web/components/drive/DriveDemoV2.tsx  the home page's cascade drive on CascadeSubregistryV2 (orbit-dao.eth › protocol, core-devs + security-council ⊃ auditors, cascade switch = setDepth, optimistic drag); state/actions via lib/cascade/v2hooks.ts → app/api/v2/{state,action} (lib/cascade/v2server.ts) — signs on the server (main `.env` keys locally, `.env.hosted` keys on Vercel). The One folder tab is the v1 drive (DriveDemo.tsx). After each action, components/simple/TraceToast.tsx shows the "On-chain, just now" card.
 contracts/src/demo/  AlwaysTrueTeam — the attacker's contract for demo step 6 (fixture, not product)
 contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer; CascadeV2.t.sol — v2 + team contracts: unit tests, hostile-ancestor fuzz, gas bounds, and an invariant over teams × levels; CascadeInvariant.t.sol — the step-0 rule as 5 invariants (random action sequences via a Handler) + 5 fuzz tests (arbitrary team/parent return data, arbitrary role bitmaps)
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)
@@ -107,8 +107,8 @@ lib/               contracts-v2@48b3e2d, openzeppelin-contracts, forge-std (subm
 
 ## Status
 
-**The home page demo is the cascade (v2)** — `roadmap/full-rebac` merged into `main` on 2026-09-27. Both versions are live on Sepolia and in the UI: the **Cascade** tab (`CascadeSubregistryV2` on `acme-labs.eth`, default) and the **One folder** tab (`CascadeSubregistry` v1 on `acme-corp.eth`, what was first submitted). The hosted site signs with dedicated least-privilege keys (v1 and v2 roles, see `scripts/setup-hosted.ts`), rate-limited, with a capped budget.
+**The home page demo is the cascade (v2)** — `roadmap/full-rebac` merged into `main` on 2026-09-27. Both versions are live on Sepolia and in the UI: the **Cascade** tab (`CascadeSubregistryV2` on `orbit-dao.eth`, default) and the **One folder** tab (`CascadeSubregistry` v1 on `acme-corp.eth`, what was first submitted). The hosted site (https://ens-drive.vercel.app) signs with dedicated least-privilege keys (v1, acme-v2 and orbit-v2 roles, see `scripts/setup-hosted.ts`), rate-limited, with a capped budget.
 
 Tests: 71 Foundry tests (17 v1 unit, 5 v1 fuzz, v1 invariants, 18 v2 unit, 9 team, v2 lazy-check fuzz, v2 invariants, pitch-3 gap tests incl. a v1/v2 equivalence invariant, a gas benchmark, 2 opt-in fork tests) + 3 Halmos proofs; live smoke runs on Sepolia; the cascade drive driven end to end in a browser (DevTools-protocol script, real clicks and drags) on a fork. Not audited.
 
-Submission: first draft submitted (ENS track); video still to record (`docs/demo-video.md`); repo private until the user says otherwise; the submitted text describes the one-folder MVP — `docs/submission.md` has updated copy for the cascade. ENS pitch-3 follow-ups in `docs/feedback/ens-pitch-3.md`.
+Submission: first draft submitted (ENS track); video still to record (`docs/demo-video.md`); repo private until the user says otherwise; the submitted text (commit `fdff719`) describes the one-folder MVP — `docs/submission.md` is updated to the current state, ready to re-paste. Docs were all refreshed on 2026-09-27; `docs/pitch-script.md` is superseded by `docs/pitch-finalist.md`. ENS pitch-3 follow-ups in `docs/feedback/ens-pitch-3.md`.

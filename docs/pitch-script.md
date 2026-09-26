@@ -1,5 +1,7 @@
 # ENS Drive — pitch script for the ENS team
 
+> **Superseded.** This is the script used for the first ENS-team pitches, on the one-folder version (`devops.acme-corp.eth`, now the live site's **One folder** tab). The live demo now opens on the cascade (`orbit-dao.eth`, Alex, core-devs and security-council ⊃ auditors); its video and live scripts are in [`pitch-finalist.md`](pitch-finalist.md). Kept for the record and for anyone demoing the One folder tab.
+
 > **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 About **7 minutes of talking**, then questions. Stage directions are in **[brackets]**; everything else is spoken. The demo sends up to 7 Sepolia transactions (~12 s each) — the lines marked *while it confirms* fill those waits.

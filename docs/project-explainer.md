@@ -1,8 +1,10 @@
 # ENS Drive — the whole project, explained
 
-> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` / `CascadeSubregistryV2` contracts and the ReBAC rule they implement. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 A complete technical walkthrough of Cascade for pitching it to the ENS team: the ENS concepts it builds on, the gap it fills, how the mechanism works line by line, what is deployed, how it is proven, and where it goes next. Each section ends with a line you can use when pitching.
+
+**Two versions, both live on Sepolia.** The mechanism is explained on the first, one-folder version (`CascadeSubregistry` on `devops.acme-corp.eth`), because it's the rule in its simplest form; the live demo's default is the cascade version (`CascadeSubregistryV2` on `protocol.orbit-dao.eth`, a fictional DAO), covered in §4 "The cascade", §6 and §8.
 
 ---
 
@@ -66,7 +68,7 @@ EAC documents `_getRoles` as *the* place to add role logic at read time. The sto
 
 They are separate systems. Cascade works in the **registry** world.
 
-**What "access" means in ENS Drive:** the team inherits **registry roles on the subname's entry** — `SET_SUBREGISTRY` (where the name's children live; "Edit as outsider" is `setSubregistry`), and on the roadmap branch also `SET_RESOLVER` (which resolver the name uses). It does **not** grant text-record or address-record rights; per-record rights in a resolver are a separate mechanism on the roadmap. (A member who can set the resolver can point the name at a resolver they control — coarse control of records, not per-record rights.)
+**What "access" means in ENS Drive:** the team inherits **registry roles on the subname's entry** — `SET_SUBREGISTRY` (where the name's children live; "Edit as outsider" is `setSubregistry`), and in the cascade demo also `SET_RESOLVER` for the security council (which resolver the name uses). It does **not** grant text-record or address-record rights; per-record rights in a resolver are a separate mechanism on the roadmap. (A member who can set the resolver can point the name at a resolver they control — coarse control of records, not per-record rights.)
 
 > **Pitch line:** "EAC is role-based access. It answers exactly one question: is this address listed with this role on this name?"
 
@@ -178,12 +180,29 @@ Instead it **names its candidate** (`team`) and checks the parent's grant to tha
 
 ---
 
+### The cascade (the live demo)
+
+`CascadeSubregistryV2` applies the same rule along the name tree:
+
+> An account's roles on any subname = **its own EAC grants** ∪, for each of the registry's teams (up to 4) that the account is a member of, **the roles each folder above grants that team**, up to `depth` (1–3) folders up.
+
+- **Each level proves the link.** The folder above is found with stock `getParent`, and it counts only if its `getSubregistry(label)` points back down.
+- **Teams of teams.** A `NestedTeam` counts members of its sub-teams (up to 4, 3 levels). Hats and Safe adapters fit the same `isMember` interface.
+- **A lazy write check.** Own roles first (owners pay nothing extra), then one folder at a time, asking a team about membership only if its grant covers a missing role, stopping when covered. Views compute the full union; the two always agree because inheritance only adds.
+
+In the demo: `orbit-dao.eth` is shared with the security council (which includes the auditors) for edit and set resolver; its folder `protocol` with core-devs for edit; `protocol` holds `vault`, `oracle` and `bridge`. Alex (`alex.orbit-dao.eth`) can edit all three through either team, and loses the security council's path when "sharing flows into subfolders" is turned off (`setDepth(1)`).
+
+> **Pitch line:** "Share a folder with a team, and everything below follows — through folders inside folders and teams inside teams."
+
+---
+
 ## 5. What changes, named rather than hidden
 
 - **`hasRoles()` and `roles()` include inherited roles**, just as they already include approved operators. That keeps views in agreement with writes.
 - **Inherited roles emit no events.** Indexers must call `hasRoles()` rather than rebuild roles from logs.
-- **Every write costs about 2,300 extra gas, native owners included**, because every lookup on a subname can make two external calls (73,069 vs 75,382 gas, measured locally).
-- **One new root role (`ROLE_SET_TEAM`) and the pointer.**
+- **v1: every write costs about 2,300 extra gas, native owners included**, because every lookup on a subname can make two external calls (73,069 vs 75,382 gas, measured locally). **v2: owners pay nothing extra** (own roles first); a member's write via one level costs 97,665 on Sepolia, via two levels and the nested team 138,289.
+- **Views pay the full lookup** in v2: `hasRoles` isn't virtual, so it can't use the lazy check.
+- **One new root role (`ROLE_SET_TEAM`)** and the pointer (v1) or the teams list and depth (v2).
 - **A latent power:** the team contract itself holds `SET_SUBREGISTRY` on `devops`. `TeamRegistry` has no function that could use it, which is why team contracts should be narrow.
 
 ---
@@ -198,6 +217,22 @@ Instead it **names its candidate** (`team`) and checks the parent's grant to tha
 TeamRegistry    0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb  (granted SET_SUBREGISTRY on devops by the org registry)
 AlwaysTrueTeam  0xaa735fc88e25f7d846010469ee75f287c8ec20c1  (attacker fixture)
 ```
+
+The cascade demo (book `deployments/sepolia-orbit.json`):
+
+```
+.eth registry (ENS beta)                 grants security-council SET_SUBREGISTRY + SET_RESOLVER on orbit-dao
+ └─ orbit-dao.eth        → org registry: stock PermissionedRegistry   0x6e1d2249483700697eb92f959f629fc2ebd6fc48
+     ├─ protocol         → CascadeSubregistryV2 (depth 2)             0x7aa120442ccb9df297d81cd88975e4d9b129d0a3
+     │   └─ vault, oracle, bridge
+     ├─ alex             (hosted demo account)
+     └─ alex-dev         (local demo account)
+core-devs         TeamRegistry  0x170943bc913b250cb16d3e2720d0d4852e91adb0  (granted SET_SUBREGISTRY on protocol)
+security-council  NestedTeam    0xce0bdedf8d6afb19c395f0d242395f62f975acfa  (⊃ auditors)
+auditors          TeamRegistry  0x63941f63430acb4af79c33d2eb5d6815683b9b62
+```
+
+`npm run setup:v2 -- --write` deploys and wires it (idempotent); an earlier cascade tree, `acme-labs.eth`, is still live. Every transaction: [`roadmap-v2.md`](roadmap-v2.md).
 
 ### Setup
 
@@ -224,7 +259,9 @@ The first version overrode `_checkRoles`. It was replaced by the `_getRoles` ver
 
 ## 7. How it is proven
 
-### 17 unit tests, 5 fuzz tests, 5 invariants
+### 71 Foundry tests and 3 Halmos proofs
+
+Across the suites: 17 v1 unit tests, v1 fuzz and invariants, 18 v2 unit tests, 9 team tests, the lazy-check differential fuzz, v2 invariants, the gap tests the ENS team asked about (approvals, expiry, the 15-member cap, a v1/v2 equivalence invariant), a gas benchmark, and 2 opt-in fork tests against the real Hats and Safe. The Halmos proofs cover, for all inputs: v1's rule, v2's lazy check agreeing with the full union, and a broken link contributing nothing. The v1 suites in detail:
 
 The invariant suite (`CascadeInvariant.t.sol`) drives random sequences of real actions — joining and leaving, parent grants and revokes, re-issuing `devops`, swapping to hostile teams, creating subnames, outsiders attempting writes, grants, registrations and team swaps — and after every step checks that each account's roles equal *native ∪ (parent grant & regular bits, if a member)*, that stored roles never change, that no admin or root role is ever inherited, and that views agree with writes. The fuzz tests feed arbitrary return data from the team and the parent, and arbitrary role bitmaps. The unit tests cover:
 
@@ -246,12 +283,13 @@ The invariant suite (`CascadeInvariant.t.sol`) drives random sequences of real a
 
 - **The 8-step terminal demo on Sepolia:** every outcome as expected, every transaction on Etherscan.
 - **An earlier web UI version:** clicked through on live Sepolia.
-- **The current shared-drive UI:** clicked through on a **Sepolia fork** (all seven actions, every trace decoded); on live Sepolia, the Reset action and its trace replay were run. Do one full live run-through before presenting.
+- **The cascade on Sepolia:** `npm run smoke:v2` (join, level-1 write, level-2 write through the nested team, owner write, leave), transactions in `roadmap-v2.md`.
+- **The web UI:** driven end to end on a Sepolia fork; on the live site (https://ens-drive.vercel.app), join, move, the cascade switch, the attack and Start over checked after each deploy. Do one full live run-through before presenting.
 
 ### Gas on Sepolia
 
-- Write allowed through the team: **91,946**.
-- Write denied after the full check: **69,921**.
+- v1, write allowed through the team: **91,946**; denied after the full check: **69,921**.
+- v2, member write via level 1: **97,665**; via level 2 and the nested team: **138,289**; owner write: **36,971**.
 
 ---
 
@@ -274,42 +312,41 @@ Holds the addresses, the ABIs (generated from the Foundry build), the **three-ch
 
 ### Web UI (Next.js + wagmi): ENS Drive
 
-A deliberately simple page in three parts — the problem, try it, under the hood — with everything else in a collapsed "More detail".
+Live at https://ens-drive.vercel.app. A deliberately simple page: the hero, the problem ("In ENS today / With ENS Drive"), **Try it**, **Behind the scenes**, **Under the hood**, and a collapsed **More detail** (why not root grants, how it fits, limits, transaction history).
 
-**The shared-drive demo**
+**Try it — the Cascade tab (default)**
 
-- **The mapping.** The `devops` folder is `devops.acme-corp.eth` (a name with its own registry); files are its subnames; the `devops-team` group is `TeamRegistry`; "Can edit" is the `SET_SUBREGISTRY` role; "Edit as outsider" is a real `setSubregistry` write.
-- **Share dialog.** The folder's "Shared with devops-team · Can edit" pill opens a read-only share dialog driven by the parent's live grant.
-- **Group and People.** Drag the outsider between them (or use the text button) to grant or revoke `MEMBER` on `TeamRegistry`. The chip's position comes from the live `isMember` read; a dashed placeholder waits while the transaction confirms.
-- **Who has access.** For the selected file: Admin (owner), devops-team (can edit, from the folder), and the outsider — "Can edit · via devops-team" or "No access". Underneath, in ENS terms, *given directly* (`nativeRoles()`, never changes) next to *via the group* (inherited). This is the visual proof that Cascade adds to EAC without writing into it.
-- **Folders tree.** `acme-corp.eth › devops`, with the parent-folder cascade marked "Next — not built yet".
-- **Attack.** "As the outsider, change who the folder is shared with" sends `setTeam` and is refused on-chain.
-- **Start over.** Removes the outsider from the group if a previous run left them in.
+- **The mapping.** Folders are names with their own registries (`orbit-dao.eth`, `protocol`); files are `protocol`'s subnames (`vault`, `oracle`, `bridge`); groups are team contracts (core-devs, security-council ⊃ auditors); "Can edit" is `SET_SUBREGISTRY`, "Set resolver" is `SET_RESOLVER`; every edit is a real write by Alex (`alex.orbit-dao.eth`).
+- **The guide.** A one-line setup ("orbit-dao.eth is shared with the security council, protocol with core-devs") and 8 steps from the DAO lead's side: Alex is refused; dragged into core-devs; edits; moved into the auditors; still edits; sharing into subfolders off; refused; on again.
+- **Optimistic drag.** Alex's chip moves the moment it's dropped, marked as joining, while the transaction confirms; the three files flip to "can edit" only once the receipt and a fresh read confirm it.
+- **Off the main path.** The security council's extra "set resolver", + New file, the attack (Alex tries `addTeam(AlwaysTrueTeam)`, refused), Start over.
 
-**Behind the scenes**
+**Try it — the One folder tab.** The first version on `devops.acme-corp.eth`: the `devops-team` group, a Share dialog driven by the parent's live grant, "Who has access" with *given directly* (`nativeRoles()`) next to *via the group*, and the attack on the team pointer (`setTeam`, refused).
 
-After each action, the server replays the mined transaction with Foundry's `cast run` and the page shows the EVM's own call tree — the calls, gas, return values, events and reverts — decoded into names by context, with a plain-language note per call. Internal steps (`_checkRoles` → Cascade's `_getRoles`) are shown separately, labelled as from the contract source, because the EVM doesn't record internal functions. If the full replay fails on the free RPC, it falls back to `cast run --quick`, labelled as such. Traces only work for fresh transactions.
+**After each action**
+
+The result bar shows the block, the time it took and an Etherscan link. A small **"On-chain, just now"** card appears bottom-right with each contract call in plain words ("Does this folder really contain the next one?", "Is this person in core-devs?") and whether ENS's own check allowed or refused it. **Behind the scenes** shows the full call tree: the server replays the mined transaction with Foundry's `cast run` — calls, gas, return values, events and reverts, decoded into names by context. Internal steps are labelled as from the contract source, because the EVM doesn't record internal functions. If the full replay fails on the free RPC, it falls back to `cast run --quick`, labelled as such. Traces only work for fresh transactions.
 
 **Reads and writes**
 
-- **The browser reads the chain directly** and waits for every receipt itself. Nothing is shown as landed before it has.
-- **The two demo keys sign on the app's server** and never reach the browser.
-- **Transactions (and traces) only run locally.** A public server would let anyone spend the operator's ETH.
+- **State is read live** from the contracts every few seconds; nothing is shown as landed before its receipt.
+- **The keys sign on the app's server** and never reach the browser.
+- **Locally** (`npm run ui`), the main demo keys sign. **The hosted site** signs with dedicated least-privilege keys (`npm run setup:hosted`): only the roles the buttons need, a fixed test-ETH budget, per-visitor rate limits, a balance guard, one transaction at a time, and traces only for the demo's own transactions.
 - **Light theme by default**, with a toggle.
 
 ---
 
 ## 9. Scope and roadmap
 
-### MVP (live)
+### Step 0: the MVP (live)
 
-**One hop, one team per registry**, chosen deliberately to test the rule inside EAC.
+**One hop, one team per registry**, chosen deliberately to test the rule inside EAC. The One folder tab.
 
-### Next — built on the `roadmap/full-rebac` branch, not in the demo
+### Steps 1–4: built (the cascade)
 
-Steps 1–3 are live on Sepolia on a separate tree (`acme-labs.eth`); step 4's adapters are tested with mocks only. Try them in the local UI on this branch (`npm run ui`): the home page's drive runs on v2. Detail: [`roadmap-v2.md`](roadmap-v2.md).
+Steps 1–3 are live on Sepolia and are the live demo's default tab (`orbit-dao.eth`); step 4's adapters are tested with mocks and on a fork against the real Hats v1 and Safe 1.4.1, not deployed. After the third ENS pitch: the lazy write check (member gas −41% at level 1), the gap tests and the Halmos proofs. Detail: [`roadmap-v2.md`](roadmap-v2.md), [`feedback/ens-pitch-3.md`](feedback/ens-pitch-3.md).
 
-1. **Many teams per role.** Devops can edit, security can revoke.
+1. **Many teams per role.** core-devs edits `protocol`, the security council also sets resolvers.
 2. **Teams of teams.** Nested groups, bounded in depth and gas.
 3. **Multi-hop names.** Inheritance up the name tree, with a hard depth cap.
 4. **Bring your own roster.** A Hats role or a Safe's owners behind `isMember()`, after checking it fits the gas cap.

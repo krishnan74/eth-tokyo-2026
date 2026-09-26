@@ -1,6 +1,8 @@
 # Roadmap v2 — many teams, teams of teams, multi-hop names
 
 > Built on branch `roadmap/full-rebac`, merged into `main` on 2026-09-27: the **Cascade** tab of the home page (and https://ens-drive.vercel.app) runs this; the **One folder** tab still runs v1 on `acme-corp.eth`. The two use separate name trees and contracts — no v2 transaction touches a v1 contract, name or grant.
+>
+> **Two v2 trees.** v2 was first deployed and measured on `acme-labs.eth › platform` (§3, §5, §6 — kept as the record). The live demo now runs on its own tree, the fictional DAO **`orbit-dao.eth › protocol`** (§9): same contract, same rule, fresh deployment with the lazy check.
 
 What roadmap steps 1–4 add, how they keep the MVP's guarantees, where they are deployed, and how to try them in the browser. Design reasoning is in [`decisions.md`](decisions.md) (12–17); the build story in [`build-log.md`](build-log.md).
 
@@ -39,7 +41,9 @@ Still true, exactly as in v1: the logic lives in the `_getRoles` hook, so views 
 | **Lazy, role-aware write check** in `_checkRoles` (after ENS's pitch-3 suggestion) | `_getRoles` isn't told which role is being checked, so it computes everything; `_checkRoles` is told. Writes now evaluate lazily: the caller's stored roles first (owners pay no lookup), then one level at a time; a team is asked about membership only when its grants so far include a still-missing role; a known non-member's grants aren't read again; evaluation stops as soon as the requested roles are covered. Same yes/no as the full union (inheritance only adds) — proven by a differential fuzz test. `hasRoles` isn't `virtual` in `PermissionedRegistry`, so views still compute the full union. |
 | `explain()` reports which team and level supplied a role; `ancestry()` returns the verified path | For the UI and for debugging. |
 
-## 3. Contracts
+## 3. Contracts (the first v2 tree, `acme-labs.eth`)
+
+The demo's tree is in [§9](#9-the-demo-tree-orbit-daoeth); this is where v2 was first deployed, measured and redeployed with the lazy check.
 
 | Contract | File | Address (Sepolia) |
 |---|---|---|
@@ -64,12 +68,12 @@ The tree and its grants:
 ## 4. Try it
 
 ```bash
-npm run setup:v2               # simulate; --write to send (idempotent; book: deployments/sepolia-v2.json)
-npm run smoke:v2               # terminal check of every step; cleans up after itself
-npm run ui                     # on this branch, the home page's drive runs on v2: http://localhost:3000
+npm run setup:v2               # simulate; --write to send (idempotent). --tree orbit (default; book deployments/sepolia-orbit.json) or --tree acme (deployments/sepolia-v2.json)
+npm run smoke:v2               # terminal check of every step on the orbit tree; cleans up after itself
+npm run ui                     # http://localhost:3000 — the Cascade tab runs on v2
 ```
 
-**The home page's Cascade tab** (hosted at https://ens-drive.vercel.app with the dedicated demo keys, or `npm run ui` locally with the `.env` keys, which own the v2 tree): two folder levels, `acme-labs.eth` shared with **security** and `platform` shared with **dev-team** — both **"can edit"** (`SET_SUBREGISTRY`; security also has `SET_RESOLVER`). The main path is one verb, eight guided steps: refused → drag into dev-team → edit works (via platform) → drag from dev-team into **sre** (inside security) → edit works (via acme-labs.eth, one folder up) → switch "Sharing flows into subfolders" off (`setDepth(1)`) → refused → on again. One step off the main path, nothing removed: "each group gets its own permissions" (set resolver as outsider), + New file, the attack (outsider `addTeam(AlwaysTrueTeam)`, refused), Start over, and the live `cast run` trace — the result bar shows the call chain in one line (link check → `getParent` → link check → grants → dev-team, then security → sre).
+**The home page's Cascade tab** (hosted at https://ens-drive.vercel.app with the dedicated demo keys, or `npm run ui` locally with the `.env` keys, which own the tree): two folder levels, `orbit-dao.eth` shared with the **security-council** (a `NestedTeam` that includes the **auditors**) and `protocol` shared with **core-devs** — both **"can edit"** (`SET_SUBREGISTRY`; the security council also has `SET_RESOLVER`). Three contract names in `protocol`: `vault`, `oracle`, `bridge`. The main path is one verb, eight guided steps from the DAO lead's side, with a one-line setup above them: Alex (`alex.orbit-dao.eth`) is refused → dragged into core-devs (the chip moves at once, marked as joining, while the transaction confirms) → all three files editable (via protocol) → moved into the **auditors** → still editable (via orbit-dao.eth, one folder up) → switch "Sharing flows into subfolders" off (`setDepth(1)`) → refused → on again. One step off the main path, nothing removed: the security council's extra "set resolver", + New file, the attack (Alex `addTeam(AlwaysTrueTeam)`, refused), Start over. After each action an "On-chain, just now" card lists the contract calls in plain words, and Behind the scenes shows the live `cast run` trace.
 
 ## 5. Evidence (Sepolia)
 
@@ -184,7 +188,7 @@ Scope of the proofs: the shapes above (bounded loops, mocked neighbours), not th
 
 ## 9. The demo tree: orbit-dao.eth
 
-The Cascade tab now runs on its own tree, `npm run setup:v2 -- --write --tree orbit` — a fictional DAO, so the story reads the way web3 judges know it: `orbit-dao.eth` (security-council, which includes the auditors, can edit and set resolvers) › `protocol` (core-devs can edit) › `vault`, `oracle`, `bridge`. Same contracts, same rule, fresh deployment; the `acme-labs.eth` tree above is untouched. Members have their own names in the DAO: `alex.orbit-dao.eth` (the hosted demo's account) and `alex-dev.orbit-dao.eth` (the local one) — ordinary subnames owned by those accounts, which the UI checks on-chain before showing.
+The Cascade tab now runs on its own tree, `npm run setup:v2 -- --write --tree orbit` — a fictional DAO, so the story reads the way web3 judges know it: `orbit-dao.eth` (security-council, which includes the auditors, can edit and set resolvers) › `protocol` (core-devs can edit) › `vault`, `oracle`, `bridge`. Same contracts, same rule (with the lazy check from the start), fresh deployment; the `acme-labs.eth` tree above is untouched. `npm run gen` generates the web app's v2 addresses from this book (`CASCADE_TREE`, default orbit). In the book and the API, core-devs and auditors keep their internal keys `devTeam` / `sre`; the names are UI-only. Members have their own names in the DAO: `alex.orbit-dao.eth` (the hosted demo's account) and `alex-dev.orbit-dao.eth` (the local one) — ordinary subnames owned by those accounts, which the UI checks on-chain before showing.
 
 | Contract | Address |
 |---|---|

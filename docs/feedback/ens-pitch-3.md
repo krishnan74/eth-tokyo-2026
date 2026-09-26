@@ -2,6 +2,8 @@
 
 The third pitch to the ENS team, on the roadmap work (`CascadeSubregistryV2`, branch `roadmap/full-rebac`). **Relayed from the presenter's memory after the conversation, not a transcript**; the presenter noted they may have missed parts of the context. The ENS team member framed both suggestions as ideas to discuss, not settled answers: "it might be a solution", but they hadn't thought it through yet. Everything under "what we infer" is our analysis, not theirs.
 
+> **Status (2026-09-27):** built from this pitch — the lazy check (§9 Suggestion A; decision 18), the test gaps and the v1/v2 equivalence invariant, the Hats/Safe fork tests, and the Halmos proofs; the per-transaction memo was ruled out (decision 19). `roadmap/full-rebac` is merged into `main`, and the live demo now runs v2 on `orbit-dao.eth`. The questions in §8 are still open.
+
 ---
 
 ## 1. What was said (as relayed)

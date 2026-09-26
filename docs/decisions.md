@@ -40,7 +40,7 @@
 
 - **Context:** the demo needs two signers (operator, outsider) whose keys must not reach a browser; a viewer's own wallet can't create subnames or grant membership.
 - **Decision:** Next.js route handlers sign with the same `.env` keys as the terminal demo and return tx hashes; the browser reads via wagmi and waits for receipts itself. Writes are enabled only under `next dev` or `CASCADE_UI_WRITES=1`.
-- **Consequences:** a public deployment is read-only by default. Letting a visitor's wallet play the outsider (with server-side operator actions) is a possible later step, not built.
+- **Consequences:** a public deployment is read-only by default (superseded for the hosted copy by decision 20). Letting a visitor's wallet play the outsider (with server-side operator actions) is a possible later step, not built.
 
 ## 8. One shared core for terminal and UI
 
@@ -100,7 +100,7 @@
 
 - **Context:** `HatsTeam` and `SafeTeam` need a real hat or Safe to be meaningful on Sepolia.
 - **Decision:** ship the adapters with tests against mocks (including an over-cap eligibility check); deploy when there is a real roster to point at.
-- **Consequences:** the live v2 tree shows many teams, nesting and multi-hop; the adapters are proven only locally.
+- **Consequences:** the live v2 tree shows many teams, nesting and multi-hop; the adapters are proven only locally. (Later, pitch-3 item 6: also tested on a Sepolia fork against the real Hats v1 and Safe 1.4.1, `npm run test:fork`; still not deployed.)
 
 ## 18. Writes check lazily, aware of the requested role (ENS pitch-3 suggestion)
 
@@ -116,3 +116,21 @@
   2. **It would be unsafe without invalidation.** Transient storage lives for the whole transaction, and a later call in the same transaction can change what was cached — a batch could remove a member from the team and then act as them, and a cached "member" would allow it.
   3. **Little to gain.** ENSv2 registries have no multicall (only resolvers do), so several checks in one transaction happen only through external batching; and within a single check, the lazy evaluation (decision 18) already reads each level and asks each team at most once.
 - **Consequences:** gas work stays in the lazy check. If ENS ever makes the hook non-`view`, a memo would still need invalidation on every membership or grant change — likely not worth it.
+
+## 20. The hosted site sends real transactions, with dedicated keys
+
+- **Context:** the first hosted copy (https://ens-drive.vercel.app) was read-only (decision 7), so visitors couldn't try the demo. The user wanted it to work exactly as local does.
+- **Decision (user):** dedicated least-privilege keys for the hosted server, separate from the main operator: the hosted operator is granted only the roles the buttons need (registrar and `ROLE_SET_TEAM` on the cascade registries, member admin on the teams) and a fixed test-ETH budget (`npm run setup:hosted`). Server-side limits: per-visitor rate limits, a daily cap, a balance guard, one transaction at a time, traces only for the demo's own transactions. Traces use a pinned, checksum-verified `cast` fetched at build time.
+- **Consequences:** every visitor shares one demo account (Alex) and one set of teams; the worst case is the budget spent or the demo state left mid-sequence (Start over fixes it). The main operator's key never leaves the local machine. Wallet connection stays a later step.
+
+## 21. The cascade (v2) becomes the main demo; v1 stays as the second tab
+
+- **Context:** v2 was built on `roadmap/full-rebac` and first shown on its own page. The user wanted it in the home page's demo, simplified, without losing any feature, and the ETHGlobal finalist pitch needed one clear story.
+- **Decision (user):** merge `roadmap/full-rebac` into `main` (2026-09-27). The Try it section has two tabs: **Cascade** (default, v2) and **One folder** (v1, unchanged). The v2 drive is one verb and an 8-step guide; everything else (set resolver, + New file, the attack, Start over) sits one step off the main path. After each action a small "On-chain, just now" card explains the calls in plain words, outside the drive so it doesn't crowd it; More detail keeps why-not-root-grants, how it fits, limits and history (the roadmap and the questions for ENS moved out of the page, into the README and docs).
+- **Consequences:** one page, two live versions, separate name trees; the submitted form text (which described v1) is re-pasteable from [`submission.md`](submission.md).
+
+## 22. The demo runs on a fictional DAO, `orbit-dao.eth`, on its own tree
+
+- **Context:** `acme-labs.eth › platform › svc-api` read as a web2 company; the finalist pitch opens with "Imagine you lead a web3 organization that uses ENS for its names". Real organization names were ruled out.
+- **Decision (user):** a fictional DAO, `orbit-dao.eth › protocol › vault, oracle, bridge`, with core-devs and security-council ⊃ auditors, and a persona, Alex, with their own ENS name (`alex.orbit-dao.eth` hosted, `alex-dev.orbit-dao.eth` local). Built as a fresh tree with its own book (`setup:v2 --tree orbit`, `deployments/sepolia-orbit.json`) so the `acme-labs.eth` tree and its evidence stay untouched. Dragging Alex into a team is optimistic: the chip moves at once, access only shows confirmed state.
+- **Consequences:** two v2 trees on Sepolia; `npm run gen` picks one (`CASCADE_TREE`, default orbit). Internal API and book keys keep the old team names (`dev-team` / `devTeam`, `sre`); the names are UI-only.

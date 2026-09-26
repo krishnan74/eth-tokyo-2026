@@ -2,7 +2,9 @@
 
 Everything here was run on Sepolia against the ENSv2 beta deployment (ETHOnline 2026), not production ENS, and not a simulator unless stated. The latest demo log is [`demo-sepolia-20260926T0032Z.log`](../evidence/demo-sepolia-20260926T0032Z.log); `npm run demo -- --recap` replays it.
 
-## Deployed contracts (current)
+## Deployed contracts — the one-folder version (v1, current)
+
+The live site's default tab runs the cascade (v2); its evidence is in the next section.
 
 | Contract | Address | Source |
 |---|---|---|
@@ -15,9 +17,9 @@ Retired (replaced by `setup --redeploy`; `devops` no longer points at them):
 
 - `CascadeSubregistry` [`0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22`](https://sepolia.etherscan.io/address/0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22), `TeamRegistry` [`0x1a3dc7660515706ceec8409ff179c5fcc2e1b881`](https://sepolia.etherscan.io/address/0x1a3dc7660515706ceec8409ff179c5fcc2e1b881) — retired 2026-09-26
 
-## Roadmap v2 (branch `roadmap/full-rebac`, separate tree `acme-labs.eth`)
+## The cascade (v2) — the live demo
 
-Addresses, setup and smoke transactions, the browser run and gas are in [`roadmap-v2.md`](roadmap-v2.md#5-evidence-sepolia) (generated from `deployments/sepolia-v2.json`). None of it touches the contracts below.
+The demo tree, `orbit-dao.eth › protocol` (book `deployments/sepolia-orbit.json`): addresses, every setup transaction and the smoke run on Sepolia are in [`roadmap-v2.md` §9](roadmap-v2.md#9-the-demo-tree-orbit-daoeth). The first v2 tree, `acme-labs.eth › platform` (book `deployments/sepolia-v2.json`), with both deployments, the browser run and the Sepolia gas before and after the lazy check: [`roadmap-v2.md` §5–6](roadmap-v2.md#5-evidence-sepolia). None of it touches the v1 contracts on this page.
 
 ## Setup transactions
 
@@ -78,8 +80,13 @@ The guided walkthrough was clicked through in headless Chrome against Sepolia: c
 
 - Clicked through on an **anvil fork of Sepolia**: all seven actions as expected, "Who has access" correct after each, every action's `cast run` trace decoded, theme defaults to light, no console errors, no overflow at 400px.
 - On **live Sepolia**, the Reset action removed the outsider left in the group from a pitch run — [`0x24e1f9c4…`](https://sepolia.etherscan.io/tx/0x24e1f9c442a689e317a57546c823a54db03ca42df94aa837e5d8bfc0967c7201) — and its trace was replayed with `cast run` (the full replay failed once on the free RPC; the `--quick` fallback exists for that).
-- Not yet: a full seven-action click-through of the drive UI on live Sepolia.
+- Not yet: a full seven-action click-through of the One folder drive on live Sepolia.
+
+## Hosted site (https://ens-drive.vercel.app, cascade tab)
+
+- Signs with dedicated least-privilege keys (`npm run setup:hosted`), not the main operator's.
+- Checked on the live site after each deploy: Alex joining core-devs flips all three files to editable, the `cast run` trace replays on Vercel with the bundled `cast`, and Start over leaves the tree clean. The cascade drive was also driven end to end (real clicks and drags, DevTools-protocol script) on a Sepolia fork.
 
 ## Tests (local Foundry, not Sepolia)
 
-`forge test` — 17/17 passing. Coverage by audit item is in [`remediation.md`](remediation.md).
+`forge test` — 71 passing (17 v1 unit tests, v1 fuzz and invariants, 18 v2 unit tests, 9 team tests, the lazy-check fuzz, v2 invariants, the gap tests with a v1/v2 equivalence invariant, a gas benchmark, and 2 fork tests that skip offline and run with `npm run test:fork`). `npm run prove` — 3 Halmos proofs pass; a fourth property is marked inconclusive (see [`roadmap-v2.md` §7](roadmap-v2.md#7-tests)). Coverage by audit item is in [`remediation.md`](remediation.md).
