@@ -150,16 +150,53 @@ contract CascadeSubregistryV2 is PermissionedRegistry {
 
     // ── the rule ─────────────────────────────────────────────────────────────
 
-    /// @dev Native-first fast path for writes: if the caller's stored roles (on the name or on root,
-    ///      including stock approved-operator roles) already cover the check, no team or ancestor is
-    ///      consulted. The outcome is identical to the full check, because inheritance only ever adds
-    ///      roles — it just spares native owners the lookups. Views (`hasRoles`, `roles`) are not
-    ///      overridable in PermissionedRegistry and always compute the full answer.
+    /// @dev The write-side check, evaluated lazily and aware of the role being checked (views go
+    ///      through `_getRoles`, which computes the full union). Order: the caller's stored roles first
+    ///      (owners pay no lookup), then one level of the tree at a time; a team is asked about
+    ///      membership only when its grants so far include a still-missing role, a known non-member's
+    ///      grants are not read again, and evaluation stops as soon as every requested role is covered.
+    ///      Because inheritance only ever adds roles, this returns the same yes/no as checking the full
+    ///      union — it just skips paths that can no longer change the answer.
     function _checkRoles(uint256 resource, uint256 roleBitmap, address account) internal view override {
-        if (_nativeRoles(resource, account) & roleBitmap == roleBitmap) return;
-        super._checkRoles(resource, roleBitmap, account);
+        uint256 have = _nativeRoles(resource, account);
+        if (have & roleBitmap == roleBitmap) return;
+        if (resource != ROOT_RESOURCE && _inheritsMissing(roleBitmap & ~have, account)) return;
+        revert EACUnauthorizedAccountRoles(resource, roleBitmap, account);
     }
 
+    /// @dev Whether the teams, level by level, cover every bit of `missing` for `account`.
+    function _inheritsMissing(uint256 missing, address account) internal view returns (bool) {
+        if (missing & ~REGULAR_ROLES != 0) return false; // admin bits are never inherited
+        uint256 n = _teams.length;
+        if (n == 0) return false;
+        uint256[MAX_TEAMS] memory granted; // per team: regular roles granted at the levels walked so far
+        uint8[MAX_TEAMS] memory membership; // per team: 0 not asked yet, 1 member, 2 not a member
+        address child = address(this);
+        IRegistry p = _parentRegistry;
+        string memory label = _childLabel;
+        uint256 d = depth;
+        for (uint256 k; k < d; ++k) {
+            // Same level rules as `_ancestry`: a contract, not this registry, and pointing back down.
+            if (address(p).code.length == 0 || address(p) == address(this) || !_pointsTo(p, label, child)) return false;
+            for (uint256 i; i < n; ++i) {
+                if (membership[i] == 2) continue; // a non-member's grants can't help
+                address t = _teams[i];
+                granted[i] |= _grantAt(p, label, t);
+                if (granted[i] & missing == 0) continue; // nothing this check still needs
+                if (membership[i] == 0) membership[i] = _isMember(t, account) ? 1 : 2;
+                if (membership[i] == 1) {
+                    missing &= ~granted[i];
+                    if (missing == 0) return true;
+                }
+            }
+            if (k + 1 == d) break;
+            bool ok;
+            child = address(p);
+            (ok, p, label) = _parentOf(p);
+            if (!ok) return false;
+        }
+        return false;
+    }
 
     function _getRoles(uint256 resource, address account) internal view override returns (uint256 roleBitmap) {
         roleBitmap = super._getRoles(resource, account);
