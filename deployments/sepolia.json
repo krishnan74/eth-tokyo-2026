@@ -1,0 +1,28 @@
+{
+  "txs": {
+    "deploy PermissionedRegistry": "0x990e4db97364f666b10cfa9de87532c6e49f7d3e911e397c5221288ad5100e93",
+    "deploy CascadeSubregistry": "0xb6a7867148533389e2e8d2265fc591c6a71e0fb414bc66b9ee1411c74116ac1e",
+    "deploy TeamRegistry": "0xd0e190084983d58142c3c6205f82c73e0dfc3ca366bb75663f33b9a01bcdcdab",
+    "usdc approve": "0xc058f9a12d07bc193e5702bedd8f32eca95e9dd9a09a3259fd2de04cb2102395",
+    "commit": "0x513f73812748b05f5433f990cdb26c67b090967b84cfe597a030f076e34e93e9",
+    "register acme-corp.eth": "0x6d0f2e0d67c367655df33da95b4c970c1379b662aacfab8793ceae0625df5eef",
+    "register devops": "0x89c285dc0eb95b65c2a3c95174ff7090679ec1a8edbc10c30ed72d3aadbee56e",
+    "grant team SET_SUBREGISTRY": "0xa0e750b51db3f9ce78d7369a03ee0ceec11d4b624e4a726a31e1dbf4f423e7c8",
+    "setParent": "0x1ccd11ef00549947bf298dbc3f6652a8a9dc01129c853bcdcfd82234bdb17bed",
+    "setTeam": "0x51319eea177045b992a09136073669fbaeb6998475e33ce74ba501ae6e9b3f53",
+    "repoint devops subregistry": "0xbae343c119e2c8e8a73f56a341ec148773505d10c96ebea1c32fbe3fe6dd4b72",
+    "revoke retired team 0x1a3dc7": "0x1a77eb19da6c2a37dc95cce1d4988711c331eb24e50c8255a66178e4f4fc4f08",
+    "deploy AlwaysTrueTeam": "0x1d49ef552a2603fe4f0b7c48b5a1909b73b5b18456ba7f278a04ef2e7d009271"
+  },
+  "parent": "0xa27742aead8ca8baa8ff0a97754ac1736741e126",
+  "retired": [
+    {
+      "cascade": "0xa6e5cf2aa3adaad2cee1d060e4bd4bc64b693b22",
+      "team": "0x1a3dc7660515706ceec8409ff179c5fcc2e1b881",
+      "at": "2026-09-26T00:30:49.704Z"
+    }
+  ],
+  "cascade": "0x2f15c12d21d7561433ddc6f7b856e9f0e4455e13",
+  "team": "0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb",
+  "attacker": "0xaa735fc88e25f7d846010469ee75f287c8ec20c1"
+}
