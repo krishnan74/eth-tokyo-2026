@@ -124,6 +124,8 @@ Items 1–5 are about a day of test work; item 6 is fork tests; items 7–8 are 
 
 **Update 2026-09-27 — items 1–5 closed** on `roadmap/full-rebac` (`contracts/test/CascadeGaps.t.sol`, the widened v2 invariant), run against both v1 and v2; see [`../roadmap-v2.md`](../roadmap-v2.md#7-tests). Two findings worth telling ENS: (a) an operator approved by a name's owner receives only the owner's *stored* roles, never inherited ones — stock `PermissionedRegistry` merges the owner's roles below Cascade's hook; (b) ENSv2 already hides grants on expired names (resource `eacVersionId + 1`), so expiry ends inheritance without any extra check.
 
+**Update 2026-09-27 — item 6 closed:** `contracts/test/RosterFork.t.sol` (`npm run test:fork`) runs `HatsTeam` against the real Hats Protocol v1 and `SafeTeam` against a real Safe 1.4.1 proxy on a Sepolia fork: wearing/renouncing a hat and adding/removing a Safe owner turn access on and off; lookups cost 17,420 and 11,273 gas.
+
 ---
 
 ## 7. A possible misunderstanding from pitch 1 (added 2026-09-27)

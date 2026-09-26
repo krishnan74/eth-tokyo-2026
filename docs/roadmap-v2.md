@@ -49,7 +49,7 @@ Still true, exactly as in v1: the logic lives in the `_getRoles` hook, so views 
 | dev-team (`TeamRegistry`) | `contracts/src/TeamRegistry.sol` | [`0xaa75275e77f89267f28a5bbf2f7f40b920941253`](https://sepolia.etherscan.io/address/0xaa75275e77f89267f28a5bbf2f7f40b920941253) |
 | security (`NestedTeam`, contains sre) | `contracts/src/teams/NestedTeam.sol` | [`0x179aa1bac7758557defe517330147afd55f54134`](https://sepolia.etherscan.io/address/0x179aa1bac7758557defe517330147afd55f54134) |
 | sre (`TeamRegistry`) | `contracts/src/TeamRegistry.sol` | [`0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163`](https://sepolia.etherscan.io/address/0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163) |
-| `HatsTeam`, `SafeTeam` | `contracts/src/teams/` | not deployed — tested with mocks; no real hat or Safe to point at yet |
+| `HatsTeam`, `SafeTeam` | `contracts/src/teams/` | not deployed — tested with mocks and, on a Sepolia fork, against the real Hats Protocol v1 (`0x3bc1…d137`) and Safe 1.4.1 (`npm run test:fork`) |
 
 The tree and its grants:
 
@@ -168,5 +168,5 @@ Unchanged: the worst-case bound (~553k per lookup with 4 looping teams at depth 
 - **Union only.** A subname can't opt out of a grant made above it (Google shared drives behave the same). An opt-out would be a deny rule and would break "inheritance only adds" — deliberately not built.
 - Inherited lookups cost more with every team and level; owners don't pay thanks to the fast path, members do.
 - Views (`hasRoles`, `roles`) always compute the full answer, so on-chain callers of views pay the full lookup.
-- Hats / Safe adapters are not deployed.
+- Hats / Safe adapters are not deployed; they are proven against the real Hats v1 and Safe 1.4.1 on a fork (membership lookups 17,420 and 11,273 gas, well under the 100k cap).
 - Same limits as v1 otherwise: inherited roles emit no events; ENSv2 beta, not audited.
