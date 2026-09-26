@@ -11,7 +11,7 @@
  * (deployments/fork-v2.json on a fork), never to the v1 book. Idempotent, like setup.ts.
  *
  *   .eth registry ── acme-labs ──▶ OrgRegistry v2 (stock) ── platform ──▶ CascadeSubregistryV2 ── svc-api
- *        │ grant: security holds SET_RESOLVER on acme-labs        (level 2)
+ *        │ grant: security holds SET_SUBREGISTRY + SET_RESOLVER on acme-labs   (level 2)
  *        └───────────────── OrgRegistry v2 │ grant: dev-team holds SET_SUBREGISTRY on platform   (level 1)
  *
  *   Teams on CascadeSubregistryV2 (depth 2):
@@ -158,13 +158,16 @@ async function main() {
   if (subs.includes(sre.toLowerCase())) console.log("    sre already a sub-team");
   else await send("security addSubTeam sre", { address: security, abi: nestedAbi, functionName: "addSubTeam", args: [sre] } as never);
 
-  step(6, "grants: dev-team SET_SUBREGISTRY on platform (level 1); security SET_RESOLVER on acme-labs.eth (level 2)");
+  step(6, "grants: dev-team SET_SUBREGISTRY on platform (level 1); security SET_SUBREGISTRY + SET_RESOLVER on acme-labs.eth (level 2)");
   if (await read<boolean>(org, REGISTRY_ABI, "hasRoles", [labelId(FOLDER_V2), ROLE_SET_SUBREGISTRY, devTeam])) console.log("    level-1 grant already there");
   else await send("grant dev-team on platform", { address: org, abi: orgAbi, functionName: "grantRoles",
     args: [labelId(FOLDER_V2), ROLE_SET_SUBREGISTRY, devTeam] } as never);
-  if (await read<boolean>(ENS.ethRegistry, REGISTRY_ABI, "hasRoles", [labelId(ORG_V2), ROLE_SET_RESOLVER, security])) console.log("    level-2 grant already there");
+  // security gets both "can edit" and "can set resolver" on acme-labs.eth: the demo's main path uses the
+  // same verb at both levels (edit), and the resolver right shows that each team gets its own roles.
+  const L2 = ROLE_SET_SUBREGISTRY | ROLE_SET_RESOLVER;
+  if (await read<boolean>(ENS.ethRegistry, REGISTRY_ABI, "hasRoles", [labelId(ORG_V2), L2, security])) console.log("    level-2 grant already there");
   else await send("grant security on acme-labs.eth", { address: ENS.ethRegistry, abi: orgAbi, functionName: "grantRoles",
-    args: [labelId(ORG_V2), ROLE_SET_RESOLVER, security] } as never);
+    args: [labelId(ORG_V2), L2, security] } as never);
 
   step(7, `a file to act on: ${FILE_V2}.${FOLDER_V2}.${ORG_V2}.eth`);
   const fileSub = await read<bigint>(cascade, v2Abi, "getExpiry", [labelId(FILE_V2)]);
