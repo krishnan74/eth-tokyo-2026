@@ -1,6 +1,6 @@
-# Submission form copy — ENS Drive (first draft)
+# Submission form copy — ENS Drive
 
-Draft here, paste into the ETHGlobal form. **Field limits below are marked "confirm"** — check each against the live form before pasting; the ENS track text is quoted from the Tokyo 2026 prize page.
+What was entered in the ETHGlobal form, kept here so it can be updated and re-pasted. **Submitted on 2026-09-26 except the demo video.** The ENS track text is quoted from the Tokyo 2026 prize page.
 
 Every claim here is backed by [`evidence.md`](evidence.md), the tests, or a Sepolia transaction. Where something only ran on a local fork, it says so.
 
@@ -10,11 +10,11 @@ Every claim here is backed by [`evidence.md`](evidence.md), the tests, or a Sepo
 
 ENS Drive
 
-## Tagline / short description (limit: confirm — this draft is 95 characters)
+## Tagline / short description (95 characters)
 
 Google Drive–style sharing for ENS names: share with a team, not each subname with each person.
 
-## Description (limit: confirm)
+## Description
 
 ENSv2 already built the directory tree: every name can have its own registry, so names nest like folders (`acme-corp.eth › devops › svc-api`). What's missing is the sharing layer. ENSv2's Enhanced Access Control (EAC) grants permissions one address on one name, so there is no way to say "everyone on the devops team may manage every name under devops — including the ones we create tomorrow." Today a team either copies every member onto every name and registry, or routes every action through a shared contract such as a Safe, where members stop acting as themselves.
 
@@ -24,7 +24,7 @@ The demo is a minimal shared-drive view on real ENSv2 beta contracts on Sepolia.
 
 What is live: the contracts and every demo action run on the ENSv2 beta on Sepolia, with transactions on Etherscan. What is not: the web UI's transactions run from a local server (the demo keys never leave it), so the hosted page is read-only; the MVP is deliberately one hop and one team per registry.
 
-## How it's made (limit: confirm)
+## How it's made
 
 The core is one contract, `CascadeSubregistry` (`contracts/src/CascadeSubregistry.sol`), a subclass of ENSv2's `PermissionedRegistry` built against `ensdomains/contracts-v2@48b3e2d`, the source matching the ENSv2 beta on Sepolia. It overrides a single function: `_getRoles`, EAC's documented hook for adding role logic at read time, which the stock registry already overrides for approved operators. Because `_getRoles` is virtual, every permission check inside ENS's unmodified code — `_checkRoles`, `hasRoles`, `roles` — runs the new version. It returns the caller's own grants, plus, if the parent registry grants the team contract a role on this registry's label (read with `parent.roles(label, team)`) and the caller is a member (`team.isMember(caller)`), that role. Cascade doesn't add a check; it changes the answer to the one check ENS already runs.
 
@@ -34,7 +34,9 @@ EAC can report how many accounts hold a role but not which ones, so the registry
 
 17 Foundry tests cover the deny/grant/allow/revoke sequence, views agreeing with writes, masked admin bits, the pointer guard, hostile team contracts (always-yes, infinite loop, garbage return), and parent re-issue, expiry and transfer. The deployment and wiring on Sepolia — including registering `acme-corp.eth` through the ENSv2 beta registrar's commit–reveal — is a viem script. A shared TypeScript core feeds both an eight-step terminal demo and a Next.js 16 + wagmi web UI; the UI's "Behind the scenes" panel replays each transaction with Foundry's `cast run` (public Sepolia RPCs don't serve trace APIs) and decodes the call tree into names.
 
-## Track: ENS — Best Use of ENSv2 ($6,000)
+## Track: ENS — Best Use of ENSv2 ($10,000)
+
+The form's "How are you using this Protocol / API?" field takes this section's text, from "ENSv2 is the product" down.
 
 > "Use Enhanced Access Control, the shared, role-based permission system behind both registries and resolvers" · "deploy your own subname registry to tokenize and manage subnames under your own rules"
 
@@ -71,10 +73,50 @@ EAC can report how many accounts hold a role but not which ones, so the registry
 - ≈2,300 extra gas per write on subnames, native owners included (local measurement).
 - ENSv2 beta on Sepolia, not production ENS; not audited; contracts not yet source-verified on Etherscan.
 
-## Links — to fill before submitting
+## Links
 
-- **Repo:** `https://github.com/krishnan74/eth-tokyo-2026` — **currently private.** The ENS track requires "the code needs to be open source and accessible on Github"; make it public (and consider renaming it) before submitting.
-- **Live demo:** **not yet deployed.** The ENS track requires "a link to a live demo". Options: a hosted read-only deployment of the UI (reads live, transactions disabled), or a public deployment where visitors connect their own wallet — decide before submitting.
-- **Video:** to record — see [`demo-video.md`](demo-video.md).
+- **Repo:** `https://github.com/krishnan74/eth-tokyo-2026` — **still private.** The ENS track requires open source on GitHub; judges get a 404 until it is made public.
+- **Code link (ENS prize, "link to the line of code where the tech is used"):** `https://github.com/krishnan74/eth-tokyo-2026/blob/fdff7192ac5ab9815afde3b7849147a67b909174/contracts/src/CascadeSubregistry.sol#L116-L122` — the `_getRoles` override. Pinned to a commit so the lines never move.
+- **Live demo:** not deployed. The ENS track asks for a live demo link; a hosted read-only UI (reads live, writes off) is the plan.
+- **Video:** not yet submitted — script in [`demo-video.md`](demo-video.md).
 - **Contracts:** the three Etherscan addresses above.
-- **Submitted at commit:** *(fill in at submission)*.
+- **Submitted at commit:** `fdff719` (HEAD when the form was filled).
+
+---
+
+## Other form answers
+
+### Category and emoji
+
+- **Category:** Infrastructure. (Secondary if multi-select: Developer Tool, Security. Avoid Storage Application — nothing is stored.)
+- **Emoji:** 📂
+
+### Tech stack
+
+- **Ethereum developer tools:** Foundry, OpenZeppelin (Contracts — `ERC165Checker`). Not Hardhat: nothing in the repo uses it.
+- **Networks:** Ethereum (Sepolia testnet).
+- **Languages:** Solidity, TypeScript, Node.js, HTML/CSS (JavaScript optional — the only JS file is a config). Not PowerShell.
+- **Web frameworks:** Next.js (plus React and Tailwind CSS if offered).
+- **Databases:** None.
+- **Design tools:** None.
+- **Other technologies:** ENSv2 (`ensdomains/contracts-v2`), viem, wagmi, TanStack Query, Framer Motion, Lenis, tsx, Anvil, Claude Code.
+
+### ENS prize — ease of use (1–10)
+
+Suggested 6: EAC's design and the `_getRoles` hook are clean, but anyId vs resource, token-ID regeneration and the beta's source commit were only learned from the source. *(Record the rating actually given here.)*
+
+### ENS prize — additional feedback for the sponsor
+
+Condensed from [`feedback/ens.md`](feedback/ens.md):
+
+```
+From building a custom subname registry on the ENSv2 beta (Sepolia):
+
+1. EAC exposes role holder counts, not identities. A contract can't act on "whoever holds role X on the parent". We worked around it with a stored team pointer. An optional enumerable-holders extension, or a documented "delegate a role to a contract that vouches for members" pattern, would help.
+2. _getRoles is the right extension hook (PermissionedRegistry already overrides it for approved operators), but it's internal and nothing says it's a stable extension surface across releases. Please state which internal hooks are supported for subclassing.
+3. Public hasRoles/roles/grantRoles take an anyId, while internal _checkRoles/_getRoles take a resource. Easy to mix up when subclassing; one paragraph on anyId vs token ID vs resource would save hours.
+4. Token IDs regenerate on every grant/revoke, while EAC resources only change on unregister/expiry. A deliberate protection, but surprising for integrators who store token IDs. Worth calling out in the registry docs.
+5. A name can only receive admin role bits at registration; later grantRoles can only add regular roles (_getSettableRoles >> 128). We found this by reading the source; it belongs in the role-model docs.
+6. It wasn't obvious which contracts-v2 commit matches the beta deployment. We pinned 48b3e2d and confirmed it behaviourally. Publishing the commit hash next to the beta addresses would help.
+7. viem's built-in Universal Resolver address targets a different deployment than the beta, so we had to override it. A note in the beta docs would help.
+```
