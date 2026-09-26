@@ -50,7 +50,7 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
         </div>
 
         <nav className="hidden items-center gap-6 text-sm text-ink-2 md:flex" aria-label="Sections">
-          {[["Try it", "#try"], ["Behind the scenes", "#trace"], ["The problem", "#problem"], ["Under the hood", "#under-the-hood"]].map(([t, h]) => (
+          {[["The problem", "#problem"], ["Try it", "#try"], ["Behind the scenes", "#trace"], ["Under the hood", "#under-the-hood"]].map(([t, h]) => (
             <a key={h} href={h} className="relative transition-colors hover:text-ink after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-cascade after:transition-[width] after:duration-500 hover:after:w-full">{t}</a>
           ))}
         </nav>

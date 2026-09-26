@@ -343,7 +343,7 @@ export function Row({ icon, who, sub, right }: { icon: ReactNode; who: string; s
     <div className="flex items-center gap-2.5">
       {icon}
       <span className="flex min-w-0 flex-col leading-tight"><span className="text-sm">{who}</span><span className="truncate text-[11px] text-muted">{sub}</span></span>
-      <span className="ml-auto text-xs text-ink-2">{right}</span>
+      <span className="ml-auto whitespace-nowrap text-xs text-ink-2">{right}</span>
     </div>
   );
 }

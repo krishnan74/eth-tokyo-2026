@@ -10,6 +10,7 @@ import { Architecture } from "@/components/simple/Architecture";
 import { Intro, ProblemCards } from "@/components/simple/Intro";
 import { MoreDetail } from "@/components/simple/MoreDetail";
 import { TracePanel } from "@/components/simple/TracePanel";
+import { TraceToast } from "@/components/simple/TraceToast";
 import { useActors, useCascadeDemo, type ActionName } from "@/lib/cascade/hooks";
 import { useV2Demo } from "@/lib/cascade/v2hooks";
 
@@ -30,6 +31,8 @@ export default function Page() {
 
       <main className="relative z-10 mx-auto flex max-w-7xl flex-col gap-20 px-4 pb-24 sm:px-8">
         <Intro />
+
+        <ProblemCards />
 
         <section id="try" className="flex scroll-mt-20 flex-col gap-5">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -66,11 +69,11 @@ export default function Page() {
           <TracePanel trace={tab === "cascade" ? v2.trace : v1.trace} />
         </section>
 
-        <ProblemCards />
-
         <Architecture />
 
         <MoreDetail txs={v1.txs} member={v1.live.member} lastWrite={v1.lastWrite} cascadeLog={v2.log} />
+
+        <TraceToast trace={tab === "cascade" ? v2.trace : v1.trace} />
 
         <footer className="flex flex-col gap-3 border-t border-line pt-8 text-sm text-muted">
           <span className="display text-4xl text-ink">ENS Drive<span className="text-cascade">.</span></span>

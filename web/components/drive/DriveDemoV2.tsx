@@ -7,7 +7,7 @@
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useRef, useState, type ReactNode, type RefObject } from "react";
 
-import { callPath, type V2ActionName, type V2Result, type V2Status } from "@/lib/cascade/v2hooks";
+import type { V2ActionName, V2Result, V2Status } from "@/lib/cascade/v2hooks";
 import type { TraceState } from "@/lib/cascade/hooks";
 import type { V2State } from "@/lib/cascade/v2server";
 
@@ -94,8 +94,8 @@ export function DriveDemoV2(p: Props) {
   const file = s?.files.find((f) => f.label === p.target);
   const edit = file?.setSubregistry;
   const via = (e?: { allowed: boolean; native: boolean; team: string; level: number }) =>
-    !e ? "…" : !e.allowed ? "no group gives them access here" : e.native ? "given directly"
-      : `via ${nameOf(s, e.team)}${nameOf(s, e.team) === "security" ? " (they're in sre, inside it)" : ""} · shared on ${e.level === 1 ? "platform" : "acme-labs.eth, one folder up"}`;
+    !e ? "…" : !e.allowed ? "not in a group with access" : e.native ? "given directly"
+      : `via ${nameOf(s, e.team) === "security" ? "sre → security" : nameOf(s, e.team)}`;
 
   async function run(a: V2ActionName, label?: string) {
     if (busy) return;
@@ -121,7 +121,6 @@ export function DriveDemoV2(p: Props) {
   }
 
   const chipProps = { outsider: s?.outsider, disabled: busy || loading, zones, setOver, onDrop: drop };
-  const path = callPath(p.trace);
   const lastErr = p.last?.result.error;
 
   return (
@@ -158,8 +157,7 @@ export function DriveDemoV2(p: Props) {
               <span className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] opacity-80">
                 <span>mined in block {p.last.result.block} · {p.last.seconds}s</span>
                 <a href={`https://sepolia.etherscan.io/tx/${p.last.result.hash}`} target="_blank" rel="noreferrer" className="underline underline-offset-2">Etherscan ↗</a>
-                {p.trace?.loading && <span>reading the contract calls…</span>}
-                {path && <span className="text-ink-2">calls: {path}</span>}
+                <span>what the contracts did: bottom-right ↘</span>
               </span>
             )}
             {lastErr && <span className="text-xs">{lastErr}</span>}
@@ -215,7 +213,7 @@ export function DriveDemoV2(p: Props) {
             <Pane zoneRef={dev} over={over === "dev" && !inDev} title={<span className="flex items-center gap-1.5"><GroupIcon /> dev-team <span className="font-normal text-muted">· platform</span></span>}>
               <div className="flex min-h-11 flex-col gap-2">
                 <AnimatePresence mode="popLayout">
-                  {inDev && <Chip key="dev" from="dev" sub="member — drag to sre or back" {...chipProps} beckon={beckon("moveDevToSre")} />}
+                  {inDev && <Chip key="dev" from="dev" sub="in dev-team" {...chipProps} beckon={beckon("moveDevToSre")} />}
                 </AnimatePresence>
                 {!inDev && <span className="px-1 text-xs text-muted">{p.pending === "joinDev" || p.pending === "moveSreToDev" ? "adding…" : "Drop someone here."}</span>}
               </div>
@@ -225,7 +223,7 @@ export function DriveDemoV2(p: Props) {
                 <span className="text-[11px] font-medium text-ink-2">sre <span className="font-normal text-muted">(a team inside security)</span></span>
                 <div className="flex min-h-11 flex-col gap-2">
                   <AnimatePresence mode="popLayout">
-                    {inSre && <Chip key="sre" from="sre" sub="member — drag back to remove" {...chipProps} beckon={false} />}
+                    {inSre && <Chip key="sre" from="sre" sub="in sre" {...chipProps} beckon={false} />}
                   </AnimatePresence>
                   {!inSre && <span className="px-1 text-xs text-muted">{p.pending === "joinSre" || p.pending === "moveDevToSre" ? "adding…" : "Drop someone here."}</span>}
                 </div>
@@ -293,7 +291,7 @@ export function DriveDemoV2(p: Props) {
                   <span className="text-xs font-medium text-ink-2">Who can edit</span>
                   <Row icon={<Avatar letter="A" tone="admin" />} who="Admin" sub="operator" right="Owner" />
                   <Row icon={<GroupDot />} who="dev-team" sub="shared on platform" right={!s ? "…" : devShared ? "Can edit" : "—"} />
-                  <Row icon={<GroupDot />} who="security" sub={cascadeOn === false ? "shared on acme-labs.eth — not flowing down" : "shared on acme-labs.eth, one folder up"} right={!s ? "…" : secShared && cascadeOn ? "Can edit" : "—"} />
+                  <Row icon={<GroupDot />} who="security" sub={cascadeOn === false ? "not flowing down" : "shared on acme-labs.eth"} right={!s ? "…" : secShared && cascadeOn ? "Can edit" : "—"} />
                   <Row icon={<Avatar letter="Al" tone="outsider" />} who="Alex" sub={via(edit)}
                     right={<span className={edit?.allowed ? "text-ok" : "text-muted"}>{!edit ? "…" : edit.allowed ? "Can edit" : "No access"}</span>} />
                 </div>
