@@ -107,3 +107,12 @@
 - **Context:** `_getRoles` isn't told which role is being checked, so v2 computed every team's grant at every level, and asked every team about membership, on every check (member level-1 write 165,723 gas on Sepolia). The ENS team suggested using the union to eliminate paths once part of the path has settled the permission.
 - **Decision:** `_checkRoles` (which is told the requested roles) evaluates lazily: stored roles, then one level at a time; membership only for teams whose grants include a still-missing role; stop when covered. `_getRoles` keeps computing the full union for views.
 - **Consequences:** member level-1 write 97,665 gas on Sepolia (−41%); level-2 −7%; denied checks −7–13% locally. Same yes/no as the full union by monotonicity, enforced by a differential fuzz test and the write-vs-`hasRoles` invariant. Views still pay the full union unless ENS makes `hasRoles` overridable.
+
+## 19. No per-transaction memo in the permission hook
+
+- **Context:** pitch-3 follow-up #3 — cache the ancestor walk and membership answers in transient storage (EIP-1153) so several checks in one transaction share them.
+- **Decision:** not built.
+  1. **It can't compile inside the hook.** ENSv2 declares `_checkRoles` and `_getRoles` `view`; Solidity rejects `tstore` in a `view` function (checked: error 8961, "Function cannot be declared as view because this expression (potentially) modifies the state"). Only ENS could change that.
+  2. **It would be unsafe without invalidation.** Transient storage lives for the whole transaction, and a later call in the same transaction can change what was cached — a batch could remove a member from the team and then act as them, and a cached "member" would allow it.
+  3. **Little to gain.** ENSv2 registries have no multicall (only resolvers do), so several checks in one transaction happen only through external batching; and within a single check, the lazy evaluation (decision 18) already reads each level and asks each team at most once.
+- **Consequences:** gas work stays in the lazy check. If ENS ever makes the hook non-`view`, a memo would still need invalidation on every membership or grant change — likely not worth it.

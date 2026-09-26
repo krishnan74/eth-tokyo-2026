@@ -51,7 +51,7 @@ Visible in the Sepolia trace of a level-2 `setResolver`: `DevTeam.isMember` is c
 1. **Native roles** — stop if they cover the check (today's fast path).
 2. **Level 1** — walk one level and read each team's grant. **Ask about membership only for teams whose grant includes a still-missing role.** This alone removes the wasted `DevTeam.isMember` call above.
 3. **Stop as soon as the role is covered**; walk to level 2 only if still needed.
-4. **Optionally, memoise within a transaction** with transient storage (EIP-1153; the build already targets `cancun`): the ancestor walk and membership answers computed once per transaction, not once per check.
+4. **Optionally, memoise within a transaction** with transient storage (EIP-1153; the build already targets `cancun`): the ancestor walk and membership answers computed once per transaction, not once per check. **Update 2026-09-27: not possible as designed** — ENSv2's hooks are `view`, and Solidity rejects transient-storage writes in `view` functions; it would also be unsafe without invalidation (a batch could remove a member, then act as them). See [decision 19](../decisions.md).
 
 **Limits to state upfront:**
 
