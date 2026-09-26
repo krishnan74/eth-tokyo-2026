@@ -8,11 +8,21 @@ Reference: [`pitch-drafting-guide-for-finalist`](pitch-drafting-guide-for-finali
 
 What's already on-chain when the demo starts — the judges need this map before the clicks mean anything:
 
-- **Folders:** `acme-labs.eth` (a real ENSv2 name) and `platform` inside it (`platform.acme-labs.eth`, its own registry). The file `svc-api` is in `platform`.
-- **Sharing (two grants, made once by the owner):** `platform` is shared with **dev-team** — "can edit". `acme-labs.eth` is shared with **security** — "can edit" (and "can set resolver").
-- **Teams:** **dev-team** is a roster; **security** is a team that includes another team, **sre**.
+- **Folders:** `orbit-dao.eth` (a real ENSv2 name on the beta — a fictional DAO) and `protocol` inside it (`protocol.orbit-dao.eth`, its own registry), holding three contract names: `vault`, `oracle`, `bridge`.
+- **Sharing (two grants, made once by the owner):** `protocol` is shared with **core-devs** — "can edit". `orbit-dao.eth` is shared with the **security-council** — "can edit" (and "can set resolver").
+- **Teams:** **core-devs** is a roster; the **security-council** is a team that includes another team, the **auditors**.
 - **The switch:** "Sharing flows into subfolders" is on — the folder above counts.
-- **Alex** — a new teammate (the demo's one account) — starts in no team. Everything in the demo is moving Alex between teams; no name is touched. On the page, three names sit in `platform` (`svc-api`, `svc-db`, `svc-web`), so every change visibly reaches all of them at once.
+- **Alex** — a new contributor, with their own name `alex.orbit-dao.eth` (owned by the demo's account; `alex-dev.orbit-dao.eth` when run locally) — starts in no team. Everything in the demo is moving Alex between teams; no name is touched, and every change visibly reaches all three contract names at once.
+
+## Is "Imagine you lead a web3 organization that uses ENS for its names" right for this project?
+
+Yes — checked against the guide and against what we can back up:
+
+- **It's what the guide asks for** (§6 template: "Imagine you're [specific user] trying to [specific task]"; Défi: an intuitive picture before the stack). A web3 organization is the specific user; managing who can change its names is the task.
+- **It fits the audience.** ENS judges and web3 finalist judges recognise a DAO with contracts, a core team and a security council with auditors — more than a generic company.
+- **It's framed as "imagine", with a worked example.** We don't claim a real DAO has this exact problem at this scale; the 300-grants figure is labelled as a worked example on the page, and the registry-wide-grant caveat is stated (ALMA's lesson: separate real from illustrative).
+- **Keep two honesty points in the words:** it runs on the **ENSv2 beta on Sepolia** (ENSv2 isn't on mainnet yet), and **orbit-dao is fictional** — never name a real DAO (it would read as an endorsement).
+- **"uses ENS for its names — its contracts, its services, its people"** is a fair general description of how organizations use ENS subnames; say it as the scenario, not as a statistic.
 
 ## 1. The formula, mapped to ENS Drive
 
@@ -20,7 +30,7 @@ The guide's finalist formula has three ingredients (§4) inside a five-beat sequ
 
 | Guide beat | ENS Drive | Source in the guide |
 |---|---|---|
-| **Name the problem** — specific, quantitative if credible | A team of 5 managing 20 ENS names across 3 folders needs **300 separate grants**; someone leaving means **60 revokes**. (ENSv2's registry-wide grants cut that to 15 — but every join or leave still touches every folder.) | ALMA: "use a quantitative problem statement" |
+| **Name the problem** — specific, quantitative if credible | A web3 organization's team of 5 managing 20 ENS names across 3 folders needs **300 separate grants**; someone leaving means **60 revokes**. (ENSv2's registry-wide grants cut that to 15 — but every join or leave still touches every folder.) | ALMA: "use a quantitative problem statement" |
 | **Start from something familiar and its limit** | Google Drive: you share a folder, not each file with each person. ENS has the folders — it doesn't have the sharing. | DIVE: "a comparison to an existing product can quickly establish why your solution matters" |
 | **One-sentence solution, with a product identity** | "ENS Drive is Google Drive–style sharing for ENS names: share a name with a team, and everyone in it can manage every name below." | §2: "a product identity and a simple explanation" |
 | **One complete user journey, action → observable result** | The outsider is refused → dragged into a team → can edit → moved to a team inside a team shared *one folder up* → still can edit → cascade switched off → refused. | Défi, Corpus: "one coherent scenario from setup to outcome" |
@@ -45,12 +55,12 @@ Follows the guide's §6 timing template. Record the **Cascade** tab of the live 
 
 | Time | Beat | On screen | Said |
 |---|---|---|---|
-| 0:00–0:20 | **Problem** (specific user, quantified, and why ENSv2 makes it worse) | The hero, then the strip's "Missing" cell with the numbers | "Imagine you lead a team of five that manages twenty ENS names — one per service — across three folders. In ENSv2 every folder is its own registry with its own permission list, and every permission is one address on one name: three hundred grants, and when someone leaves, sixty revokes. We built ENS Drive to fix that." |
+| 0:00–0:20 | **Problem** (specific user, quantified, and why ENSv2 makes it worse) | The hero, then the strip's "Missing" cell with the numbers | "Imagine you lead a web3 organization that uses ENS for its names — its contracts, its services, its people. Say a team of five manages twenty of those names across three folders. In ENSv2 every folder is its own registry with its own permission list, and every permission is one address on one name: three hundred grants — and when someone leaves, sixty revokes. We built ENS Drive to fix that." |
 | 0:20–0:35 | **Solution** (one sentence + the familiar comparison) | The three-part strip | "ENS Drive is Google Drive–style sharing for ENS names. ENSv2 already nests names like folders; we add the sharing: share a name with a team, and everyone in it can manage every name below — including folders further down." |
-| 0:35–0:50 | **The setup** (what's already in place) | The drive: point at the folders, then the groups | "Here's the setup — it's written on screen, under the path. Two folders: acme-labs.eth, and platform inside it, with three service names. platform is shared with dev-team; acme-labs.eth, the folder above, is shared with security — and security includes another team, sre. That's the whole admin work: two shares, done once. Everything after this is just who's in which team." |
-| 0:50–1:02 | **Demo — first action and response** | Edit as Alex → refused | "Alex just joined. Alex tries to edit svc-api — refused, on-chain. Nobody shared anything with them." |
-| 1:02–1:15 | | Drag Alex into dev-team → **all three badges flip to "can edit"** → edit → saved | "One drag into dev-team — and all three names flip to editable at once. The edit works. Nothing was written to any of them: one action, every name." |
-| 1:15–1:38 | **Demo — the central technical action** | Drag Alex to sre → edit → saved; "via security · shared on acme-labs.eth, one folder up" | "Now move Alex into sre, inside security. security isn't shared on platform at all — it's shared on the folder *above*. Still editable: sharing flows down, through a team inside a team." |
+| 0:35–0:50 | **The setup** (what's already in place) | The drive: the setup line under the path, then the folders and teams | "Here's our DAO, orbit-dao.eth — a real ENSv2 name on the beta. Inside it, a protocol folder with three contract names: vault, oracle, bridge. protocol is shared with core-devs; orbit-dao.eth itself — the folder above — is shared with the security council, which includes the auditors. That's the whole admin work: two shares, done once. Everything after this is just who's in which team." |
+| 0:50–1:02 | **Demo — first action and response** | Edit as Alex → refused | "Alex just joined as a contributor — that's alex.orbit-dao.eth, their own name in the DAO. Alex tries to edit the vault's name — refused, on-chain. Nobody shared anything with them." |
+| 1:02–1:15 | | Drag Alex into core-devs (the chip moves at once, "joining") → **all three badges flip to "can edit"** → edit → saved | "One drag into core-devs — and vault, oracle and bridge all flip to editable at once. The edit works. Nothing was written to any of them: one action, every name." |
+| 1:15–1:38 | **Demo — the central technical action** | Drag Alex from core-devs to auditors → edit → saved; "via auditors → security-council" | "Now move Alex to the auditors, inside the security council. The council isn't shared on protocol at all — it's shared on orbit-dao.eth, the folder *above*. Still editable: sharing flows down, through a team inside a team." |
 | 1:38–1:50 | **Demo — the verifiable result** | Switch off → edit → refused → switch on | "Turn the cascade off — gone. On — back. It's checked live on every write, never copied." |
 | 1:50–2:25 | **Technical differentiator** (make the mechanism visible) | The "On-chain, just now" card beside the drive, then Behind the scenes | "Here's how. Instead of a new permission system, we override one lookup inside ENSv2's own access control. Every write still goes through ENS's own check; our version walks up the folders, confirms each really contains the next, asks only the teams that could help, and stops as soon as access is proven. That's what you're seeing in the real call tree from the mined transaction." |
 | 2:25–2:40 | **Threat → response** | Try an attack → refused | "And the obvious attack — adding a group that says yes to everyone — is refused. Members can use access; they can never grant it." |
@@ -66,7 +76,7 @@ Same beats as the video, spoken live. Every click waits for a Sepolia block (~12
 |---|---|---|---|
 | 0:00–0:20 | Problem | Hero on screen | The 5 × 20 × 3 = 300 grants line. |
 | 0:20–0:35 | Solution | Strip | "Google Drive–style sharing for ENS names." |
-| 0:35–0:50 | The setup | Point at the setup line under the path, then the folders and groups | "acme-labs.eth shared with security (which includes sre), platform shared with dev-team — two shares, done once; the rest is who's in which team. Alex is a new teammate." |
+| 0:35–0:50 | The setup | Point at the setup line under the path, then the folders and groups | "orbit-dao.eth shared with the security council (which includes the auditors), protocol shared with core-devs — two shares, done once; the rest is who's in which team. Alex — alex.orbit-dao.eth — is a new contributor." |
 | 0:50–2:15 | One journey (≈7 transactions) | Steps 1–8 of the guide bar; press **Start over** before you go on stage | Narrate each wait: *what just happened on-chain* while the next block comes. |
 | 2:15–3:10 | Differentiator | The "On-chain, just now" card → Behind the scenes | "One override, inside ENS's own check; walks up, verifies, stops early." |
 | 3:10–3:30 | Threat → response | Attack | "Refused — members use access, never grant it." |

@@ -127,3 +127,11 @@
 - The first build with the bundled `cast` warned "Dynamic filesystem access causes tracing of the whole project" — the same pitfall as the `.env` lookup; added `turbopackIgnore` to the new paths and confirmed none of the four keys (main and hosted) appears in `web/.next`.
 - Rehearsed the production server locally on a Sepolia fork with the hosted keys: create, refused write (mined as failed, outsider auto-funded), grant, allowed write, full trace, revoke, refused hijack, reset; a foreign transaction's trace was refused; the 9th action in an hour with the limit set to 8 got a 429.
 - Live on https://ens-drive.vercel.app against Sepolia: the same sequence, every outcome as expected, and the trace ran on Vercel (`setSubregistry → OrgRegistry.roles → TeamRegistry.isMember`). The hosted outsider was left out of the team; hosted operator balance afterwards 0.1947 ETH.
+
+## 2026-09-27 — orbit-dao.eth, Alex's name, optimistic drag (local branch `orbit-dao`, not deployed)
+
+- `setup:v2` now builds either tree (`--tree acme|orbit`, own book each) so the live site's acme tree stays untouched while the new one is built. Deployed `orbit-dao.eth` (fictional DAO) › `protocol` › `vault`, `oracle`, `bridge` with core-devs and security-council ⊃ auditors; rehearsed on a Tenderly-backed fork (the public RPCs were rate-limiting), then on Sepolia; smoke passed. Log and book entries first used the acme wording ("grant dev-team on platform") — caught on the fork, fixed to per-tree names before Sepolia.
+- Alex's own name: `alex.orbit-dao.eth` (hosted outsider) and `alex-dev.orbit-dao.eth` (local outsider), registered as subnames owned by those accounts; the server checks ownership on-chain and the UI shows the name.
+- Optimistic drag: the chip moves into the target team at once, dashed and "joining · confirming on Sepolia"; access badges only show confirmed state. The hook now refreshes state before clearing the pending flag so the chip never flashes back.
+- Found while renaming: the v2 action endpoint only accepted `svc-…` labels, so editing `vault` would have been rejected — widened to a plain lowercase-label pattern (and the trace route's label filter).
+- Pitch script: opens with "Imagine you lead a web3 organization that uses ENS for its names" (checked against the Cannes guide; framed as a scenario, orbit-dao fictional, ENSv2 beta stated).

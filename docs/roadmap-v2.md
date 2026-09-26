@@ -181,3 +181,49 @@ Scope of the proofs: the shapes above (bounded loops, mocked neighbours), not th
 - Views (`hasRoles`, `roles`) always compute the full answer, so on-chain callers of views pay the full lookup.
 - Hats / Safe adapters are not deployed; they are proven against the real Hats v1 and Safe 1.4.1 on a fork (membership lookups 17,420 and 11,273 gas, well under the 100k cap).
 - Same limits as v1 otherwise: inherited roles emit no events; ENSv2 beta, not audited.
+
+## 9. The demo tree: orbit-dao.eth
+
+The Cascade tab now runs on its own tree, `npm run setup:v2 -- --write --tree orbit` — a fictional DAO, so the story reads the way web3 judges know it: `orbit-dao.eth` (security-council, which includes the auditors, can edit and set resolvers) › `protocol` (core-devs can edit) › `vault`, `oracle`, `bridge`. Same contracts, same rule, fresh deployment; the `acme-labs.eth` tree above is untouched. Members have their own names in the DAO: `alex.orbit-dao.eth` (the hosted demo's account) and `alex-dev.orbit-dao.eth` (the local one) — ordinary subnames owned by those accounts, which the UI checks on-chain before showing.
+
+| Contract | Address |
+|---|---|
+| OrgRegistry (`orbit-dao.eth`) | [`0x6e1d2249483700697eb92f959f629fc2ebd6fc48`](https://sepolia.etherscan.io/address/0x6e1d2249483700697eb92f959f629fc2ebd6fc48) |
+| CascadeSubregistryV2 (`protocol.orbit-dao.eth`) | [`0x7aa120442ccb9df297d81cd88975e4d9b129d0a3`](https://sepolia.etherscan.io/address/0x7aa120442ccb9df297d81cd88975e4d9b129d0a3) |
+| core-devs (TeamRegistry) | [`0x170943bc913b250cb16d3e2720d0d4852e91adb0`](https://sepolia.etherscan.io/address/0x170943bc913b250cb16d3e2720d0d4852e91adb0) |
+| security-council (NestedTeam ⊃ auditors) | [`0xce0bdedf8d6afb19c395f0d242395f62f975acfa`](https://sepolia.etherscan.io/address/0xce0bdedf8d6afb19c395f0d242395f62f975acfa) |
+| auditors (TeamRegistry) | [`0x63941f63430acb4af79c33d2eb5d6815683b9b62`](https://sepolia.etherscan.io/address/0x63941f63430acb4af79c33d2eb5d6815683b9b62) |
+
+Rehearsed on a fork, then set up and smoke-tested on Sepolia (every check passed):
+
+| Step | Tx |
+|---|---|
+| deploy org | [`0x11757f8f…`](https://sepolia.etherscan.io/tx/0x11757f8f2649c492ee3ae1167860291fb8c7ecba3544ab23444f9c660cd49f94) |
+| deploy cascade | [`0x5cef6324…`](https://sepolia.etherscan.io/tx/0x5cef63244142c4df3b1eedeb40e0c11380c6af569c06084b577e5c223f3fdac9) |
+| deploy devTeam | [`0x1493eb00…`](https://sepolia.etherscan.io/tx/0x1493eb00e0b68b1e81ff9914ed4f4a8c27d4716e05fd4288a840b75b5741b642) |
+| deploy sre | [`0x97f00d77…`](https://sepolia.etherscan.io/tx/0x97f00d7746c859e14f4030cdf81268cf2a4236893bc7bfcba1d6d14e283e05ad) |
+| deploy security | [`0x6099d580…`](https://sepolia.etherscan.io/tx/0x6099d580322f30420504f7b4c70403b1f9285bbf62302b21c54aeb6e77414d8b) |
+| usdc approve | [`0x43a36d45…`](https://sepolia.etherscan.io/tx/0x43a36d45919ed0137b20798cd329ee02e83a97db8e684e937553e9eaf6d6ccde) |
+| commit | [`0x0be1224e…`](https://sepolia.etherscan.io/tx/0x0be1224ecb872469351ec849c300281a8cc385590c5ece3f7148d34fe3c0b174) |
+| register orbit-dao.eth | [`0x0679f921…`](https://sepolia.etherscan.io/tx/0x0679f9210bd4607520ed8a1e997545080ac25fb9caa56b5a99312ddaff6aaa6f) |
+| org setParent | [`0xc9fd2d47…`](https://sepolia.etherscan.io/tx/0xc9fd2d473e11ac3a93335fe9f73d933303531630a5ca51313aabda22a0d3018c) |
+| register protocol | [`0x75ae8aab…`](https://sepolia.etherscan.io/tx/0x75ae8aab2dc77db8b3f76d97069925d86a9e4c15b373e603d3416ef40f69e756) |
+| v2 setParent | [`0xb2eab300…`](https://sepolia.etherscan.io/tx/0xb2eab300b18d35d8313fb28f43dc8961dcdab13b551045c8017f589629d054de) |
+| v2 addTeam core-devs | [`0xe935117d…`](https://sepolia.etherscan.io/tx/0xe935117dc6cb579ee5acd05f4d89f7b3c25f54393a46edd961cd3b21fdb8f8a9) |
+| v2 addTeam security-council | [`0x470f35e5…`](https://sepolia.etherscan.io/tx/0x470f35e5c02d9f1e41de15593c817de90ec43a9ffe21cdb3a10e43a18e427de4) |
+| v2 setDepth 2 | [`0x8865bc30…`](https://sepolia.etherscan.io/tx/0x8865bc306a5dbb28ab01e5bde2314866faf64b271d9e7c709315ef5ad540aec2) |
+| security-council addSubTeam auditors | [`0x739e0a0d…`](https://sepolia.etherscan.io/tx/0x739e0a0de15aad653ca80bb2058bb3b0f6b2f6434f6ddb2b09ebd136e4adc561) |
+| grant core-devs on protocol | [`0x86694669…`](https://sepolia.etherscan.io/tx/0x866946692949b059c4435655479f8592e09c9001bad51c92b5884f351922664e) |
+| grant security-council on orbit-dao.eth | [`0xe5993652…`](https://sepolia.etherscan.io/tx/0xe5993652d345c568e140d27b458cccc05bd3a4565b2bf813e865ff9f24ea21cc) |
+| register vault | [`0xee04983b…`](https://sepolia.etherscan.io/tx/0xee04983be228872c6d70dd8e42df4118e966ba61aca65ac13094bb62e9fec590) |
+| register oracle | [`0x4ddc084f…`](https://sepolia.etherscan.io/tx/0x4ddc084fb12eb599f88e8c0c4ba7b15741c7213737d40b12a1aceb575de08a24) |
+| register bridge | [`0xf3947dcd…`](https://sepolia.etherscan.io/tx/0xf3947dcd99f68e8ed437579687f6360b3f12a4186aeeba7198dd19e109f1753a) |
+| register alex.orbit-dao.eth | [`0x0bc3ca8c…`](https://sepolia.etherscan.io/tx/0x0bc3ca8ceef5c16fec1f8cca6d52719272921f37c10af3ce553b60e8c4bbeda9) |
+| register alex-dev.orbit-dao.eth | [`0x0f7ce06f…`](https://sepolia.etherscan.io/tx/0x0f7ce06fd40eafd960bac0b2e4ec3dfd511a3e4dc366f12cbb396e4c2ffbd560) |
+| smoke: core-devs add outsider | [`0xcc754467…`](https://sepolia.etherscan.io/tx/0xcc7544678087288b1ce770be3bea24c5e20750e28f843febe4d5b0418db0d6ee) |
+| smoke: outsider setSubregistry (via core-devs) | [`0x9100b63e…`](https://sepolia.etherscan.io/tx/0x9100b63e086a80f7dbf2c141e45acfd1405e17b08aa19c35490babe7c932869e) |
+| smoke: auditors add outsider | [`0xc4b09b45…`](https://sepolia.etherscan.io/tx/0xc4b09b45040496fce431a91f572e7797ce3513fcd345af344bc836a91e822479) |
+| smoke: outsider setResolver (via security-council ⊃ auditors, two levels up) | [`0x13cf1232…`](https://sepolia.etherscan.io/tx/0x13cf1232dffda9986c0a13040a6a2dacd218bfe68caf57c61eeef94772610c7e) |
+| smoke: operator setSubregistry (native) | [`0xa93a35bc…`](https://sepolia.etherscan.io/tx/0xa93a35bccb8b4a91502a3af39b85f95cf1dc95aef23a504349eac149705129c1) |
+| smoke: core-devs remove outsider | [`0x2e6202c5…`](https://sepolia.etherscan.io/tx/0x2e6202c5c6666f161043acf57a084111dc4159a6a77a72f89b1b50a02b597272) |
+| smoke: auditors remove outsider | [`0xc7be2084…`](https://sepolia.etherscan.io/tx/0xc7be208490e152fe460bd55bdaa5d0292a9f2c8752d047fb3e184118b7e4a6c2) |

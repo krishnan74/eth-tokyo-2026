@@ -34,7 +34,7 @@ npm run demo -- --recap                            # replay last recorded run (e
 npm run gen                                        # regenerate core/cascade/generated.ts (ABIs + Sepolia addresses) after forge build / redeploy
 npm run ui                                         # Next.js UI on :3000 (Sepolia); NEXT_PUBLIC_RPC_URL + CASCADE_RPC_URL=http://127.0.0.1:8545 for a fork
 npm run ui:build                                   # production build (type-checks the UI)
-npm run setup:v2 -- --write                         # roadmap branch: deploy/wire CascadeSubregistryV2 on acme-labs.eth (idempotent; book: deployments/sepolia-v2.json)
+npm run setup:v2 -- --write [--tree orbit|acme]     # deploy/wire a CascadeSubregistryV2 tree (idempotent). orbit (default): orbit-dao.eth, book deployments/sepolia-orbit.json — the demo; acme: acme-labs.eth, book deployments/sepolia-v2.json — the earlier tree
 npm run smoke:v2                                   # roadmap branch: live check of many teams, nested team, multi-hop, fast path (cleans up after itself)
 npm run test:fork                                  # roadmap branch: HatsTeam / SafeTeam against the real Hats v1 and Safe 1.4.1 on a Sepolia fork (network; skipped in npm test)
 npm run prove                                      # roadmap branch: Halmos symbolic proofs (pip install halmos; tested 0.3.3). Halmos needs `forge build --ast`: without the AST it silently skips contracts
@@ -60,7 +60,7 @@ npm run ui:start                                   # serve the production build 
 | `TeamRegistry` | `0x11ddfcb62670f0608d7cbc5b61e4470e0c7472bb` |
 | `AlwaysTrueTeam` (demo fixture) | `0xaa735fc88e25f7d846010469ee75f287c8ec20c1` |
 
-Roadmap branch only, separate tree `acme-labs.eth` (never touches the v1 demo): OrgRegistry v2 `0x35888867cc0c37d54ae0f902611ec4a5b8a73beb` · CascadeSubregistryV2 (`platform.acme-labs.eth`, depth 2, lazy check) `0x1c361c62e2ea3330790f1d6c17e42b873081ddc8` (retired: `0xa6b159d2e785a6146d9e21a1cc377b781e70a246`, the full-union version) · dev-team `0xaa75275e77f89267f28a5bbf2f7f40b920941253` · security (NestedTeam ⊃ sre) `0x179aa1bac7758557defe517330147afd55f54134` · sre `0x2bd2a5bf158ec73ab1c8d1989e4b3b200d055163`.
+The cascade demo's tree (`--tree orbit`, book `deployments/sepolia-orbit.json`): `orbit-dao.eth` (fictional DAO) › `protocol` › `vault`, `oracle`, `bridge`. OrgRegistry `0x6e1d2249483700697eb92f959f629fc2ebd6fc48` · CascadeSubregistryV2 (depth 2) `0x7aa120442ccb9df297d81cd88975e4d9b129d0a3` · core-devs `0x170943bc913b250cb16d3e2720d0d4852e91adb0` · security-council (NestedTeam ⊃ auditors) `0xce0bdedf8d6afb19c395f0d242395f62f975acfa` · auditors `0x63941f63430acb4af79c33d2eb5d6815683b9b62`. Members' names: `alex.orbit-dao.eth` → hosted outsider, `alex-dev.orbit-dao.eth` → local outsider. The earlier tree `acme-labs.eth` (book `deployments/sepolia-v2.json`) still exists; the web app shows whichever `npm run gen` generated (`CASCADE_TREE`, default orbit). Team names are UI-only; internal API keys stay `dev-team`/`sre`.
 
 Retired: CascadeSubregistry `0xa6e5…3b22`, TeamRegistry `0x1a3d…b881` (see `deployments/sepolia.json`).
 
@@ -93,7 +93,7 @@ ENS beta addresses are in `scripts/lib.ts`. See also `~/Documents/ensv2-insights
 contracts/src/       CascadeSubregistry, TeamRegistry, ITeam (deployed); CascadeSubregistryV2 (roadmap 1+3: many teams, multi-hop — not deployed)
 contracts/src/teams/ NestedTeam (roadmap 2, live on Sepolia as `security`), HatsTeam + SafeTeam (roadmap 4) — adapters not deployed
 core/cascade/v2.ts   roadmap names/roles; generated-v2.ts (ABIs + v2 addresses) written by `npm run gen` from deployments/sepolia-v2.json
-web/components/drive/DriveDemoV2.tsx  roadmap branch: the home page's drive runs on CascadeSubregistryV2 (acme-labs.eth › platform, dev-team + security ⊃ sre, cascade switch = setDepth); state/actions via lib/cascade/v2hooks.ts → app/api/v2/{state,action} (lib/cascade/v2server.ts) — local-only writes, main .env keys. main keeps the v1 drive (DriveDemo.tsx).
+web/components/drive/DriveDemoV2.tsx  the home page's cascade drive on CascadeSubregistryV2 (orbit-dao.eth › protocol, core-devs + security-council ⊃ auditors, cascade switch = setDepth, optimistic drag); state/actions via lib/cascade/v2hooks.ts → app/api/v2/{state,action} (lib/cascade/v2server.ts) — local-only writes, main .env keys. main keeps the v1 drive (DriveDemo.tsx).
 contracts/src/demo/  AlwaysTrueTeam — the attacker's contract for demo step 6 (fixture, not product)
 contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, pointer guard, validation, bad teams, gas caps, parent re-issue/expiry/transfer; CascadeV2.t.sol — v2 + team contracts: unit tests, hostile-ancestor fuzz, gas bounds, and an invariant over teams × levels; CascadeInvariant.t.sol — the step-0 rule as 5 invariants (random action sequences via a Handler) + 5 fuzz tests (arbitrary team/parent return data, arbitrary role bitmaps)
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)
