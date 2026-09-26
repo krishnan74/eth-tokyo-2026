@@ -1,6 +1,6 @@
 # ENS Drive (powered by Cascade) — working notes for Claude
 
-A one-hop EAC fallthrough for ENSv2 subnames: `CascadeSubregistry` overrides EAC's `_getRoles` hook so that, on any subname, an account also holds the regular roles the parent grants a team contract — if the account is a member of that team. A feedback demo for the ENS team, not a prize submission. **Naming:** the product is *ENS Drive*; *Cascade* is the permission mechanism — keep `Cascade…` for contracts and code identifiers (they match the Sepolia deployment); use "ENS Drive" in user-facing product text.
+A one-hop EAC fallthrough for ENSv2 subnames: `CascadeSubregistry` overrides EAC's `_getRoles` hook so that, on any subname, an account also holds the regular roles the parent grants a team contract — if the account is a member of that team. Built at ETHGlobal Tokyo 2026 (Sept 25–27): pitched twice to the ENS team, now being submitted to the ENS track (Best Use of ENSv2) — the draft form copy is [`docs/submission.md`](docs/submission.md). **Naming:** the product is *ENS Drive*; *Cascade* is the permission mechanism — keep `Cascade…` for contracts and code identifiers (they match the Sepolia deployment); use "ENS Drive" in user-facing product text.
 
 Read [`docs/plan.md`](docs/plan.md) first — it opens with a status table.
 
@@ -34,6 +34,7 @@ npm run demo -- --recap                            # replay last recorded run (e
 npm run gen                                        # regenerate core/cascade/generated.ts (ABIs + Sepolia addresses) after forge build / redeploy
 npm run ui                                         # Next.js UI on :3000 (Sepolia); NEXT_PUBLIC_RPC_URL + CASCADE_RPC_URL=http://127.0.0.1:8545 for a fork
 npm run ui:build                                   # production build (type-checks the UI)
+npm run ui:start                                   # serve the production build (read-only unless CASCADE_UI_WRITES=1)
 ```
 
 ## Environment
@@ -86,6 +87,7 @@ contracts/test/      Cascade.t.sol — 17 tests: sequence, hook agreement, point
 core/cascade/        SHARED by terminal + UI: contracts.ts (addresses, roles), explain.ts (three-check chain), cost.ts, generated.ts (ABIs + addresses, from `npm run gen`)
 scripts/             lib.ts (env, clients, book), setup.ts (deploy/wire, --redeploy), demo.ts (8 steps, --recap), ui.ts (terminal rendering), gen-core.ts
 web/                 Next.js 16 app (deps in the root package.json): app/page.tsx, app/api/{action,actors}, lib/cascade/{hooks,server,wagmi}.ts; components/drive/DriveDemo (the shared-drive demo: folder = devops, files = subnames, group = TeamRegistry; drag-and-drop, who-has-access, attack); components/simple/: Intro, TracePanel (live cast-run trace), Architecture, MoreDetail; components/pitch/: Sections (gap, fit, roadmap, ask — inside More detail), Reveal, SmoothScroll; components/cascade/: TopBar (with theme toggle), Activity, Context, primitives, steps.ts (action labels); lib/cascade/trace.ts (cast run replay + context-aware decoding), app/api/trace
+docs/                plan (status), architecture + architecture-talk (the spoken track), contracts-explained, decisions, evidence (tx hashes), build-log, remediation, pitch-script, qa, study-guide, quiz, project-explainer, showcase; submission pack: submission, demo-video, ai-usage; feedback/ens.md (partner + developer feedback)
 deployments/         sepolia.json — current + retired addresses, setup tx hashes (written by setup.ts)
 evidence/            raw demo logs; last-run.json feeds --recap
 lib/               contracts-v2@48b3e2d, openzeppelin-contracts, forge-std (submodules)
@@ -93,4 +95,6 @@ lib/               contracts-v2@48b3e2d, openzeppelin-contracts, forge-std (subm
 
 ## Status
 
-`_getRoles` version built, 17 tests passing locally, deployed and demoed live on Sepolia (all eight steps mined, every outcome as expected). Audit remediation recorded in `docs/remediation.md`. No UI by design. Next.js UI built on the shared core, clicked through end to end on a fork and on Sepolia. Repository is private on GitHub — keep it private until the user says otherwise. Open: Etherscan source verification; a native-owner gas baseline on Sepolia; ENS team feedback on the README's design questions.
+`_getRoles` version built, 17 tests passing, deployed and demoed live on Sepolia (all eight terminal steps mined, every outcome as expected). Audit remediation recorded in `docs/remediation.md`. Next.js UI (shared-drive demo, light theme by default with a toggle, live `cast run` traces, Start over reset) built on the shared core; the drive UI has been clicked through end to end on a fork — a full run on live Sepolia is still to do (it will be the video recording). A fresh clone builds, tests and runs `ui:build` with no `.env`.
+
+Submission (first draft, docs committed): blockers are the repo going public (the ENS track requires open source — it is private; keep it private until the user says otherwise), a live demo link (plan: hosted read-only UI, writes off), the demo video, the real form limits/deadline, and the author's section of `docs/ai-usage.md` (the user writes it, not Claude). Form picks: category Infrastructure, emoji 📂. Still open: Etherscan source verification; a native-owner gas baseline on Sepolia; ENS team answers to the README's design questions.
