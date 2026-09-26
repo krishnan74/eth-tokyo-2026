@@ -61,9 +61,9 @@ export function TracePanel({ trace }: { trace: TraceState }) {
     <div className="flex h-full flex-col gap-4 rounded-3xl bg-surface p-5 shadow-[inset_0_0_0_1px_var(--line)] sm:p-6">
       <div className="flex flex-col gap-1">
         <span className="label">Behind the scenes</span>
-        <p className="text-sm text-ink-2">The real contract calls your last action made, replayed from the mined transaction.</p>
+        <p className="text-sm text-ink-2">The real smart-contract calls your last action made on ENSv2, replayed from the mined transaction.</p>
       </div>
-      {!trace && <p className="rounded-2xl bg-paper p-4 text-sm text-muted">Do something on the board — the calls it makes will appear here, step by step.</p>}
+      {!trace && <p className="rounded-2xl bg-paper p-4 text-sm text-muted">Do something in the drive above — the contract calls it makes will appear here, step by step.</p>}
       <AnimatePresence mode="wait">
         {trace && (
           <motion.div key={trace.hash} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3">

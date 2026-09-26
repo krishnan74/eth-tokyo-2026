@@ -3,6 +3,25 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
+function ThemeToggle() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => { setDark(document.documentElement.dataset.theme === "dark"); }, []);
+  const flip = () => {
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("cascade.theme", next); } catch { /* per-visit only */ }
+    setDark(!dark);
+  };
+  return (
+    <button type="button" onClick={flip} aria-label={dark ? "Switch to light theme" : "Switch to dark theme"} title={dark ? "Light theme" : "Dark theme"}
+      className="grid h-8 w-8 place-items-center rounded-full text-ink-2 ring-1 ring-line hover:bg-surface hover:text-ink">
+      {dark
+        ? <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden><circle cx="10" cy="10" r="3.5" fill="currentColor" /><g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4" /></g></svg>
+        : <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden><path d="M15.5 12.6A6.5 6.5 0 0 1 7.4 4.5a6.5 6.5 0 1 0 8.1 8.1Z" fill="currentColor" /></svg>}
+    </button>
+  );
+}
+
 import { SEPOLIA } from "@/lib/cascade/contracts";
 import { IS_FORK } from "@/lib/cascade/wagmi";
 
@@ -30,7 +49,7 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
         </div>
 
         <nav className="hidden items-center gap-6 text-sm text-ink-2 md:flex" aria-label="Sections">
-          {[["The problem", "#problem"], ["Try it", "#try"], ["Under the hood", "#under-the-hood"], ["More detail", "#more"]].map(([t, h]) => (
+          {[["The problem", "#problem"], ["Try it", "#try"], ["Behind the scenes", "#trace"], ["Under the hood", "#under-the-hood"]].map(([t, h]) => (
             <a key={h} href={h} className="relative transition-colors hover:text-ink after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-cascade after:transition-[width] after:duration-500 hover:after:w-full">{t}</a>
           ))}
         </nav>
@@ -39,6 +58,7 @@ export function TopBar({ outsider, operator, writesEnabled }: { outsider?: strin
             <span className={`h-1.5 w-1.5 rounded-full ${IS_FORK ? "bg-warn" : "bg-ok pulse"}`} />
             {IS_FORK ? "Anvil fork of Sepolia" : "Live · Sepolia"}
           </span>
+          <ThemeToggle />
           <div className="relative">
             <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
               className="rounded-full px-3 py-1 text-xs font-medium text-ink-2 ring-1 ring-line hover:bg-surface hover:text-ink">

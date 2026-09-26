@@ -6,16 +6,16 @@ export function Intro() {
     <section className="flex flex-col gap-14 pt-14 md:pt-20">
       <div className="flex max-w-4xl flex-col gap-6">
         <span className="label"><span className="text-cascade">Cascade</span> · team access for ENSv2 names</span>
-        <h1 className="display text-[clamp(3rem,8vw,7rem)]">Let a <span className="italic text-cascade">team</span> manage ENS names.</h1>
+        <h1 className="display text-[clamp(3rem,8vw,7rem)]">Share ENS names like a <span className="italic text-cascade">folder</span>.</h1>
         <p className="max-w-2xl text-lg leading-relaxed text-ink-2">
-          Add someone to a team once, and they can manage every name the team is trusted with — including names created later. Remove them once, and it&apos;s gone everywhere. Built into ENSv2&apos;s own access control, replacing nothing.
+          In a shared drive you share a folder with a group, and everyone in the group can edit every file inside — including files added later. Cascade brings that to ENSv2 names: a name trusts a team, and the team&apos;s members can manage every subname under it. Built into ENSv2&apos;s own access control, replacing nothing.
         </p>
       </div>
 
       <div id="problem" className="grid scroll-mt-24 gap-5 md:grid-cols-2">
         <Reveal className="flex flex-col gap-4 rounded-3xl bg-surface p-6 shadow-[inset_0_0_0_1px_var(--line)] sm:p-8">
           <span className="label">In ENS today</span>
-          <p className="text-xl font-medium leading-snug">Every permission is <span className="text-bad">one address, on one name.</span></p>
+          <p className="text-xl font-medium leading-snug">Like sharing <span className="text-bad">each file with each person.</span></p>
           <div className="grid grid-cols-[auto_repeat(3,minmax(0,1fr))] gap-x-3 gap-y-2 font-mono text-xs">
             <span />{["svc-api", "svc-db", "svc-cdn"].map((n) => <span key={n} className="text-muted">{n}</span>)}
             {["Alice", "Bob"].map((p) => (
@@ -25,11 +25,11 @@ export function Intro() {
               </span>
             ))}
           </div>
-          <p className="text-sm leading-relaxed text-ink-2">Two people, three names: six separate grants. A new name needs new grants for everyone; someone leaving means finding and revoking each one.</p>
+          <p className="text-sm leading-relaxed text-ink-2">Every ENS permission is one address on one name. Two people, three names: six separate grants. A new name needs new grants for everyone; someone leaving means finding and revoking each one.</p>
         </Reveal>
         <Reveal delay={0.08} className="flex flex-col gap-4 rounded-3xl bg-inv p-6 text-inv-fg sm:p-8">
           <span className="label !text-inv-muted">With Cascade</span>
-          <p className="text-xl font-medium leading-snug">The parent name trusts <span className="text-inv-accent">a team</span>. Members inherit.</p>
+          <p className="text-xl font-medium leading-snug">Like sharing <span className="text-inv-accent">the folder with a group</span>.</p>
           <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
             <span className="rounded bg-white/10 px-2 py-1">devops.acme-corp.eth</span>
             <span className="text-inv-muted">→ one grant →</span>

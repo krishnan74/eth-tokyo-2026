@@ -18,7 +18,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${display.variable}`}>
+    <html lang="en" data-theme="light" suppressHydrationWarning className={`${sans.variable} ${mono.variable} ${display.variable}`}>
+      <head>
+        {/* Light is the default; a saved choice is applied before paint so there's no flash. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("cascade.theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}` }} />
+      </head>
       <body className="grain min-h-screen">
         <SmoothScroll />
         <Providers>{children}</Providers>
