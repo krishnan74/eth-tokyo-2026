@@ -52,3 +52,9 @@
 - The presenter pitched Cascade to ENS as "Google Drive for names", so the demo became a minimal shared-drive view: the `devops` folder (a name with its own registry), files (subnames), the `devops-team` group (TeamRegistry), and a "Who has access" panel showing the outsider's access *via devops-team* next to *given directly: none*. Drag-and-drop kept for joining/leaving the group; the attack is a button. No Google branding.
 - Light theme is now the default regardless of system setting, with a toggle applied before paint. Removed the old board, coach, roles strip and checks components.
 - Fork click-through (system set to dark): page loaded light; all seven actions as expected; who-has-access flipped correctly; every trace decoded; theme toggle works; no console errors; no overflow at 400px. Not yet re-run on live Sepolia.
+
+## 2026-09-26 (later) — EthDrive-inspired framing
+
+- Read EthDrive (Superhack 2024 finalist, "Google Drive for your assets"; no ENS, no sharing). Took: the "Drive for X" hook, drag-and-drop as the core interaction, and the observation that ENS already is the directory — what's missing is Drive's sharing. Did not take: its breadth-of-integrations strategy or organise-only framing.
+- Added the core message to the intro and README: ENSv2 already built the directory tree; the permission layer is missing; Cascade adds it with ReBAC. Added a read-only Share dialog behind the folder's "Shared with devops-team" pill, a Folders tree (`acme-corp.eth › devops`) with the parent-folder cascade marked "Next — not built yet", `docs/showcase.md` (tagline, problem, what it does, how it's made), and rewrote the pitch script for the drive flow.
+- Fork check: intro strip, Share dialog (Esc closes), folder tree and the refused first edit render and behave as intended; no console errors.

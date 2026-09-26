@@ -1,175 +1,140 @@
 # Cascade — pitch script for the ENS team
 
-About **9 minutes of talking**, then questions. Stage directions are in **[brackets]**; everything else is spoken. The live demo sends 7 Sepolia transactions (~12 s each) — the lines marked *while it confirms* are there to fill those waits.
+About **7 minutes of talking**, then questions. Stage directions are in **[brackets]**; everything else is spoken. The demo sends up to 7 Sepolia transactions (~12 s each) — the lines marked *while it confirms* fill those waits.
 
-**Before you start:** `npm run ui` running · fresh browser window at the top of the page · outsider not in the team · fallback terminal ready (`npm run demo -- --core`).
+**Before you start:** `npm run ui` running · fresh browser window at the top of the page · press **Start over** if the outsider is still in the group · fallback terminal ready (`npm run demo -- --core`).
 
 ---
 
 ## 0:00 — Opening
 
-**[On the hero: "Roles for teams, not just addresses."]**
+**[On the intro: "Share ENS names like a folder."]**
 
-> "Hi — I'm [your name]. I've been building on the ENSv2 beta this weekend, specifically on Enhanced Access Control, and I'd love your feedback on one idea.
+> "Hi — I'm [your name]. You'll recognise this idea from Google Drive.
 >
-> ENSv2's access control can give a role to an **address**. It can't give one to a **relationship**. Cascade adds one relationship — team membership — as a single extra term inside EAC's own role lookup. So a team can govern every name under a parent, including names created tomorrow, and nothing EAC does today is replaced.
+> **[Point at the three-part strip.]** ENSv2 already built the directory tree — every name can have its own registry, so names nest like folders: acme-corp, devops, svc-api. What's missing is the **sharing layer**. Today, EAC grants permissions one address on one name — there's no way to share a folder with a group.
 >
-> I'll be upfront: this is an MVP, deliberately scoped to **one hop and one team per registry**, so we could test the rule itself. I'll show you the roadmap at the end — and I've got four questions for you that decide where it goes."
-
-**[Point at the facts row.]**
-
-> "These last two numbers are read from Sepolia right now — the parent's grant to the team is live, and our demo outsider is currently outside the team."
+> Cascade adds that permission layer, using relationship-based access control: a name trusts a team, and the team's members inherit — checked live, nothing copied. It's built into EAC's own role lookup and replaces nothing. And to be upfront: this MVP is deliberately one hop and one team, to test the rule itself."
 
 ---
 
-## 0:45 — The gap
+## 0:50 — The problem, in drive terms
 
-**[Scroll to 01 · The gap.]**
+**[Scroll to the two cards.]**
 
-> "Today, every permission in EAC is an address. It answers one question: is the caller's own address listed for this role, on this name?
+> "Today it's like sharing each file with each person: two people, three names — six separate grants. A new name needs new grants; someone leaves, you hunt down every one.
 >
-> **[Point at the ledger.]** Here's a team of two managing three service names: that's already six separate grants. Add a person, add a name, it grows. Someone leaves — you revoke on every registry, and if you miss one, access stays behind.
->
-> What a team actually needs to say is this: **[point at the quote]** *'Anyone on the devops team may manage every subname under devops — including tomorrow's.'* There's no entry in EAC that means 'members of this team.'
->
-> Teams work around it two ways today. Copy every member everywhere — root grants do cover future names, but only inside one registry, and each role caps at 15 holders. Or give the role to one shared contract, like a Safe — which works, but then members stop acting as themselves; everything is routed through the Safe."
+> With Cascade it's like sharing the folder with a group: one grant to the team covers every name under devops, today's and tomorrow's."
 
 ---
 
-## 1:45 — The idea
+## 1:20 — Live demo
 
-**[Scroll to 02 · The idea — the dark formula band.]**
+**[Scroll to Try it. The drive shows the `devops` folder.]**
 
-> "So Cascade adds the relationship and keeps everything else.
->
-> **[Read the formula.]** An account's roles on any name under devops are **EAC's own grants** — unchanged, stored and granted exactly as today — **plus the team's grant**, if you're a member. One hop, read live on every check.
->
-> Mechanically, it's one contract: a subclass of your own `PermissionedRegistry` that overrides one function, `_getRoles` — the hook EAC documents for exactly this, and that the stock registry already uses for approved operators.
->
-> **[Point at the MVP scope line.]** And again — one hop, one team per registry, on purpose for this MVP."
+> "These are real ENSv2 contracts on Sepolia. The `devops` folder is `devops.acme-corp.eth` — a name with its own registry. Files are its subnames. The group is a team contract."
 
----
+**[Click the "Shared with devops-team · Share" pill.]**
 
-## 2:30 — Live demo
+> "Just like Drive's share dialog: this folder is shared with **devops-team**, can edit — and it applies to every file, including new ones. In ENS terms, the parent registry grants the team contract the `SET_SUBREGISTRY` role on devops. **[Click Done.]**"
 
-**[Scroll to 03 · Live demo. Guided mode is on.]**
+### Create a file
 
-> "Let me show it working. These are real contracts on the ENSv2 beta on Sepolia. Every drop and every write here is a transaction, and the board only moves once the chain confirms it.
->
-> On the right is `devops.acme-corp.eth`. The org registry above it — which is completely stock — grants the **team contract** its editor role, `SET_SUBREGISTRY`. In the middle is the team roster. On the left is our outsider."
+**[Click "+ New file".]**
 
-### Step 1 — create a fresh subname
-
-**[Click "+ New subname".]**
-
-> "First, a brand-new service name."
+> "A brand-new file — a new subname."
 
 *While it confirms:*
-> "Notice what I'm *not* doing: I'm not granting anybody anything on this name. It gets created with nobody holding the editor role on it."
+> "Notice nobody is given access to it. It's created with no editor at all."
 
-### Step 2 — the outsider tries to write
+### The outsider tries to edit
 
-**[Click "Write" on the new subname.]**
+**[Click "Edit as outsider".]**
 
-> "Now the outsider tries to repoint it."
+> "Our outsider tries to edit it —"
 
-*While it confirms:*
-> "They're not on the team, and they hold nothing on the name — so EAC should say no."
+**[Refused.]**
 
-**[It reverts.]**
+> "— refused, on-chain. **[Point at Who has access.]** Outsider: no access. Not in the group."
 
-> "Reverted, on-chain. **[Point at the checks row.]** You can see the reasoning — direct role: no; the parent does grant the team; but membership: no."
+### Drag the outsider into the group *(the key moment)*
 
-### Step 3 — drag the outsider into the team *(the key moment)*
+**[Drag the outsider chip into devops-team.]**
 
-**[Drag the outsider chip into the team roster.]**
-
-> "Now I add them to the team. This is one ordinary EAC grant on the team contract — nothing Cascade-specific, and nothing written to any name."
+> "Now I add them to the group. That's one ordinary EAC grant on the team contract — nothing written to any file."
 
 *While it confirms:*
-> "Watch the subname on the right, and the strip underneath the board."
+> "Watch who has access on the right."
 
-**[It lands — the lock opens.]**
+**[It lands.]**
 
-> "The subname unlocked — and nobody touched it. **[Point at the strip.]** Look at this: *stored in EAC* for the outsider on this name is still **none**. *Effective, with Cascade* now includes `SET_SUBREGISTRY`. That's the whole point: Cascade **adds** to EAC — it doesn't write into it."
+> "Outsider — **can edit, via devops-team**. And look underneath: *given directly: none*, *via the group: SET_SUBREGISTRY*. Nothing was written to the file. That's Cascade adding to EAC, not replacing it."
 
-### Step 4 — the same write again
+### The same edit again
 
-**[Click "Write".]**
+**[Click "Edit as outsider".]**
 
-> "Same name, same address, same call."
+> "Same file, same person, same call —" **[saved]** "— it works. Only the group changed."
 
-**[It succeeds.]**
+### Drag them out, edit again *(skip if short on time)*
 
-> "Succeeded. Only the relationship changed."
+**[Drag the outsider back to People.]**
 
-### Steps 5 and 6 — drag out, write again *(skip if short on time)*
+> "Remove them from the group — one revoke. No cleanup file by file."
 
-**[Drag the outsider back out to the left.]**
+**[Click "Edit as outsider".]** "…and it's refused again, immediately."
 
-> "And removal is one revoke on the team. No cleanup per name — because nothing was ever stored per name."
+### The attack
 
-**[It lands. Click "Write".]**
+**[Click "As the outsider, change who the folder is shared with".]**
 
-> "Same write, a third time…" **[reverts]** "…and it fails immediately. No delay, nothing cached."
-
-### Step 7 — the hijack
-
-**[Drag AlwaysTrueTeam onto the team socket.]**
-
-> "The obvious attack: point Cascade at my own contract that says everyone is a member."
-
-**[It's refused.]**
-
-> "Refused on-chain — `EACUnauthorizedAccountRoles`. Changing the team needs a dedicated root role, the target has to be a contract that declares the team interface, and every change emits an event."
+> "The obvious attack: point the folder at a group that says yes to everyone." **[Refused.]** "Refused — only an admin holds the role to change the folder's group."
 
 ---
 
-## 6:30 — How it fits
+## 4:30 — Behind the scenes
 
-**[Scroll to 04 · How it fits.]**
+**[Scroll to Behind the scenes.]**
 
-> "Here's where it sits. Registry functions call `_checkRoles`, which reads `_getRoles`, which reads EAC storage. Cascade touches **only** `_getRoles`. Every other layer is stock ENSv2.
->
-> What stays the same: storage, grants and revokes; who can grant — admin roles are never inherited; root actions like registering names stay native-only.
->
-> And what changes — I want to name these myself. `hasRoles` now includes inherited roles, which keeps views agreeing with writes. Inherited roles emit no events, so indexers should call `hasRoles`. And every role lookup on a subname costs about 2,300 extra gas — native owners included."
+> "Here's what actually ran — replayed from the mined transaction. The outsider called `setSubregistry` on the devops registry. Inside, ENS's own permission check asks one question, and Cascade's override answers it: it reads the parent registry — the team holds `SET_SUBREGISTRY` — then asks the team contract — is this caller a member? Both are read-only, gas-capped calls. Member: allowed. Not a member: reverted with `EACUnauthorizedAccountRoles`."
 
 ---
 
-## 7:15 — Roadmap
+## 5:15 — Under the hood
 
-**[Scroll to 05 · Roadmap.]**
+**[Scroll to Under the hood.]**
 
-> "Step zero is what you just saw — one hop. From here, each step widens the relationship, never the trust. Next: several teams per role, so devops can edit and security can revoke. Teams of teams. Multi-hop inheritance up the name tree, with a hard depth cap. And bringing an existing roster — a Hats role or a Safe's owners — in as the team.
+> "Three contracts, one overridden function. The parent registry is stock ENSv2. Cascade is ENS's own `PermissionedRegistry` with one function overridden — `_getRoles`, the hook EAC documents for this, and that the stock registry already uses for approved operators. The team is a plain EAC contract.
 >
-> The last row depends on you: who-can-access queries, resolver records — which would be a different mechanism, because resolver permissions aren't organised by parent name — and agent fleets as the use case."
+> Every ENS function is unchanged; because `_getRoles` is virtual, every check runs Cascade's version, which runs ENS's first and then adds the team's grant — never admin roles, never registry-wide roles.
+>
+> What changes, named: views include inherited roles, inherited roles emit no events, and each lookup costs about 2,300 extra gas."
 
 ---
 
-## 8:00 — The ask
+## 6:15 — Roadmap, in one breath
 
-**[Scroll to 06 · The ask.]**
+**[Point at the "Next — not built yet" note under Folders.]**
 
-> "Which brings me to why I'm here. Four questions decide whether this is worth taking further:
+> "In Drive, sharing a parent folder cascades into every subfolder — that's the name, and it's the roadmap: multi-level sharing, several groups per folder, groups of groups, and existing rosters like Hats or a Safe as the group. None of that is built yet; today it's one level, deliberately."
+
+---
+
+## 6:40 — The ask
+
+> "So, four questions:
 >
-> **One** — EAC exposes how many hold a role, not who, so I used a team pointer and read the parent's grant live. Is that the right shape, or would you rather expose holder enumeration?
+> **One** — EAC exposes how many hold a role, not who, so I point at the team and read the parent's grant live. Right shape, or would you rather expose holder enumeration?
 >
-> **Two** — is overriding `_getRoles` the intended use for inheriting roles from another contract — and is it a stable extension point going forward?
+> **Two** — is `_getRoles` the intended, stable hook for inheriting from another contract?
 >
-> **Three** — root grants already cover future names inside one registry. Does 'one roster shared by many registries' match a need you see?
+> **Three** — does 'one team roster, shared by many registries' match a need you see, beyond root grants?
 >
-> **Four** — the team contract itself holds a role on devops. Should team contracts be required to be narrow?
+> **Four** — should team contracts be required to be narrow?
 >
-> And one more: would **agent fleets** be where you'd want this — and would you need it for resolver records too?"
+> And would agent fleets be where you'd want this?"
 
 **[Stop. Listen. Write down their exact words.]**
-
----
-
-## Closing (after the discussion)
-
-> "Thank you — this is exactly what I needed. Everything's on Sepolia with Etherscan links, there's a terminal version of the demo with the edge cases, and I'll build the next step based on what you've said."
 
 ---
 
@@ -177,8 +142,9 @@ About **9 minutes of talking**, then questions. Stage directions are in **[brack
 
 | If… | Say / do |
 |---|---|
-| A transaction is slow | "Sepolia's taking its time — the board won't move until the block confirms, which is the point." Keep talking through the next line. |
-| The page or RPC fails | "Let me show the same sequence from the terminal." Run `npm run demo -- --core`. |
-| Something unexpected happens | Say what you see, plainly. Don't guess. Open the Activity log's Etherscan link. |
-| You're running out of time | Skip steps 5–6 and section 04. Keep: the join → write flip, the hijack, the roadmap line, the ask. |
-| They ask something you don't know | "I don't know yet — that's a great one to test. Can I note it down?" |
+| A transaction is slow | "Sepolia's taking its time — the drive won't change until the block confirms." Keep talking. |
+| The page or RPC fails | "Same sequence from the terminal." Run `npm run demo -- --core`. |
+| Behind the scenes says "trace unavailable" | "The free RPC only keeps recent state — here's the transaction on Etherscan instead." |
+| The outsider starts in the group | Press **Start over** before you begin. |
+| Short on time | Skip "drag them out" and Under the hood. Keep: the drag-in → edit flip, the attack, Behind the scenes, the ask. |
+| A question you can't answer | "I don't know yet — can I note it down?" |

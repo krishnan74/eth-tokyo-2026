@@ -1,8 +1,8 @@
-# Cascade v2 — team-governed subnames via a one-hop EAC fallthrough
+# Cascade — Google Drive–style sharing for ENS names
 
 A feedback demo for the ENS team, on the ENSv2 beta deployment on Sepolia.
 
-**The idea:** a subname registry whose EAC role lookup also asks one level up: *does the parent name grant a team contract a role on me, and is this account a member of that team?* If so, the account holds that role on every subname here. Joining or leaving the team then governs every current **and future** subname under `devops.acme-corp.eth` — one role write, no per-subname grants, no token transfers.
+**ENSv2 already built the directory tree:** every name can have its own registry, so names nest like folders (`acme-corp.eth › devops › svc-api`). **What's missing is the permission layer:** Enhanced Access Control grants roles one address on one name, so there's no way to share a folder with a group. **Cascade adds that layer using relationship-based access control (ReBAC):** a parent name grants a role to a team contract, and the team's members inherit it on every subname under it — current and future — checked live, with nothing copied onto the names. One role write to join or leave; nothing EAC does today is replaced.
 
 ## What is new, and what is stock ENSv2
 
