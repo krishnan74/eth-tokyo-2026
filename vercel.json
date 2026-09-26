@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "buildCommand": "bash scripts/fetch-cast.sh && next build web",
+  "outputDirectory": "web/.next"
+}
