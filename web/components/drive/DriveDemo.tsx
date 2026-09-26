@@ -39,19 +39,19 @@ const STEPS: { action: ActionName; text: string; expect?: "success" | "reverted"
 ];
 
 // ── icons ────────────────────────────────────────────────────────────────────
-const Folder = ({ className = "h-5 w-5" }) => (
+export const Folder = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.3l2 2h8.7A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-11Z" fill="currentColor" /></svg>
 );
-const FileIcon = ({ className = "h-5 w-5" }) => (
+export const FileIcon = ({ className = "h-5 w-5" }) => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden><path d="M6.5 3h7l5 5v11.5A1.5 1.5 0 0 1 17 21H6.5A1.5 1.5 0 0 1 5 19.5v-15A1.5 1.5 0 0 1 6.5 3Z" fill="currentColor" opacity=".18" /><path d="M13.5 3v5h5" fill="none" stroke="currentColor" strokeWidth="1.4" /><path d="M6.5 3h7l5 5v11.5A1.5 1.5 0 0 1 17 21H6.5A1.5 1.5 0 0 1 5 19.5v-15A1.5 1.5 0 0 1 6.5 3Z" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>
 );
-const GroupIcon = () => (
+export const GroupIcon = () => (
   <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden><circle cx="9" cy="9" r="3.2" fill="currentColor" /><circle cx="16.5" cy="10" r="2.6" fill="currentColor" opacity=".55" /><path d="M3.5 18.5a5.5 5.5 0 0 1 11 0M13.8 18.5a4.3 4.3 0 0 1 7-3.3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
 );
-function Avatar({ letter, tone }: { letter: string; tone: "outsider" | "admin" }) {
+export function Avatar({ letter, tone }: { letter: string; tone: "outsider" | "admin" }) {
   return <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold text-white ${tone === "outsider" ? "bg-[#6a5acd]" : "bg-[#3a4543]"}`}>{letter}</span>;
 }
-const Spinner = () => <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-current border-r-transparent" aria-hidden />;
+export const Spinner = () => <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-current border-r-transparent" aria-hidden />;
 
 // ── the draggable person ─────────────────────────────────────────────────────
 type Zone = "group" | "people";
@@ -85,7 +85,7 @@ function PersonChip({ outsider, disabled, beckon, zones, setOver, onDrop, onKey 
   );
 }
 
-function Pane({ zoneRef, over, title, children }: { zoneRef?: RefObject<HTMLDivElement | null>; over?: boolean; title: ReactNode; children: ReactNode }) {
+export function Pane({ zoneRef, over, title, children }: { zoneRef?: RefObject<HTMLDivElement | null>; over?: boolean; title: ReactNode; children: ReactNode }) {
   return (
     <div ref={zoneRef} className={`flex flex-col gap-2 rounded-2xl p-3 transition-[background-color,box-shadow] duration-300 ${over ? "bg-cascade-soft shadow-[inset_0_0_0_2px_var(--cascade)]" : "bg-paper"}`}>
       <span className="px-1 text-xs font-medium text-ink-2">{title}</span>
@@ -338,7 +338,7 @@ function ShareDialog({ onClose, grant, inGroup, onAttack, busy }: { onClose: () 
   );
 }
 
-function Row({ icon, who, sub, right }: { icon: ReactNode; who: string; sub: string; right: ReactNode }) {
+export function Row({ icon, who, sub, right }: { icon: ReactNode; who: string; sub: string; right: ReactNode }) {
   return (
     <div className="flex items-center gap-2.5">
       {icon}
