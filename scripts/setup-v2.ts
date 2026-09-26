@@ -23,15 +23,47 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { encodeDeployData, type Address, type Hex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { parseAbi } from "viem";
 import {
   ALL_ROLES, ENS, ERC20_ABI, FORK, REGISTRAR_ABI, REGISTRY_ABI, ROLE_RENEW, ROLE_SET_SUBREGISTRY, WRITE, ZERO,
-  artifact, explorer, labelId, operator, pub,
+  artifact, explorer, labelId, operator, outsider, pub,
 } from "./lib.js";
 
-export const ORG_V2 = "acme-labs";
-export const FOLDER_V2 = "platform";
-export const FILE_V2 = "svc-api";
-export const FILES_V2 = [FILE_V2, "svc-db", "svc-web"];
+const REGISTRY_ABI_OWNER = parseAbi(["function getOwner(uint256) view returns (address)"]);
+
+/** The hosted demo's outsider, derived from .env.hosted (never printed); null where that file isn't present. */
+function hostedOutsiderAddress(): Address | null {
+  if (!existsSync(".env.hosted")) return null;
+  const line = readFileSync(".env.hosted", "utf8").split("\n").find((l) => l.startsWith("OUTSIDER_PRIVATE_KEY="));
+  if (!line) return null;
+  const v = line.slice("OUTSIDER_PRIVATE_KEY=".length).trim();
+  return privateKeyToAccount((v.startsWith("0x") ? v : `0x${v}`) as Hex).address;
+}
+
+/**
+ * Two independent trees, chosen with `--tree acme|orbit` (default orbit). Each has its own name, contracts
+ * and book, so one can change while the other keeps serving the live site.
+ *   acme:  acme-labs.eth › platform › svc-api, svc-db, svc-web   (book deployments/sepolia-v2.json)
+ *   orbit: orbit-dao.eth › protocol › vault, oracle, bridge       (book deployments/sepolia-orbit.json)
+ *          teams: core-devs (edits protocol) · security-council ⊃ auditors (edits + sets resolvers on orbit-dao.eth)
+ *          members' own names: alex.orbit-dao.eth (hosted demo's outsider), alex-dev.orbit-dao.eth (local outsider)
+ */
+const TREES = {
+  acme: { org: "acme-labs", folder: "platform", files: ["svc-api", "svc-db", "svc-web"], book: "v2", members: false,
+    teams: { dev: "dev-team", sec: "security", sre: "sre" } },
+  orbit: { org: "orbit-dao", folder: "protocol", files: ["vault", "oracle", "bridge"], book: "orbit", members: true,
+    teams: { dev: "core-devs", sec: "security-council", sre: "auditors" } },
+} as const;
+const treeFlag = process.argv.indexOf("--tree");
+export const TREE_NAME = (treeFlag > 0 ? process.argv[treeFlag + 1] : "orbit") as keyof typeof TREES;
+if (!TREES[TREE_NAME]) throw new Error(`unknown --tree ${TREE_NAME}`);
+export const TREE = TREES[TREE_NAME];
+export const ORG_V2 = TREE.org;
+export const FOLDER_V2 = TREE.folder;
+export const FILES_V2: readonly string[] = TREE.files;
+export const FILE_V2 = FILES_V2[0];
+export const TEAMS = TREE.teams;
 export const ROLE_SET_RESOLVER = 1n << 24n;
 
 export type BookV2 = {
@@ -40,9 +72,10 @@ export type BookV2 = {
   retired?: { cascade: Address; at: string }[];
   txs: Record<string, Hex>;
 };
-export const BOOK_V2 = FORK ? "deployments/fork-v2.json" : "deployments/sepolia-v2.json";
+export const BOOK_V2 = FORK ? `deployments/fork-${TREE.book}.json` : `deployments/sepolia-${TREE.book}.json`;
 export const loadBookV2 = (): BookV2 => {
-  const src = existsSync(BOOK_V2) ? BOOK_V2 : FORK && existsSync("deployments/sepolia-v2.json") ? "deployments/sepolia-v2.json" : null;
+  const sepoliaBook = `deployments/sepolia-${TREE.book}.json`;
+  const src = existsSync(BOOK_V2) ? BOOK_V2 : FORK && existsSync(sepoliaBook) ? sepoliaBook : null;
   return src ? JSON.parse(readFileSync(src, "utf8")) : { txs: {} };
 };
 export const saveBookV2 = (b: BookV2) => writeFileSync(BOOK_V2, JSON.stringify(b, null, 2) + "\n");
@@ -95,7 +128,7 @@ async function main() {
   execFileSync("forge", ["build"], { stdio: ["ignore", "ignore", "inherit"] });
   console.log(`operator ${op}\nrpc      ${FORK ? "anvil fork" : "Sepolia"}  mode ${WRITE ? "WRITE" : "simulate"}\nbook     ${BOOK_V2}`);
 
-  step(1, "contracts: OrgRegistry v2 (stock), CascadeSubregistryV2, dev-team, sre, security (NestedTeam)");
+  step(1, `contracts: OrgRegistry v2 (stock), CascadeSubregistryV2, ${TEAMS.dev}, ${TEAMS.sre}, ${TEAMS.sec} (NestedTeam)`);
   await deploy("org", "PermissionedRegistry", [ENS.labelStore, op, ALL_ROLES]);
   await deploy("cascade", "CascadeSubregistryV2", [ENS.labelStore, op, ALL_ROLES]);
   await deploy("devTeam", "TeamRegistry", [[op]]);
@@ -147,27 +180,27 @@ async function main() {
   if (p.toLowerCase() === org.toLowerCase()) console.log("    parent already set");
   else await send("v2 setParent", { address: cascade, abi: v2Abi, functionName: "setParent", args: [org, FOLDER_V2] } as never);
   const teams = (await read<Address[]>(cascade, v2Abi, "teams")).map((t) => t.toLowerCase());
-  for (const [name, t] of [["dev-team", devTeam], ["security", security]] as const) {
+  for (const [name, t] of [[TEAMS.dev, devTeam], [TEAMS.sec, security]] as const) {
     if (teams.includes(t.toLowerCase())) console.log(`    ${name} already added`);
     else await send(`v2 addTeam ${name}`, { address: cascade, abi: v2Abi, functionName: "addTeam", args: [t] } as never);
   }
   if ((await read<bigint>(cascade, v2Abi, "depth")) === 2n) console.log("    depth already 2");
   else await send("v2 setDepth 2", { address: cascade, abi: v2Abi, functionName: "setDepth", args: [2n] } as never);
 
-  step(5, "security (NestedTeam) contains sre");
+  step(5, `${TEAMS.sec} (NestedTeam) contains ${TEAMS.sre}`);
   const subs = (await read<Address[]>(security, nestedAbi, "subTeams")).map((t) => t.toLowerCase());
-  if (subs.includes(sre.toLowerCase())) console.log("    sre already a sub-team");
-  else await send("security addSubTeam sre", { address: security, abi: nestedAbi, functionName: "addSubTeam", args: [sre] } as never);
+  if (subs.includes(sre.toLowerCase())) console.log(`    ${TEAMS.sre} already a sub-team`);
+  else await send(`${TEAMS.sec} addSubTeam ${TEAMS.sre}`, { address: security, abi: nestedAbi, functionName: "addSubTeam", args: [sre] } as never);
 
-  step(6, "grants: dev-team SET_SUBREGISTRY on platform (level 1); security SET_SUBREGISTRY + SET_RESOLVER on acme-labs.eth (level 2)");
+  step(6, `grants: ${TEAMS.dev} SET_SUBREGISTRY on ${FOLDER_V2} (level 1); ${TEAMS.sec} SET_SUBREGISTRY + SET_RESOLVER on ${ORG_V2}.eth (level 2)`);
   if (await read<boolean>(org, REGISTRY_ABI, "hasRoles", [labelId(FOLDER_V2), ROLE_SET_SUBREGISTRY, devTeam])) console.log("    level-1 grant already there");
-  else await send("grant dev-team on platform", { address: org, abi: orgAbi, functionName: "grantRoles",
+  else await send(`grant ${TEAMS.dev} on ${FOLDER_V2}`, { address: org, abi: orgAbi, functionName: "grantRoles",
     args: [labelId(FOLDER_V2), ROLE_SET_SUBREGISTRY, devTeam] } as never);
   // security gets both "can edit" and "can set resolver" on acme-labs.eth: the demo's main path uses the
   // same verb at both levels (edit), and the resolver right shows that each team gets its own roles.
   const L2 = ROLE_SET_SUBREGISTRY | ROLE_SET_RESOLVER;
   if (await read<boolean>(ENS.ethRegistry, REGISTRY_ABI, "hasRoles", [labelId(ORG_V2), L2, security])) console.log("    level-2 grant already there");
-  else await send("grant security on acme-labs.eth", { address: ENS.ethRegistry, abi: orgAbi, functionName: "grantRoles",
+  else await send(`grant ${TEAMS.sec} on ${ORG_V2}.eth`, { address: ENS.ethRegistry, abi: orgAbi, functionName: "grantRoles",
     args: [labelId(ORG_V2), L2, security] } as never);
 
   step(7, `files to act on in ${FOLDER_V2}.${ORG_V2}.eth: ${FILES_V2.join(", ")} (several, so one change visibly reaches many)`);
@@ -176,6 +209,19 @@ async function main() {
     if (expiry > BigInt(Math.floor(Date.now() / 1000))) console.log(`    ${file} already registered`);
     else await send(`register ${file}`, { address: cascade, abi: v2Abi, functionName: "register",
       args: [file, op, ZERO, ZERO, ROLE_RENEW, BigInt(Math.floor(Date.now() / 1000)) + YEAR] } as never);
+  }
+
+  if (TREE.members) {
+    step(8, `members' own ENS names in ${ORG_V2}.eth (owned by the demo's outsider accounts)`);
+    const hostedOutsider = hostedOutsiderAddress();
+    const names: [string, Address | null][] = [["alex", hostedOutsider], ["alex-dev", outsider.account.address]];
+    for (const [label, owner] of names) {
+      if (!owner) { console.log(`    ${label}: no .env.hosted here, skipped`); continue; }
+      const current = await read<Address>(org, REGISTRY_ABI_OWNER, "getOwner", [labelId(label)]);
+      if (current.toLowerCase() === owner.toLowerCase()) console.log(`    ${label}.${ORG_V2}.eth already owned by ${owner.slice(0, 10)}…`);
+      else await send(`register ${label}.${ORG_V2}.eth`, { address: org, abi: orgAbi, functionName: "register",
+        args: [label, owner, ZERO, ZERO, 0n, BigInt(Math.floor(Date.now() / 1000)) + YEAR] } as never);
+    }
   }
 
   console.log(`\ndone.\n  ${ORG_V2}.eth org registry  ${org}\n  CascadeSubregistryV2       ${cascade}\n  dev-team                   ${devTeam}\n  security (NestedTeam)      ${security}\n  sre                        ${sre}`);
