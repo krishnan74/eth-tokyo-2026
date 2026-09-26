@@ -9,3 +9,7 @@ web/.next/
 web/next-env.d.ts
 *.tsbuildinfo
 deployments/fork-v2.json
+.vercel/
+.env.local
+.env.hosted
+web/bin/
