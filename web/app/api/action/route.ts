@@ -4,7 +4,7 @@ import { WRITES_ENABLED, runAction, type ActionName } from "@/lib/cascade/server
 
 export const dynamic = "force-dynamic";
 
-const ACTIONS: ActionName[] = ["create", "write", "grant", "revoke", "hijack"];
+const ACTIONS: ActionName[] = ["create", "write", "grant", "revoke", "hijack", "reset"];
 
 /**
  * Sends one demo transaction and returns its hash as soon as it is broadcast. The browser then waits for

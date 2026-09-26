@@ -49,8 +49,8 @@ export function actors() {
   };
 }
 
-export type ActionName = "create" | "write" | "grant" | "revoke" | "hijack";
-export type ActionResult = { hash: Hex; label?: string; expectedRevertReason?: string; funding?: Hex };
+export type ActionName = "create" | "write" | "grant" | "revoke" | "hijack" | "reset";
+export type ActionResult = { hash?: Hex; label?: string; expectedRevertReason?: string; funding?: Hex; noop?: string };
 
 /** Why a call would revert, decoded from a simulation against the latest block. */
 async function revertReason(req: Parameters<typeof pub.simulateContract>[0]): Promise<string | undefined> {
@@ -97,6 +97,12 @@ export async function runAction(action: ActionName, label?: string): Promise<Act
       return { hash: await op.writeContract({ address: SEPOLIA.team, abi: TEAM_ABI, functionName: "grantRoles", args: [TEAM_RESOURCE, ROLE_MEMBER, out.account.address] }) };
     case "revoke":
       return { hash: await op.writeContract({ address: SEPOLIA.team, abi: TEAM_ABI, functionName: "revokeRoles", args: [TEAM_RESOURCE, ROLE_MEMBER, out.account.address] }) };
+    case "reset": {
+      // Put the demo back to its starting point: the outsider outside the team.
+      const member = await pub.readContract({ address: SEPOLIA.team, abi: TEAM_ABI, functionName: "isMember", args: [out.account.address] });
+      if (!member) return { noop: "Already clean: the outsider is not in the team." };
+      return { hash: await op.writeContract({ address: SEPOLIA.team, abi: TEAM_ABI, functionName: "revokeRoles", args: [TEAM_RESOURCE, ROLE_MEMBER, out.account.address] }) };
+    }
     case "hijack": {
       const funding = await fundOutsider();
       const req = { address: SEPOLIA.cascade, abi: CASCADE_ABI, functionName: "setTeam", args: [SEPOLIA.attacker] } as const;
