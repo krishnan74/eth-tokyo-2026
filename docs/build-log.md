@@ -58,3 +58,7 @@
 - Read EthDrive (Superhack 2024 finalist, "Google Drive for your assets"; no ENS, no sharing). Took: the "Drive for X" hook, drag-and-drop as the core interaction, and the observation that ENS already is the directory — what's missing is Drive's sharing. Did not take: its breadth-of-integrations strategy or organise-only framing.
 - Added the core message to the intro and README: ENSv2 already built the directory tree; the permission layer is missing; Cascade adds it with ReBAC. Added a read-only Share dialog behind the folder's "Shared with devops-team" pill, a Folders tree (`acme-corp.eth › devops`) with the parent-folder cascade marked "Next — not built yet", `docs/showcase.md` (tagline, problem, what it does, how it's made), and rewrote the pitch script for the drive flow.
 - Fork check: intro strip, Share dialog (Esc closes), folder tree and the refused first edit render and behave as intended; no console errors.
+
+## 2026-09-26 (later) — renamed to ENS Drive
+
+- Product renamed to **ENS Drive**; **Cascade** stays the name of the permission layer (the `CascadeSubregistry` contract and the ReBAC rule), so contract and code names still match the Sepolia deployment. Updated the UI wordmark, page title, intro and footer, the README, CLAUDE.md, the showcase copy, the pitch script, the study docs' titles and the terminal demo's header. Historical entries (this log, feedback, decisions) keep their original wording. No affiliation disclaimer added, at the presenter's choice.

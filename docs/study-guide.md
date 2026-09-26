@@ -1,4 +1,6 @@
-# Cascade — 20-minute study guide
+# ENS Drive — 20-minute study guide
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 Read top to bottom. Each block is time-boxed; the total is 20 minutes. Deeper detail lives in [`project-explainer.md`](project-explainer.md) and [`contracts-explained.md`](contracts-explained.md) — you don't need them to pitch.
 

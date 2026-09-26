@@ -1,4 +1,6 @@
-# Cascade — the whole project, explained
+# ENS Drive — the whole project, explained
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 A complete technical walkthrough of Cascade for pitching it to the ENS team: the ENS concepts it builds on, the gap it fills, how the mechanism works line by line, what is deployed, how it is proven, and where it goes next. Each section ends with a line you can use when pitching.
 

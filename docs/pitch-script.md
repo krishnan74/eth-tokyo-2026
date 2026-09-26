@@ -1,4 +1,6 @@
-# Cascade — pitch script for the ENS team
+# ENS Drive — pitch script for the ENS team
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 About **7 minutes of talking**, then questions. Stage directions are in **[brackets]**; everything else is spoken. The demo sends up to 7 Sepolia transactions (~12 s each) — the lines marked *while it confirms* fill those waits.
 
@@ -10,11 +12,11 @@ About **7 minutes of talking**, then questions. Stage directions are in **[brack
 
 **[On the intro: "Share ENS names like a folder."]**
 
-> "Hi — I'm [your name]. You'll recognise this idea from Google Drive.
+> "Hi — I'm [your name]. This is ENS Drive — you'll recognise the idea from Google Drive.
 >
 > **[Point at the three-part strip.]** ENSv2 already built the directory tree — every name can have its own registry, so names nest like folders: acme-corp, devops, svc-api. What's missing is the **sharing layer**. Today, EAC grants permissions one address on one name — there's no way to share a folder with a group.
 >
-> Cascade adds that permission layer, using relationship-based access control: a name trusts a team, and the team's members inherit — checked live, nothing copied. It's built into EAC's own role lookup and replaces nothing. And to be upfront: this MVP is deliberately one hop and one team, to test the rule itself."
+> ENS Drive adds that permission layer with Cascade — a relationship-based access control rule: a name trusts a team, and the team's members inherit — checked live, nothing copied. It's built into EAC's own role lookup and replaces nothing. And to be upfront: this MVP is deliberately one hop and one team, to test the rule itself."
 
 ---
 

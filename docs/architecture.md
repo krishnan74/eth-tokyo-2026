@@ -1,4 +1,6 @@
-# Cascade — smart-contract architecture
+# ENS Drive — smart-contract architecture (the Cascade permission layer)
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 What happens at the contract level, behind every action in the demo. Diagrams render on GitHub (Mermaid). Addresses are the live Sepolia deployment on the ENSv2 beta; the source is `contracts/src/` built on `ensdomains/contracts-v2@48b3e2d`.
 

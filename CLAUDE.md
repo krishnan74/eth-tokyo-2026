@@ -1,6 +1,6 @@
-# Cascade v2 — working notes for Claude
+# ENS Drive (powered by Cascade) — working notes for Claude
 
-A one-hop EAC fallthrough for ENSv2 subnames: `CascadeSubregistry` overrides EAC's `_getRoles` hook so that, on any subname, an account also holds the regular roles the parent grants a team contract — if the account is a member of that team. A feedback demo for the ENS team, not a prize submission.
+A one-hop EAC fallthrough for ENSv2 subnames: `CascadeSubregistry` overrides EAC's `_getRoles` hook so that, on any subname, an account also holds the regular roles the parent grants a team contract — if the account is a member of that team. A feedback demo for the ENS team, not a prize submission. **Naming:** the product is *ENS Drive*; *Cascade* is the permission mechanism — keep `Cascade…` for contracts and code identifiers (they match the Sepolia deployment); use "ENS Drive" in user-facing product text.
 
 Read [`docs/plan.md`](docs/plan.md) first — it opens with a status table.
 

@@ -1,4 +1,6 @@
-# Cascade contracts, explained
+# ENS Drive contracts, explained (Cascade)
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 How the contracts are structured, how a call flows through them, what state they hold, how they were deployed and wired, and the technical details worth knowing before anyone asks. Everything here matches the code in `contracts/src/` and the Sepolia deployment in `deployments/sepolia.json`.
 

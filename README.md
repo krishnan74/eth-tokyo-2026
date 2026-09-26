@@ -1,8 +1,8 @@
-# Cascade — Google Drive–style sharing for ENS names
+# ENS Drive — Google Drive–style sharing for ENS names
 
-A feedback demo for the ENS team, on the ENSv2 beta deployment on Sepolia.
+A feedback demo for the ENS team, on the ENSv2 beta deployment on Sepolia. *ENS Drive* is the product; *Cascade* is its permission layer (the `CascadeSubregistry` contract).
 
-**ENSv2 already built the directory tree:** every name can have its own registry, so names nest like folders (`acme-corp.eth › devops › svc-api`). **What's missing is the permission layer:** Enhanced Access Control grants roles one address on one name, so there's no way to share a folder with a group. **Cascade adds that layer using relationship-based access control (ReBAC):** a parent name grants a role to a team contract, and the team's members inherit it on every subname under it — current and future — checked live, with nothing copied onto the names. One role write to join or leave; nothing EAC does today is replaced.
+**ENSv2 already built the directory tree:** every name can have its own registry, so names nest like folders (`acme-corp.eth › devops › svc-api`). **What's missing is the permission layer:** Enhanced Access Control grants roles one address on one name, so there's no way to share a folder with a group. **ENS Drive adds that layer with Cascade, a relationship-based access control (ReBAC) rule inside EAC:** a parent name grants a role to a team contract, and the team's members inherit it on every subname under it — current and future — checked live, with nothing copied onto the names. One role write to join or leave; nothing EAC does today is replaced.
 
 ## What is new, and what is stock ENSv2
 

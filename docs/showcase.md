@@ -4,7 +4,7 @@ Ready-to-paste text for the ETHGlobal showcase (and anywhere else the project is
 
 ## Name
 
-Cascade
+ENS Drive (powered by Cascade)
 
 ## Tagline (≤ 100 characters)
 
@@ -16,7 +16,7 @@ ENSv2 already built the directory tree: every name can have its own registry, so
 
 ## What it does
 
-Cascade adds the missing permission layer to ENSv2 using relationship-based access control (ReBAC). A parent name shares a role with a team contract — like sharing a folder with a group — and the team's members inherit that role on every subname under it, checked live on every call. Add someone to the team once and they can manage every name; remove them once and access is gone everywhere. Nothing is written to the names, and nothing ENSv2 does today is replaced: the MVP is deliberately one hop and one team per registry.
+ENS Drive adds the missing permission layer to ENSv2 with Cascade, a relationship-based access control (ReBAC) rule built into ENSv2's own access control. A parent name shares a role with a team contract — like sharing a folder with a group — and the team's members inherit that role on every subname under it, checked live on every call. Add someone to the team once and they can manage every name; remove them once and access is gone everywhere. Nothing is written to the names, and nothing ENSv2 does today is replaced: the MVP is deliberately one hop and one team per registry.
 
 The demo is a minimal shared-drive view on real ENSv2 contracts on Sepolia: the `devops` folder is a name with its own registry, files are subnames, and dragging an address into the `devops-team` group makes every file editable. A "Behind the scenes" panel replays each transaction and shows the actual contract calls.
 

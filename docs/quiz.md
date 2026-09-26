@@ -1,4 +1,6 @@
-# Cascade quiz
+# ENS Drive quiz
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 36 questions in 10 sections, from the basics up to pitch scenarios. Answer each one before scrolling to the **answer key** at the bottom — every answer comes with a one-line explanation. Aim for 30+ before pitching.
 

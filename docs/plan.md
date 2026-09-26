@@ -1,4 +1,6 @@
-# Cascade v2 — living build plan
+# ENS Drive (powered by Cascade) — living build plan
+
+> **Naming:** *ENS Drive* is the product; *Cascade* is its permission layer — the `CascadeSubregistry` contract and the ReBAC rule it implements. Contract and code names stay `Cascade…`, matching the Sepolia deployment.
 
 Original input: [`../plan.md`](../plan.md), kept unedited. This file is the working version and the handoff between sessions.
 
