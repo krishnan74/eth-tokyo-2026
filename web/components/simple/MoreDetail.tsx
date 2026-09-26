@@ -8,7 +8,7 @@ import { V2_TITLES, type V2ActionName, type V2Result } from "@/lib/cascade/v2hoo
 
 import { Activity } from "../cascade/Activity";
 import { Context } from "../cascade/Context";
-import { Ask, Fit, Problem, Roadmap } from "../pitch/Sections";
+import { Fit, Problem } from "../pitch/Sections";
 
 function Item({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -40,8 +40,6 @@ export function MoreDetail({ txs, member, lastWrite, cascadeLog }: { txs: TxEntr
       <ul className="border-b border-line">
         <Item title="Why not root grants or a Safe?" hint="How teams work around EAC today, and what that costs."><Problem /></Item>
         <Item title="How it fits into EAC" hint="What stays exactly the same, and what changes."><Fit /></Item>
-        <Item title="Roadmap" hint="From one folder to full relationship-based access — what's live and what's next."><Roadmap /></Item>
-        <Item title="Questions for the ENS team" hint="What decides where this goes next."><Ask /></Item>
         <Item title="Limits and numbers" hint="Trust assumptions, gas, and the workarounds in numbers."><Context /></Item>
         <Item title="Transaction history" hint={`${cascadeLog.length + txs.length} transaction${cascadeLog.length + txs.length === 1 ? "" : "s"} from this browser.`}>
           <div className="flex flex-col gap-8">
