@@ -77,7 +77,7 @@ The form's "How are you using this Protocol / API?" field takes this section's t
 
 - **Repo:** `https://github.com/krishnan74/eth-tokyo-2026` — **still private.** The ENS track requires open source on GitHub; judges get a 404 until it is made public.
 - **Code link (ENS prize, "link to the line of code where the tech is used"):** `https://github.com/krishnan74/eth-tokyo-2026/blob/fdff7192ac5ab9815afde3b7849147a67b909174/contracts/src/CascadeSubregistry.sol#L116-L122` — the `_getRoles` override. Pinned to a commit so the lines never move.
-- **Live demo:** not deployed. The ENS track asks for a live demo link; a hosted read-only UI (reads live, writes off) is the plan.
+- **Live demo:** https://ens-drive.vercel.app — the full demo on live Sepolia: every button sends a real transaction and "Behind the scenes" replays it with `cast run`. Signs with dedicated least-privilege keys and a capped test-ETH budget. Deployed 2026-09-26; add it to the form.
 - **Video:** not yet submitted — script in [`demo-video.md`](demo-video.md).
 - **Contracts:** the three Etherscan addresses above.
 - **Submitted at commit:** `fdff719` (HEAD when the form was filled).

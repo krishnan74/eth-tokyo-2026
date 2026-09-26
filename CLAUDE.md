@@ -43,6 +43,7 @@ npm run ui:start                                   # serve the production build 
 - Never print private keys. Derive addresses with `cast wallet address $KEY`.
 - The UI's server reads the same root `.env` (`web/lib/cascade/server.ts`); keys never go to the browser. Writes are enabled only under `next dev` or with `CASCADE_UI_WRITES=1` — do not deploy with writes on.
 - UI env: `NEXT_PUBLIC_RPC_URL` (browser reads), `CASCADE_RPC_URL` (server signing). Both default to Sepolia publicnode.
+- Hosted demo: https://ens-drive.vercel.app (Vercel project `ens-drive`, deployed from `main` with `npx vercel deploy --prod`). **Full demo with writes**, but signed by dedicated keys in `.env.hosted` (gitignored, never print or upload the file): hosted operator `0x0408826423AAFCEB93b3832c8847ED1225dBBD47` holds only `ROLE_REGISTRAR` on CascadeSubregistry root and `ROLE_MEMBER_ADMIN` on TeamRegistry root, funded by `npm run setup:hosted -- --write`; hosted outsider `0x76961ACBe3867400721C84434227a9e2EcaaE673`. Never put the main operator key on Vercel. Rate limits in `web/lib/cascade/ratelimit.ts`; `cast` for traces comes from `scripts/fetch-cast.sh` at build time. `.vercelignore` patterns must be anchored (`/lib/`) — an unanchored `lib/` also dropped `web/lib` and broke the first deploy.
 
 ## Live (Sepolia, ENSv2 beta deployment)
 
