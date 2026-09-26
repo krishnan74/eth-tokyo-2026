@@ -1,50 +1,67 @@
 @import "tailwindcss";
 
-/* Same visual grammar as the terminal demo: native EAC = gray, Cascade = teal, success = green, failure = coral. */
+/*
+ * Cascade — "inheritance". A cool mineral paper, near-black ink, and one owned accent: cascade teal,
+ * the colour of permission flowing downhill. Semantic green/coral only for outcomes.
+ * Grammar shared with the terminal demo: native EAC = ink/gray, Cascade = teal.
+ */
 :root {
-  --bg: #f3f5f4;
-  --surface: #ffffff;
-  --sunken: #eef1f0;
-  --ink: #16202a;
-  --muted: #5a6571;
-  --rule: #dce2e3;
-  --native: #66717d;
-  --native-soft: #e9ecee;
-  --cascade: #0b7f86;
-  --cascade-soft: #dff1f1;
-  --ok: #1d7f47;
-  --ok-soft: #e1f3e8;
-  --bad: #bf3f2b;
-  --bad-soft: #f8e5e1;
-  --warn: #9a6400;
-  --warn-soft: #f7edd8;
+  --bg: #eef0ed;
+  --paper: #f6f7f4;
+  --surface: #fbfbf9;
+  --sunken: #e6e9e5;
+  --ink: #0d1413;
+  --ink-2: #3a4543;
+  --muted: #5c6865;
+  --faint: #b3bcb9;
+  --line: #d9dedb;
+  --cascade: #06706c;
+  --cascade-2: #5fd0c6;
+  --cascade-soft: #dcefec;
+  --ok: #0e6e37;
+  --ok-soft: #dff1e6;
+  --bad: #ad3620;
+  --bad-soft: #f8e3dd;
+  --warn: #7f5608;
+  --warn-soft: #f6ebd3;
+  /* The inverted "formula" band stays dark in both themes, with its own readable foregrounds. */
+  --inv-bg: #0d1413;
+  --inv-fg: #f4f6f3;
+  --inv-muted: #a3b0ad;
+  --inv-accent: #6fd8cd;
+  /* Text on a solid teal button. */
+  --on-cascade: #ffffff;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.87, 0, 0.13, 1);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1317; --surface: #151c22; --sunken: #111820; --ink: #e2e8eb; --muted: #95a2ad; --rule: #263039;
-    --native: #8e9aa6; --native-soft: #1d252d; --cascade: #3cc3cb; --cascade-soft: #12302f;
-    --ok: #52c283; --ok-soft: #132c1f; --bad: #ee7b65; --bad-soft: #35201b; --warn: #e3b35c; --warn-soft: #30271a;
+    --bg: #0a0f0e; --paper: #0e1413; --surface: #131a19; --sunken: #182120; --ink: #eaf0ee; --ink-2: #bcc7c4; --muted: #8c9996; --faint: #34403d; --line: #202a28;
+    --cascade: #37c9bf; --cascade-2: #8ff0e4; --cascade-soft: #0e2a28; --ok: #4fd08a; --ok-soft: #0f2a1c; --bad: #f28068; --bad-soft: #2e1813; --warn: #e5b458; --warn-soft: #2a2213;
+    --inv-bg: #182422; --inv-fg: #eef3f1; --inv-muted: #a6b3b0; --inv-accent: #7ae6da; --on-cascade: #03201d;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1317; --surface: #151c22; --sunken: #111820; --ink: #e2e8eb; --muted: #95a2ad; --rule: #263039;
-  --native: #8e9aa6; --native-soft: #1d252d; --cascade: #3cc3cb; --cascade-soft: #12302f;
-  --ok: #52c283; --ok-soft: #132c1f; --bad: #ee7b65; --bad-soft: #35201b; --warn: #e3b35c; --warn-soft: #30271a;
+  --bg: #0a0f0e; --paper: #0e1413; --surface: #131a19; --sunken: #182120; --ink: #eaf0ee; --ink-2: #bcc7c4; --muted: #8c9996; --faint: #34403d; --line: #202a28;
+  --cascade: #37c9bf; --cascade-2: #8ff0e4; --cascade-soft: #0e2a28; --ok: #4fd08a; --ok-soft: #0f2a1c; --bad: #f28068; --bad-soft: #2e1813; --warn: #e5b458; --warn-soft: #2a2213;
+    --inv-bg: #182422; --inv-fg: #eef3f1; --inv-muted: #a6b3b0; --inv-accent: #7ae6da; --on-cascade: #03201d;
   color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
   --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
-  --color-rule: var(--rule);
-  --color-native: var(--native);
-  --color-native-soft: var(--native-soft);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
   --color-cascade: var(--cascade);
+  --color-cascade-2: var(--cascade-2);
   --color-cascade-soft: var(--cascade-soft);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
@@ -52,19 +69,54 @@
   --color-bad-soft: var(--bad-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
+  --color-inv: var(--inv-bg);
+  --color-inv-fg: var(--inv-fg);
+  --color-inv-muted: var(--inv-muted);
+  --color-inv-accent: var(--inv-accent);
+  --color-on-cascade: var(--on-cascade);
   --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: var(--font-instrument), "Times New Roman", serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html { background: var(--bg); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+::selection { background: var(--cascade); color: var(--paper); }
 h1, h2, h3 { text-wrap: balance; }
-:focus-visible { outline: 2px solid var(--cascade); outline-offset: 2px; }
+p { text-wrap: pretty; }
+:focus-visible { outline: 2px solid var(--cascade); outline-offset: 3px; border-radius: 8px; }
+
+.display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 0.95; }
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Paper grain — a static, GPU-free texture so the page reads as a document, not a dashboard. */
+.grain::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background-image: radial-gradient(color-mix(in oklab, var(--ink) 7%, transparent) 0.6px, transparent 0.6px);
+  background-size: 3px 3px;
+}
+
+/* Permission flowing: a moving dash along an active connector. transform-free, cheap. */
+@keyframes flow { to { background-position: 40px 0; } }
+@keyframes flow-y { to { background-position: 0 40px; } }
+.flow-x { background-image: repeating-linear-gradient(90deg, var(--cascade) 0 14px, var(--cascade-2) 14px 20px, transparent 20px 40px); animation: flow 1.1s linear infinite; }
+.flow-y { background-image: repeating-linear-gradient(180deg, var(--cascade) 0 14px, var(--cascade-2) 14px 20px, transparent 20px 40px); animation: flow-y 1.1s linear infinite; }
+
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+.pulse { animation: pulse-dot 1.1s var(--ease-inout) infinite; }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--cascade) 45%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+.beckon { animation: ring 1.6s var(--ease-out) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

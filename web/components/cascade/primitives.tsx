@@ -1,75 +1,89 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { etherscanAddress } from "@/lib/cascade/contracts";
 
-export function Card({ title, eyebrow, children, className = "", action }: { title?: ReactNode; eyebrow?: string; children: ReactNode; className?: string; action?: ReactNode }) {
+export const shortAddr = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+
+/** Native EAC vs Cascade — the terminal's two labels, as a quiet dot + word. */
+export function Kind({ kind }: { kind: "native" | "cascade" }) {
   return (
-    <section className={`rounded-lg border border-rule bg-surface p-5 ${className}`}>
-      {(title || eyebrow) && (
-        <header className="mb-4 flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            {eyebrow && <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{eyebrow}</span>}
-            {title && <h2 className="text-lg font-semibold leading-snug">{title}</h2>}
-          </div>
-          {action}
-        </header>
-      )}
-      {children}
-    </section>
+    <span className={`inline-flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.08em] ${kind === "cascade" ? "text-cascade" : "text-muted"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${kind === "cascade" ? "bg-cascade" : "bg-faint"}`} />
+      {kind === "cascade" ? "Cascade" : "Native EAC"}
+    </span>
   );
 }
 
-/** The terminal's [NATIVE EAC] / [CASCADE] labels. */
-export function KindTag({ kind }: { kind: "native" | "cascade" }) {
-  return kind === "native"
-    ? <span className="rounded bg-native-soft px-1.5 py-0.5 font-mono text-[10.5px] font-medium tracking-wide text-native">NATIVE EAC</span>
-    : <span className="rounded bg-cascade-soft px-1.5 py-0.5 font-mono text-[10.5px] font-medium tracking-wide text-cascade">CASCADE</span>;
-}
-
-export function Address({ value, label }: { value: string; label?: string }) {
+export function CopyAddress({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
-  const short = `${value.slice(0, 6)}…${value.slice(-4)}`;
+  const ref = useRef<HTMLAnchorElement>(null);
   async function copy() {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
+      setTimeout(() => setCopied(false), 1200);
     } catch {
-      window.getSelection()?.selectAllChildren(document.getElementById(`addr-${value}`)!);
+      if (ref.current) window.getSelection()?.selectAllChildren(ref.current);
     }
   }
   return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-xs">
-      {label && <span className="font-sans text-muted">{label}</span>}
-      <a id={`addr-${value}`} href={etherscanAddress(value)} target="_blank" rel="noreferrer" className="text-ink underline decoration-rule underline-offset-2 hover:decoration-cascade" title={value}>{short}</a>
-      <button type="button" onClick={copy} className="rounded px-1 text-muted hover:text-cascade" aria-label={`Copy ${value}`}>{copied ? "copied" : "copy"}</button>
-    </span>
+    <div className="flex items-center justify-between gap-4 py-2">
+      <span className="text-sm text-ink-2">{label}</span>
+      <span className="flex items-center gap-2">
+        <a ref={ref} href={etherscanAddress(value)} target="_blank" rel="noreferrer" title={value}
+          className="font-mono text-xs text-ink underline decoration-line underline-offset-4 hover:decoration-cascade">{shortAddr(value)}</a>
+        <button type="button" onClick={copy} className="w-12 text-right font-mono text-[11px] text-muted hover:text-ink">{copied ? "copied" : "copy"}</button>
+      </span>
+    </div>
   );
 }
 
-/** An always-available one-line explanation of a term, on hover or keyboard focus. */
-export function InfoTip({ text, label = "What is this?" }: { text: string; label?: string }) {
+/** A small (i) that explains a term on hover, focus or tap. */
+export function Tip({ children, label = "Explain" }: { children: ReactNode; label?: string }) {
   const id = useId();
   const [open, setOpen] = useState(false);
   return (
-    <span className="relative inline-flex">
+    <span className="relative inline-flex align-middle">
       <button type="button" aria-label={label} aria-describedby={id}
         onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-rule text-[10px] font-semibold text-muted hover:border-cascade hover:text-cascade">i</button>
-      <span id={id} role="tooltip"
-        className={`absolute bottom-6 left-1/2 z-20 w-64 -translate-x-1/2 rounded-md border border-rule bg-surface p-2.5 text-left text-xs leading-relaxed text-ink shadow-lg ${open ? "" : "hidden"}`}>
-        {text}
-      </span>
+        className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold text-muted ring-1 ring-line hover:text-cascade hover:ring-cascade">?</button>
+      <AnimatePresence>
+        {open && (
+          <motion.span id={id} role="tooltip" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}
+            className="absolute bottom-6 left-1/2 z-30 w-64 -translate-x-1/2 rounded-lg bg-ink px-3 py-2 text-left text-xs font-normal normal-case leading-relaxed tracking-normal text-bg shadow-xl">
+            {children}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </span>
   );
 }
 
-export const Check = ({ v }: { v: boolean | undefined | "checking" | "pending" }) => {
-  if (v === "checking") return <span className="font-mono text-xs text-warn">checking…</span>;
-  if (v === "pending") return <span className="font-mono text-xs text-muted">·</span>;
-  if (v === undefined) return <span className="font-mono text-xs text-muted">skipped</span>;
-  return v ? <span className="font-mono text-sm font-semibold text-ok">✓ yes</span> : <span className="font-mono text-sm font-semibold text-bad">✗ no</span>;
-};
+/** Briefly highlights its content when `value` changes — the terminal's "← just changed". */
+export function Flash({ value, children, className = "" }: { value: string; children: ReactNode; className?: string }) {
+  const prev = useRef(value);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (prev.current !== value) {
+      prev.current = value;
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [value]);
+  return (
+    <span className={`relative rounded-md transition-shadow duration-700 ${flash ? "shadow-[0_0_0_3px_var(--warn-soft)]" : ""} ${className}`}>
+      {children}
+      <AnimatePresence>
+        {flash && (
+          <motion.span initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+            className="absolute -right-2 top-1/2 translate-x-full -translate-y-1/2 whitespace-nowrap font-mono text-[10px] text-warn">changed</motion.span>
+        )}
+      </AnimatePresence>
+    </span>
+  );
+}
