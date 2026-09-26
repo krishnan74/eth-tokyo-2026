@@ -25,6 +25,8 @@ A feedback demo for the ENS team, on the ENSv2 beta deployment on Sepolia. *ENS 
 7. The operator, who holds `ROLE_SET_TEAM`, tries to set a plain wallet as the team → **reverted** (`TeamNotContract`).
 8. The parent re-issues `devops` (unregister + register). Same pointer, same member → write **reverted**: the team's grant was scoped to the old registration.
 
+Clone with `--recurse-submodules` (ENSv2's `contracts-v2` is a pinned submodule; Foundry and Node are needed). `npm test` and the UI build need no keys; for anything that sends transactions, `cp .env.example .env` and fill in a Sepolia RPC URL and the two demo keys.
+
 ```bash
 npm install && forge build
 npm test                              # 17 Foundry tests
