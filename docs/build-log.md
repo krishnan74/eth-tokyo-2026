@@ -46,3 +46,9 @@
 - First decoding pass decoded label hashes and timestamps as role lists — misleading; rewrote it to decode by context. Full replay failed once on live Sepolia (re-executing the block's earlier txs); added a labelled `--quick` fallback.
 - Page reduced to problem / try it / under the hood, plus a collapsed "More detail". Added `docs/architecture.md` (Mermaid) and a Reset demo action; used it on Sepolia to take the outsider out of the team left over from the pitch run.
 - Fork click-through: all seven steps as expected, every step's trace decoded correctly, no console errors, no overflow at 400px.
+
+## 2026-09-26 (later) — shared-drive demo
+
+- The presenter pitched Cascade to ENS as "Google Drive for names", so the demo became a minimal shared-drive view: the `devops` folder (a name with its own registry), files (subnames), the `devops-team` group (TeamRegistry), and a "Who has access" panel showing the outsider's access *via devops-team* next to *given directly: none*. Drag-and-drop kept for joining/leaving the group; the attack is a button. No Google branding.
+- Light theme is now the default regardless of system setting, with a toggle applied before paint. Removed the old board, coach, roles strip and checks components.
+- Fork click-through (system set to dark): page loaded light; all seven actions as expected; who-has-access flipped correctly; every trace decoded; theme toggle works; no console errors; no overflow at 400px. Not yet re-run on live Sepolia.
